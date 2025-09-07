@@ -34,6 +34,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 /*
  * This OpMode ramps a single motor speed up and down repeatedly until Stop is pressed.
@@ -48,7 +49,6 @@ import com.qualcomm.robotcore.hardware.CRServo;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 @TeleOp(name = "Concept: Ramp Motor Speed", group = "Concept")
-@Disabled
 public class ConceptRampMotorSpeed extends LinearOpMode {
 
     static final double INCREMENT   = 0.01;     // amount to ramp motor each CYCLE_MS cycle
@@ -74,13 +74,14 @@ public class ConceptRampMotorSpeed extends LinearOpMode {
         // Connect to motor (Assume standard left wheel)
         // Change the text in quotes to match any motor name on your robot.
         Left = hardwareMap.get(DcMotor.class, "left_launch_top");
-        Right = hardwareMap.get(DcMotor.class, "left_launch_top");
+        Right = hardwareMap.get(DcMotor.class, "right_launch_top");
         leftServo = hardwareMap.get(CRServo.class, "left_servo");
         rightServo = hardwareMap.get(CRServo.class, "right_servo");
         bottomServo = hardwareMap.get(CRServo.class, "bottom_servo");
-        leftServo.setDirection(CRServo.Direction.FORWARD);
-        rightServo.setDirection(CRServo.Direction.REVERSE);
-        bottomServo.setDirection(CRServo.Direction.REVERSE);
+        Left.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftServo.setDirection(CRServo.Direction.REVERSE);
+        rightServo.setDirection(CRServo.Direction.FORWARD);
+        bottomServo.setDirection(CRServo.Direction.FORWARD);
         // Wait for the start button
         telemetry.addData(">", "Press Start to run Motors." );
         telemetry.update();
