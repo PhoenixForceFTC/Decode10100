@@ -79,8 +79,8 @@ public class ConceptRampMotorSpeed extends LinearOpMode {
         rightServo = hardwareMap.get(CRServo.class, "right_servo");
         bottomServo = hardwareMap.get(CRServo.class, "bottom_servo");
         Left.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftServo.setDirection(CRServo.Direction.REVERSE);
-        rightServo.setDirection(CRServo.Direction.FORWARD);
+        leftServo.setDirection(CRServo.Direction.FORWARD);
+        rightServo.setDirection(CRServo.Direction.REVERSE);
         bottomServo.setDirection(CRServo.Direction.FORWARD);
         // Wait for the start button
         telemetry.addData(">", "Press Start to run Motors." );
