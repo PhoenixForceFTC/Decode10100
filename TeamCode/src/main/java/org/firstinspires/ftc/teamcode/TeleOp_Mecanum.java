@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 //endregion
 
@@ -73,6 +74,7 @@ public class TeleOp_Mecanum extends LinearOpMode
         //--- Robot Initialize
         //------------------------------------------------------------------------------------------
         int robotVersion = 1; //--- 1 for CRAB-IER and 2 for ARIEL
+        int speed = 10;
         _robot.init(robotVersion);
 
         //------------------------------------------------------------------------------------------
@@ -102,8 +104,27 @@ public class TeleOp_Mecanum extends LinearOpMode
             //--- Drive
             //------------------------------------------------------------------------------------------
             _robot.drive.driveControl(0.5); //--- Both D-pad for directional movement and Joysticks for mecanum movement
-            _robot.shooter.shoot();
+            _robot.shooter.shoot(speed);
+            if(gamepad1.left_bumper&&speed>0){
+                if(speed>10){
+                    speed -=10;
+                }
+                else{
+                    speed = 0;
+                }
+            }
+            if(gamepad1.right_bumper&&speed<6000){
+                if(speed<5990){
+                    speed +=10;
 
+                }
+                else{
+                    speed = 6000;
+                }
+            }
+            telemetry.addData("speed in rpm", speed);
+            telemetry.addData("speed reading from the motor in ticks per second",_robot.shooter.getSpeed());
+            _robot.shooter.getTelemetry();
             //------------------------------------------------------------------------------------------
             //--- Intake
             //------------------------------------------------------------------------------------------

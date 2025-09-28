@@ -1,12 +1,21 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
 //region --- Imports ---
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.utils.MotorUtils;
+
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.canvas.Canvas;
+import com.acmerobotics.dashboard.config.Config;
+
+import kotlin.reflect.KDeclarationContainer;
 //endregion
 
+@Config
 public class Shooter
 {
 
@@ -18,11 +27,19 @@ public class Shooter
     private final DcMotorEx _motorShooterRight;
     private final Gamepad _gamepad;
     private final Telemetry _telemetry;
-
+    //endregion
     private final Boolean _showInfo;
 
     public static Integer ticksPerRotation = 28;
-    //endregion
+
+
+    public static double kP = 0;
+    public static double kI = 0;
+    public static double kD = 0;
+    public static double kF = 0;
+
+    //defualt pidf is p:10 i:3 d:0 f:0
+
 
     //region --- Constructor
     public Shooter(DcMotorEx motorShooterLeft, DcMotorEx motorShooterRight, Gamepad gamepad, Telemetry telemetry, boolean showInfo)
@@ -37,20 +54,22 @@ public class Shooter
 
     public void initialize()
     {
-
+        //_motorShooterLeft.setVelocityPIDFCoefficients(kP,kI ,kD , kF);
+        //_motorShooterRight.setVelocityPIDFCoefficients(kP,kI ,kD , kF);
     }
-    public void shoot(){
-        _motorShooterLeft.setVelocity(3000*ticksPerRotation);
-        _motorShooterRight.setVelocity(3000*ticksPerRotation);
+    public void shoot(int speed){
+        _motorShooterLeft.setVelocity(speed*ticksPerRotation/60);
+        _motorShooterRight.setVelocity(speed*ticksPerRotation/60);
     }
 
 
     public void getTelemetry(){
-        _telemetry.addData("Lift -> Target Position Left", _motorShooterLeft.getTargetPosition());
-        _telemetry.addData("Lift -> Target Position Right", _motorShooterRight.getTargetPosition());
-        _telemetry.addData("Lift -> Current Position Left", MotorUtils.getCurrentPosition(_motorShooterLeft));
-        _telemetry.addData("Lift -> Current Position Right", MotorUtils.getCurrentPosition(_motorShooterRight));
+        _telemetry.addData("pidf coeficients for get velocoity", _motorShooterLeft.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));
     }
+    public double getSpeed(){
+        return(_motorShooterLeft.getVelocity());
+    }
+
 
 
 }
