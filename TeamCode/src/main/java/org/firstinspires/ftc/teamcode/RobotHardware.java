@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 //region --- Imports ---
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -105,6 +106,8 @@ public class RobotHardware {
      */
     public void init(int robotVersion)
     {
+        FtcDashboard dashboard = FtcDashboard.getInstance();
+        myOpMode.telemetry = dashboard.getTelemetry();
         //------------------------------------------------------------------------------------------
         //--- Motor Config
         //------------------------------------------------------------------------------------------

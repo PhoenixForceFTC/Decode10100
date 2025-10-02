@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.utils.MotorUtils;
 
 import androidx.annotation.NonNull;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 
@@ -26,10 +27,13 @@ public class Shooter
 
     //region --- Hardware ---
     private final DcMotorEx _motorShooterLeft;
-    FtcDashboard dash = FtcDashboard.getInstance();
+    FtcDashboard dashboard = FtcDashboard.getInstance();
+
+    Telemetry telemetry = dashboard.getTelemetry();
     private final DcMotorEx _motorShooterRight;
     private final Gamepad _gamepad;
     private final Telemetry _telemetry;
+
     //endregion
     private final Boolean _showInfo;
 
@@ -73,11 +77,12 @@ public class Shooter
 
     public void getTelemetry(){
         _telemetry.addData("pidf coeficients for get velocoity", _motorShooterLeft.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));
+        _telemetry.addData("string",_motorShooterLeft.getVelocity());
         TelemetryPacket packet = new TelemetryPacket();
         packet.addLine("this is a string line");
         packet.put("motorSpeed", _motorShooterLeft.getVelocity());
         packet.put("speed", speed);
-        dash.sendTelemetryPacket(packet);
+        dashboard.sendTelemetryPacket(packet);
     }
     public double getSpeed(){
         return(_motorShooterLeft.getVelocity());
