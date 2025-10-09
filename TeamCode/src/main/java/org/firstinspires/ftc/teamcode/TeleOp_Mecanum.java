@@ -2,10 +2,15 @@ package org.firstinspires.ftc.teamcode;
 
 //region -- Imports ---
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.internal.opmode.TelemetryImpl;
 //endregion
 
 //region --- Controls ---
@@ -63,6 +68,9 @@ public class TeleOp_Mecanum extends LinearOpMode
     //------------------------------------------------------------------------------------------
     RobotHardware _robot = new RobotHardware(this);
     public ElapsedTime _runtime = new ElapsedTime();
+
+
+
 
     //------------------------------------------------------------------------------------------
     //--- OpMode
@@ -125,6 +133,7 @@ public class TeleOp_Mecanum extends LinearOpMode
             telemetry.addData("speed in rpm", speed);
             telemetry.addData("speed reading from the motor in ticks per second",_robot.shooter.getSpeed());
             _robot.shooter.getTelemetry();
+            _robot.limelightHardware.loop();
             //------------------------------------------------------------------------------------------
             //--- Intake
             //------------------------------------------------------------------------------------------

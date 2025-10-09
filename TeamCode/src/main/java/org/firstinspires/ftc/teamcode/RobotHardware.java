@@ -2,12 +2,17 @@ package org.firstinspires.ftc.teamcode;
 
 //region --- Imports ---
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.hardware.LimelightHardware;
 import org.firstinspires.ftc.teamcode.hardware.Shooter;
 
 import org.firstinspires.ftc.teamcode.hardware.Drive;
@@ -73,6 +78,9 @@ public class RobotHardware {
     public DcMotor motorDriveFrontRight = null;
     public DcMotor motorDriveFrontLeft = null;
     public DcMotor motorDriveRearRight = null;
+
+    FtcDashboard dashboard = FtcDashboard.getInstance();
+    public Telemetry dashBoard = dashboard.getTelemetry();
     public DcMotor motorDriveRearLeft = null;
 
     //------------------------------------------------------------------------------------------
@@ -90,8 +98,12 @@ public class RobotHardware {
     //--- Custom Hardware Classes
     //------------------------------------------------------------------------------------------
     public Shooter shooter;
+    public LimelightHardware limelightHardware;
     public Drive drive;
+    public IMU imu;
 
+    public Limelight3A limelight;
+    public RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP, RevHubOrientationOnRobot.UsbFacingDirection.LEFT);
     //------------------------------------------------------------------------------------------
     //--- Define a constructor that allows the OpMode to pass a reference to itself
     //------------------------------------------------------------------------------------------
@@ -106,8 +118,10 @@ public class RobotHardware {
      */
     public void init(int robotVersion)
     {
-        FtcDashboard dashboard = FtcDashboard.getInstance();
-        myOpMode.telemetry = dashboard.getTelemetry();
+        //FtcDashboard dashboard = FtcDashboard.getInstance();
+        //myOpMode.telemetry = dashboard.getTelemetry();
+        // i do this in the main teleop now that might be wrong code structure
+
         //------------------------------------------------------------------------------------------
         //--- Motor Config
         //------------------------------------------------------------------------------------------
@@ -140,6 +154,11 @@ public class RobotHardware {
         motorShooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorShooterRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        imu = myOpMode.hardwareMap.get(IMU.class,"imu");
+        limelight = myOpMode.hardwareMap.get(Limelight3A.class,"limelight");
+        //imu.initialize(new IMU.Parameters(revHubOrientationOnRobot));
+
+
         //------------------------------------------------------------------------------------------
         //--- Servo Config
         //------------------------------------------------------------------------------------------
@@ -169,6 +188,7 @@ public class RobotHardware {
                 robotVersion,
                 _showInfo
         );
+        limelightHardware = new LimelightHardware(imu,limelight, myOpMode.gamepad1, myOpMode.telemetry, 1,true);
         //------------------------------------------------------------------------------------------
         //--- Messages
         //------------------------------------------------------------------------------------------
