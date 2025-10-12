@@ -45,9 +45,9 @@ public class Shooter
     public double speed;
 
 
-    public static double kP = 100;
-    public static double kI = 3;
-    public static double kD = 1;
+    public static double kP = 200;
+    public static double kI = 10;
+    public static double kD = 60;
     public static double kF = 0;
 
     //defualt pidf is p:10 i:3 d:0 f:0
