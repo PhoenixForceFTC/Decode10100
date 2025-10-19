@@ -5,7 +5,6 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -14,6 +13,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.LimelightHardware;
 import org.firstinspires.ftc.teamcode.hardware.Shooter;
+import org.firstinspires.ftc.teamcode.hardware.Intake_Incomplete;
+import org.firstinspires.ftc.teamcode.hardware.Kickers;
 
 import org.firstinspires.ftc.teamcode.hardware.Drive;
 //endregion
@@ -78,29 +79,34 @@ public class RobotHardware {
     public DcMotor motorDriveFrontRight = null;
     public DcMotor motorDriveFrontLeft = null;
     public DcMotor motorDriveRearRight = null;
+    public DcMotor motorDriveRearLeft = null;
 
     FtcDashboard dashboard = FtcDashboard.getInstance();
     public Telemetry dashBoard = dashboard.getTelemetry();
-    public DcMotor motorDriveRearLeft = null;
 
     //------------------------------------------------------------------------------------------
     //--- Utility Motors
     //------------------------------------------------------------------------------------------
     public DcMotorEx motorShooterLeft = null;
     public DcMotorEx motorShooterRight = null;
+    public DcMotorEx motorIntake = null;
 
     //------------------------------------------------------------------------------------------
     //--- Servos
     //------------------------------------------------------------------------------------------
-
+    public Servo kicker1 = null;
+    public Servo kicker2 = null;
+    public Servo kicker3 = null;
 
     //------------------------------------------------------------------------------------------
     //--- Custom Hardware Classes
     //------------------------------------------------------------------------------------------
     public Shooter shooter;
+    public Intake_Incomplete intake;
     public LimelightHardware limelightHardware;
     public Drive drive;
     public IMU imu;
+    public Kickers kickers;
 
     public Limelight3A limelight;
     public RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP, RevHubOrientationOnRobot.UsbFacingDirection.LEFT);
@@ -140,9 +146,11 @@ public class RobotHardware {
         //--- Utility Motors
         motorShooterLeft = myOpMode.hardwareMap.get(DcMotorEx.class, "left_launch_top"); //--- Lifting Arm Left
         motorShooterRight = myOpMode.hardwareMap.get(DcMotorEx.class, "right_launch_top"); //--- Lifting Arm Right
+        motorIntake = myOpMode.hardwareMap.get(DcMotorEx.class, "intake_motor");
 
         motorShooterLeft.setDirection(DcMotor.Direction.REVERSE);
         motorShooterRight.setDirection(DcMotor.Direction.FORWARD);
+        motorIntake.setDirection(DcMotor.Direction.FORWARD);
 
 
 
@@ -153,6 +161,10 @@ public class RobotHardware {
         motorShooterRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorShooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorShooterRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        kicker1 = myOpMode.hardwareMap.get(Servo.class, "kicker_1");
+        kicker2 = myOpMode.hardwareMap.get(Servo.class, "kicker_2");
+        kicker3 = myOpMode.hardwareMap.get(Servo.class, "kicker_3");
 
         imu = myOpMode.hardwareMap.get(IMU.class,"imu");
         limelight = myOpMode.hardwareMap.get(Limelight3A.class,"limelight");
@@ -188,7 +200,27 @@ public class RobotHardware {
                 robotVersion,
                 _showInfo
         );
-        limelightHardware = new LimelightHardware(imu,limelight, myOpMode.gamepad1, myOpMode.telemetry, 1,true);
+        intake = new Intake_Incomplete(
+                motorIntake,
+                myOpMode.gamepad2,
+                myOpMode.telemetry,
+                false);
+
+        limelightHardware = new LimelightHardware(imu,
+                limelight,
+                myOpMode.gamepad1,
+                myOpMode.telemetry,
+                1,
+                true);
+
+        kickers = new Kickers(kicker1,
+                kicker2,
+                kicker3,
+                myOpMode.gamepad2,
+                myOpMode.telemetry,
+                true);
+
+
         //------------------------------------------------------------------------------------------
         //--- Messages
         //------------------------------------------------------------------------------------------
