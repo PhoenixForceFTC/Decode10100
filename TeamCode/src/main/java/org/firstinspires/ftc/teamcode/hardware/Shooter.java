@@ -86,7 +86,6 @@ public class Shooter
         this.speed = speed*ticksPerRotation/60;
     }
 
-
     public void getTelemetry(){
         TelemetryPacket packet = new TelemetryPacket();
         packet.put("pidf coeficients for get velocoity", _motorShooterLeft.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));

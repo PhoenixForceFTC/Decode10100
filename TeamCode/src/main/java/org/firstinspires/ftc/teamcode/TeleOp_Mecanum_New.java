@@ -54,7 +54,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 //----------------------------------------------------------------------
 //endregion
 
-@TeleOp(name="TeleOp", group="1")
+@TeleOp(name="TeleOp_Mecanum_New", group="1")
 public class TeleOp_Mecanum_New extends LinearOpMode
 {
     //------------------------------------------------------------------------------------------
@@ -75,7 +75,7 @@ public class TeleOp_Mecanum_New extends LinearOpMode
         //------------------------------------------------------------------------------------------
         //--- Robot Initialize
         //------------------------------------------------------------------------------------------
-        int robotVersion = 1; //--- 1 for CRAB-IER and 2 for ARIEL
+        int robotVersion = 1; //--- 1 for Alpha and 2 for Beta
         _robot.init(robotVersion);
 
         //------------------------------------------------------------------------------------------

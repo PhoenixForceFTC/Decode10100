@@ -4,10 +4,6 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
@@ -24,12 +20,18 @@ public class Kickers
     private final Gamepad _gamepad;
     private final Telemetry _telemetry;
 
-    private final double kicked = 0.1;
-    private final double zero = 0;
+    private final double kickedL = 0.25;
+    private final double zeroL = 0.5;
 
-    private Servo _kicker1;
-    private Servo _kicker2;
-    private Servo _kicker3;
+    private final double kickedM = 0.25;
+    private final double zeroM = 0.5;
+
+    private final double kickedR = 0.75;
+    private final double zeroR = 0.5;
+
+    private Servo _kickerLeft;
+    private Servo _kickerMid;
+    private Servo _kickerRight;
 
 
     //endregion
@@ -37,11 +39,11 @@ public class Kickers
 
 
     //region --- Constructor
-    public Kickers(Servo kicker1, Servo kicker2, Servo kicker3, Gamepad gamepad, Telemetry telemetry, boolean showInfo)
+    public Kickers(Servo kickerL, Servo kickerM, Servo kickerR, Gamepad gamepad, Telemetry telemetry, boolean showInfo)
     {
-        _kicker1 = kicker1;
-        _kicker2 = kicker2;
-        _kicker3 = kicker3;
+        _kickerLeft = kickerL;
+        _kickerMid = kickerM;
+        _kickerRight = kickerR;
         this._gamepad = gamepad;
         this._telemetry = telemetry;
         this._showInfo = showInfo;
@@ -49,21 +51,21 @@ public class Kickers
 
     public void run(){
         if(_gamepad.dpad_left){
-            _kicker1.setPosition(kicked);
+            _kickerLeft.setPosition(kickedL);
         }else{
-            _kicker1.setPosition(zero);
+            _kickerLeft.setPosition(zeroL);
         }
 
         if(_gamepad.dpad_up){
-            _kicker2.setPosition(kicked);
+            _kickerMid.setPosition(kickedM);
         }else{
-            _kicker2.setPosition(zero);
+            _kickerMid.setPosition(zeroM);
         }
 
         if(_gamepad.dpad_right){
-            _kicker3.setPosition(kicked);
+            _kickerRight.setPosition(kickedR);
         }else{
-            _kicker3.setPosition(zero);
+            _kickerRight.setPosition(zeroR);
         }
     }
 
@@ -76,16 +78,15 @@ public class Kickers
 
     public void getTelemetry(){
         /*TelemetryPacket packet = new TelemetryPacket();
-        packet.put("pidf coeficients for get velocoity", _motorShooterLeft.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));
         packet.addLine("this is a string line");
         packet.put("motorSpeed", _motorShooterLeft.getVelocity());
         packet.put("speed", speed);
         dashboard.sendTelemetryPacket(packet);*/
 
         if(_showInfo) {
-            _telemetry.addData("Kicker 1 Position: ", _kicker1.getPosition());
-            _telemetry.addData("Kicker 2 Position: ", _kicker2.getPosition());
-            _telemetry.addData("Kicker 3 Position: ", _kicker3.getPosition());
+            _telemetry.addData("Kicker 1 Position: ", _kickerLeft.getPosition());
+            _telemetry.addData("Kicker 2 Position: ", _kickerMid.getPosition());
+            _telemetry.addData("Kicker 3 Position: ", _kickerRight.getPosition());
         }
     }
 }

@@ -1,16 +1,15 @@
 package org.firstinspires.ftc.teamcode;
 
 //region --- Imports ---
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.LimelightHardware;
 import org.firstinspires.ftc.teamcode.hardware.Shooter;
 import org.firstinspires.ftc.teamcode.hardware.Intake_Incomplete;
@@ -81,8 +80,6 @@ public class RobotHardware {
     public DcMotor motorDriveRearRight = null;
     public DcMotor motorDriveRearLeft = null;
 
-    FtcDashboard dashboard = FtcDashboard.getInstance();
-    public Telemetry dashBoard = dashboard.getTelemetry();
 
     //------------------------------------------------------------------------------------------
     //--- Utility Motors
@@ -94,9 +91,9 @@ public class RobotHardware {
     //------------------------------------------------------------------------------------------
     //--- Servos
     //------------------------------------------------------------------------------------------
-    public Servo kicker1 = null;
-    public Servo kicker2 = null;
-    public Servo kicker3 = null;
+    public Servo kickerL = null;
+    public Servo kickerM = null;
+    public Servo kickerR = null;
 
     //------------------------------------------------------------------------------------------
     //--- Custom Hardware Classes
@@ -132,20 +129,21 @@ public class RobotHardware {
         //--- Motor Config
         //------------------------------------------------------------------------------------------
         //--- Drive Motors
-        motorDriveFrontLeft = myOpMode.hardwareMap.get(DcMotor.class, "fl");
-        motorDriveRearLeft = myOpMode.hardwareMap.get(DcMotor.class, "rl");
-        motorDriveFrontRight = myOpMode.hardwareMap.get(DcMotor.class, "fr");
-        motorDriveRearRight = myOpMode.hardwareMap.get(DcMotor.class, "rr");
+        motorDriveFrontLeft = myOpMode.hardwareMap.get(DcMotor.class, "FL");
+        motorDriveRearLeft = myOpMode.hardwareMap.get(DcMotor.class, "RL");
+        motorDriveFrontRight = myOpMode.hardwareMap.get(DcMotor.class, "FR");
+        motorDriveRearRight = myOpMode.hardwareMap.get(DcMotor.class, "RR");
 
         //--- Drive Motor Directions
-        motorDriveFrontLeft.setDirection(DcMotor.Direction.FORWARD);
-        motorDriveRearLeft.setDirection(DcMotor.Direction.FORWARD);
-        motorDriveFrontRight.setDirection(DcMotor.Direction.REVERSE);
-        motorDriveRearRight.setDirection(DcMotor.Direction.REVERSE);
+        motorDriveFrontLeft.setDirection(DcMotor.Direction.REVERSE);
+        motorDriveRearLeft.setDirection(DcMotor.Direction.REVERSE);
+        motorDriveFrontRight.setDirection(DcMotor.Direction.FORWARD);
+        motorDriveRearRight.setDirection(DcMotor.Direction.FORWARD);
 
         //--- Utility Motors
-        motorShooterLeft = myOpMode.hardwareMap.get(DcMotorEx.class, "left_launch_top"); //--- Lifting Arm Left
-        motorShooterRight = myOpMode.hardwareMap.get(DcMotorEx.class, "right_launch_top"); //--- Lifting Arm Right
+        motorShooterLeft = myOpMode.hardwareMap.get(DcMotorEx.class, "flyleft" +
+                ""); //--- Lifting Arm Left
+        motorShooterRight = myOpMode.hardwareMap.get(DcMotorEx.class, "flyright"); //--- Lifting Arm Right
         motorIntake = myOpMode.hardwareMap.get(DcMotorEx.class, "intake_motor");
 
         motorShooterLeft.setDirection(DcMotor.Direction.REVERSE);
@@ -162,9 +160,9 @@ public class RobotHardware {
         motorShooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorShooterRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        kicker1 = myOpMode.hardwareMap.get(Servo.class, "kicker_1");
-        kicker2 = myOpMode.hardwareMap.get(Servo.class, "kicker_2");
-        kicker3 = myOpMode.hardwareMap.get(Servo.class, "kicker_3");
+        kickerL = myOpMode.hardwareMap.get(Servo.class, "KL");
+        kickerM = myOpMode.hardwareMap.get(Servo.class, "KM");
+        kickerR = myOpMode.hardwareMap.get(Servo.class, "KR");
 
         imu = myOpMode.hardwareMap.get(IMU.class,"imu");
         limelight = myOpMode.hardwareMap.get(Limelight3A.class,"limelight");
@@ -213,9 +211,9 @@ public class RobotHardware {
                 1,
                 true);
 
-        kickers = new Kickers(kicker1,
-                kicker2,
-                kicker3,
+        kickers = new Kickers(kickerL,
+                kickerM,
+                kickerR,
                 myOpMode.gamepad2,
                 myOpMode.telemetry,
                 true);
