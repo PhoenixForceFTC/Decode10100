@@ -13,15 +13,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 import java.util.List;
-//endregion
 
 public class LimelightHardware2Axis
 {
     //region --- Constants ---
-    //--- Constants for Speed Multipliers
     //endregion
 
     //region --- Variables ---
+    private double _cameraTiltAngle = 0.0; // Camera tilt angle in degrees (positive = tilted up)
     //endregion
 
     //region --- Hardware ---
@@ -32,7 +31,6 @@ public class LimelightHardware2Axis
     private final boolean _showInfo;
     FtcDashboard dashboard = FtcDashboard.getInstance();
 
-
     private int _robotVersion;
     //endregion
 
@@ -41,7 +39,9 @@ public class LimelightHardware2Axis
                                   Gamepad gamepad, Telemetry telemetry, int robotVersion, boolean showInfo)
     {
         _IMU= imu;
-        RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,RevHubOrientationOnRobot.UsbFacingDirection.RIGHT);
+        RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
+                RevHubOrientationOnRobot.UsbFacingDirection.RIGHT);
         _IMU.initialize(new IMU.Parameters(revHubOrientationOnRobot));
         _limelight = limelight;
         _limelight.pipelineSwitch(0);
@@ -51,52 +51,162 @@ public class LimelightHardware2Axis
         _showInfo = showInfo;
         _limelight.start();
     }
+
+    /**
+     * Set the camera tilt angle
+     * @param angle Tilt angle in degrees (positive = tilted up, negative = tilted down)
+     */
+    public void setCameraTiltAngle(double angle) {
+        _cameraTiltAngle = angle;
+    }
+
+    /**
+     * Get the current camera tilt angle
+     * @return Camera tilt angle in degrees
+     */
+    public double getCameraTiltAngle() {
+        return _cameraTiltAngle;
+    }
+
+    /**
+     * Calculate the horizontal floor distance to an AprilTag using camera tilt angle
+     * Uses the tag's 3D position relative to robot and projects it onto the floor plane
+     * @param llResult The Limelight result containing target data
+     * @return Floor distance to the tag, or -1 if calculation fails
+     */
+    private double calculateFloorDistance(LLResult llResult) {
+        if (llResult == null || !llResult.isValid()) {
+            return -1;
+        }
+
+        // Get fiducial results (AprilTag detections)
+        List<LLResultTypes.FiducialResult> fiducials = llResult.getFiducialResults();
+
+        if (fiducials == null || fiducials.isEmpty()) {
+            return -1;
+        }
+
+        // Get the first detected AprilTag
+        LLResultTypes.FiducialResult fiducial = fiducials.get(0);
+
+        // Get the tag's position relative to the robot/camera
+        Pose3D tagPose = fiducial.getTargetPoseRobotSpace();
+
+        if (tagPose == null) {
+            return -1;
+        }
+
+        // Get the 3D position components
+        double x = tagPose.getPosition().x; // Lateral (left/right)
+        double y = tagPose.getPosition().y; // Vertical (up/down)
+        double z = tagPose.getPosition().z; // Forward (depth)
+
+        // Calculate the straight-line distance from camera to tag
+        double straightLineDistance = Math.sqrt(x * x + y * y + z * z);
+
+        // Convert camera tilt angle to radians
+        double tiltRad = Math.toRadians(_cameraTiltAngle);
+
+        // Project the straight-line distance onto the floor plane
+        // If camera is tilted up (positive angle), multiply by cos(tiltAngle)
+        double floorDistance = straightLineDistance * Math.cos(tiltRad);
+
+        return floorDistance;
+    }
+
+    /**
+     * Get detailed distance information
+     * @param llResult The Limelight result
+     * @return Array [floorDistance, forwardDistance, lateralDistance, verticalOffset] or null if no target
+     */
+    private double[] getDistanceBreakdown(LLResult llResult) {
+        if (llResult == null || !llResult.isValid()) {
+            return null;
+        }
+
+        List<LLResultTypes.FiducialResult> fiducials = llResult.getFiducialResults();
+        if (fiducials == null || fiducials.isEmpty()) {
+            return null;
+        }
+
+        LLResultTypes.FiducialResult fiducial = fiducials.get(0);
+        Pose3D tagPose = fiducial.getTargetPoseRobotSpace();
+
+        if (tagPose == null) {
+            return null;
+        }
+
+        double x = tagPose.getPosition().x; // Lateral (side to side)
+        double y = tagPose.getPosition().y; // Vertical (up/down)
+        double z = tagPose.getPosition().z; // Forward (depth)
+
+        double straightLineDistance = Math.sqrt(x * x + y * y + z * z);
+        double tiltRad = Math.toRadians(_cameraTiltAngle);
+        double floorDistance = straightLineDistance * Math.cos(tiltRad);
+
+        return new double[] {floorDistance, z, x, y};
+    }
+
     public void start()
     {
 
     }
+
     public void loop(){
         YawPitchRollAngles orientation = _IMU.getRobotYawPitchRollAngles();
         _limelight.updateRobotOrientation(orientation.getYaw());
         LLResult llResult = _limelight.getLatestResult();
 
         if (llResult != null && llResult.isValid()) {
-            // you can get basic target info:
-            double tx = llResult.getTx();
-            double ty = llResult.getTy();
-            // more importantly for pose:
+            List<LLResultTypes.FiducialResult> fiducials = llResult.getFiducialResults();
+
+            if (fiducials != null && !fiducials.isEmpty()) {
+                // Get the first fiducial
+                LLResultTypes.FiducialResult fiducial = fiducials.get(0);
+                int tagId = fiducial.getFiducialId();
+
+                // Calculate floor distance
+                double floorDistance = calculateFloorDistance(llResult);
+
+                // Get detailed breakdown
+                double[] breakdown = getDistanceBreakdown(llResult);
+
+                _telemetry.addLine("=== Tag ID: " + tagId + " ===");
+
+                if (floorDistance > 0 && breakdown != null) {
+                    _telemetry.addData("Floor Distance", String.format("%.2f m", floorDistance));
+                    _telemetry.addData("Forward (Z)", String.format("%.2f m", breakdown[1]));
+                    _telemetry.addData("Lateral (X)", String.format("%.2f m", breakdown[2]));
+                    _telemetry.addData("Vertical (Y)", String.format("%.2f m", breakdown[3]));
+                } else {
+                    _telemetry.addData("Floor Distance", "Cannot calculate");
+                }
+
+                _telemetry.addData("Camera Tilt", String.format("%.2f°", _cameraTiltAngle));
+
+                // Show raw angles too
+                double tx = llResult.getTx();
+                double ty = llResult.getTy();
+                _telemetry.addData("Tx (Horizontal)", String.format("%.2f°", tx));
+                _telemetry.addData("Ty (Vertical)", String.format("%.2f°", ty));
+            } else {
+                _telemetry.addLine("No AprilTags detected");
+            }
+
+            // Get robot pose if available
             Pose3D botPose = llResult.getBotpose();
             if (botPose != null) {
-                double x = botPose.getPosition().x;  // meters (or whatever units your field map uses)
+                double x = botPose.getPosition().x;
                 double y = botPose.getPosition().y;
-                double z = botPose.getPosition().z;
-                double roll  = botPose.getOrientation().getRoll();
-                double pitch = botPose.getOrientation().getPitch();
-                double yaw   = botPose.getOrientation().getYaw();
-                _telemetry.addData("Robot X, Y", "(" + x + ", " + y + ")");
-                _telemetry.addData("Robot Yaw", yaw);
+                double yaw = botPose.getOrientation().getYaw();
+
+                _telemetry.addLine("--- Robot Pose ---");
+                _telemetry.addData("Position", String.format("(%.2f, %.2f)", x, y));
+                _telemetry.addData("Yaw", String.format("%.2f°", yaw));
             }
-            // use botPose2 similarly if not null
         } else {
-                _telemetry.addLine("No fiducials in fiducialResults()");
-            }
-//            _telemetry.addData("Tx", llResult.getTx());
-//            _telemetry.addData("Ty", llResult.getTy());
-//            _telemetry.addData("Ta", llResult.getTa());
-//            TelemetryPacket packet = new TelemetryPacket();
-//            packet.put("Tx", llResult.getTx());
-//            packet.put("Ty", llResult.getTy());
-//            packet.put("Ta", llResult.getTa());
-//            dashboard.sendTelemetryPacket(packet);
-
-
+            _telemetry.addLine("No valid Limelight result");
+        }
     }
-    //endregion
-
-    //--- Arcade Drive with Speed Control
-
-    //--- Directional Driving with D-Pad
-
-
     //endregion
 }

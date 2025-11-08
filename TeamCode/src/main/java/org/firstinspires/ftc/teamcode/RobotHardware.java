@@ -141,8 +141,7 @@ public class RobotHardware {
         motorDriveRearRight.setDirection(DcMotor.Direction.FORWARD);
 
         //--- Utility Motors
-        motorShooterLeft = myOpMode.hardwareMap.get(DcMotorEx.class, "flyleft" +
-                ""); //--- Lifting Arm Left
+        motorShooterLeft = myOpMode.hardwareMap.get(DcMotorEx.class, "flyleft"); //--- Lifting Arm Left
         motorShooterRight = myOpMode.hardwareMap.get(DcMotorEx.class, "flyright"); //--- Lifting Arm Right
         motorIntake = myOpMode.hardwareMap.get(DcMotorEx.class, "intake_motor");
 
