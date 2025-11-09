@@ -66,10 +66,10 @@ public class Intake_Incomplete
         if (_gamepad.a){
             forward();
         }
-        if (_gamepad.b){
+        if (_gamepad.y){
             backward();
         }
-        if (_gamepad.x){
+        if (_gamepad.b){
             stop();
         }
     }
