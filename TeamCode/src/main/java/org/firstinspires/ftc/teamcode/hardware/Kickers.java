@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 //endregion
@@ -29,9 +30,16 @@ public class Kickers
     private final double kickedR = 0.7;
     private final double zeroR = 0.5;
 
+    // delay before going to zero position
+    private final double KICKER_ACTION_DELAY = 1.0;
+
     private Servo _kickerLeft;
     private Servo _kickerMid;
     private Servo _kickerRight;
+
+    private ElapsedTime timerL = new ElapsedTime(2);
+    private ElapsedTime timerM = new ElapsedTime(2);
+    private ElapsedTime timerR = new ElapsedTime(2);
 
 
     //endregion
@@ -50,7 +58,7 @@ public class Kickers
     }
 
     public void run(){
-        if(_gamepad.dpad_left){
+        /*if(_gamepad.dpad_left){
             _kickerLeft.setPosition(kickedL);
         }else{
             _kickerLeft.setPosition(zeroL);
@@ -63,6 +71,36 @@ public class Kickers
         }
 
         if(_gamepad.dpad_right){
+            _kickerRight.setPosition(kickedR);
+        }else{
+            _kickerRight.setPosition(zeroR);
+        }*/
+
+        if(_gamepad.dpad_left){
+            timerL.reset();
+        }
+
+        if(_gamepad.dpad_up){
+            timerM.reset();
+        }
+
+        if(_gamepad.dpad_right){
+            timerR.reset();
+        }
+
+        if(timerL.seconds() < KICKER_ACTION_DELAY){
+            _kickerLeft.setPosition(kickedL);
+        }else{
+            _kickerLeft.setPosition(zeroL);
+        }
+
+        if(timerM.seconds() < KICKER_ACTION_DELAY){
+            _kickerMid.setPosition(kickedM);
+        }else{
+            _kickerMid.setPosition(zeroM);
+        }
+
+        if(timerR.seconds() < KICKER_ACTION_DELAY){
             _kickerRight.setPosition(kickedR);
         }else{
             _kickerRight.setPosition(zeroR);
