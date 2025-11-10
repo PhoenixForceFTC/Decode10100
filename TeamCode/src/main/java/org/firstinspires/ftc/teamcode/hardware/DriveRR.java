@@ -62,6 +62,10 @@ public class DriveRR
     }
     //endregion
 
+    public Pose2d getPosition(){
+        return mecanumDrive.localizer.getPose();
+    }
+
     //--- Arcade Drive with Speed Control
     public void arcadeDriveSpeedControl()
     {
@@ -81,7 +85,7 @@ public class DriveRR
         double speedMultiplierRotate = _isRotateFast ? SPEED_ROTATE_FAST : SPEED_ROTATE_SLOW;
 
         //DriveUtils.arcadeDrive(_frontLeft, _frontRight, _rearLeft, _rearRight, _gamepad, _telemetry, _showInfo, speedMultiplier, speedMultiplierRotate);
-        mecanumDrive.setDrivePowers(new PoseVelocity2d(new Vector2d(_gamepad.right_stick_x*speedMultiplier, _gamepad.right_stick_y*speedMultiplier ), _gamepad.left_stick_x*speedMultiplierRotate));
+        mecanumDrive.setDrivePowers(new PoseVelocity2d(new Vector2d(_gamepad.left_stick_x*speedMultiplier, _gamepad.left_stick_y*speedMultiplier ), _gamepad.right_stick_x*_gamepad.right_stick_x*speedMultiplierRotate));
         if (_showInfo)
         {
             _telemetry.addData("Drive -> Speed Mode", _isSpeedFast ? "FAST" : "SLOW");

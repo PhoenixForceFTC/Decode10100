@@ -7,8 +7,13 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
@@ -21,6 +26,9 @@ public class LimelightHardware2Axis
 
     //region --- Variables ---
     private double _cameraTiltAngle = 0.0; // Camera tilt angle in degrees (positive = tilted up)
+    private double _yawPosition = 0.5;
+    private double _pitchPosition = 0.5;
+
     //endregion
 
     //region --- Hardware ---
@@ -29,6 +37,9 @@ public class LimelightHardware2Axis
     private final Limelight3A _limelight;
     private final Telemetry _telemetry;
     private final boolean _showInfo;
+
+    private final Servo _yaw;
+    private final Servo _pitch;
     FtcDashboard dashboard = FtcDashboard.getInstance();
 
     private int _robotVersion;
@@ -36,12 +47,10 @@ public class LimelightHardware2Axis
 
     //region --- Constructor ---
     public LimelightHardware2Axis(IMU imu, Limelight3A limelight,
-                                  Gamepad gamepad, Telemetry telemetry, int robotVersion, boolean showInfo)
+                                  Gamepad gamepad, Telemetry telemetry,Servo yaw,Servo pitch, int robotVersion, boolean showInfo)
     {
         _IMU= imu;
-        RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
-                RevHubOrientationOnRobot.UsbFacingDirection.RIGHT);
+        RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(new Orientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES,135,0,0,0));
         _IMU.initialize(new IMU.Parameters(revHubOrientationOnRobot));
         _limelight = limelight;
         _limelight.pipelineSwitch(0);
@@ -50,6 +59,8 @@ public class LimelightHardware2Axis
         _robotVersion = robotVersion;
         _showInfo = showInfo;
         _limelight.start();
+        _yaw=yaw;
+        _pitch=pitch;
     }
 
     /**
@@ -90,7 +101,7 @@ public class LimelightHardware2Axis
         LLResultTypes.FiducialResult fiducial = fiducials.get(0);
 
         // Get the tag's position relative to the robot/camera
-        Pose3D tagPose = fiducial.getTargetPoseRobotSpace();
+        Pose3D tagPose = fiducial.getTargetPoseCameraSpace();
 
         if (tagPose == null) {
             return -1;
@@ -130,7 +141,7 @@ public class LimelightHardware2Axis
         }
 
         LLResultTypes.FiducialResult fiducial = fiducials.get(0);
-        Pose3D tagPose = fiducial.getTargetPoseRobotSpace();
+        Pose3D tagPose = fiducial.getTargetPoseCameraSpace();
 
         if (tagPose == null) {
             return null;
@@ -151,7 +162,11 @@ public class LimelightHardware2Axis
     {
 
     }
-
+    public void servos(){
+        _yaw.setPosition(_yawPosition);
+        _pitch.setPosition(_pitchPosition);
+        _cameraTiltAngle=(_pitchPosition-0.5)*300;
+    }
     public void loop(){
         YawPitchRollAngles orientation = _IMU.getRobotYawPitchRollAngles();
         _limelight.updateRobotOrientation(orientation.getYaw());

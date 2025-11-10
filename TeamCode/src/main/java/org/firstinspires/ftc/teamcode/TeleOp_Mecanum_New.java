@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 //region -- Imports ---
 
+import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -62,6 +63,7 @@ public class TeleOp_Mecanum_New extends LinearOpMode
     //------------------------------------------------------------------------------------------
     RobotHardware _robot = new RobotHardware(this);
     public ElapsedTime _runtime = new ElapsedTime();
+    public static Pose2d lastAutoPose = new Pose2d(0, 0, 0);
 
 
 
@@ -112,7 +114,7 @@ public class TeleOp_Mecanum_New extends LinearOpMode
             //--- Intake
             //------------------------------------------------------------------------------------------
             _robot.intake.run();
-            _robot.kickers.run();
+            _robot.kickers.run(0,0);
 
             //------------------------------------------------------------------------------------------
             //--- Shooter

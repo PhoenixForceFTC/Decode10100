@@ -18,7 +18,8 @@ public class DriveUtils
         //--- POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
         double axial = -gamepad.left_stick_y;  //--- Note, pushing stick forward gives negative value
         double lateral = gamepad.left_stick_x;
-        double yaw = gamepad.right_stick_x * speedMultiplierRotate; //--- Scale yaw separately
+
+        double yaw = (gamepad.right_stick_x)*Math.abs(gamepad.right_stick_x) * speedMultiplierRotate; //--- Scale yaw separately
 
         //--- Combine the joystick requests for each axis-motion to determine each wheel's power.
         double leftFrontPower = (axial + lateral + yaw) * speedMultiplier;

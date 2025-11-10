@@ -57,7 +57,7 @@ public class Kickers
         this._showInfo = showInfo;
     }
 
-    public void run(){
+    public void run(int targetSpeed, double speed){
         /*if(_gamepad.dpad_left){
             _kickerLeft.setPosition(kickedL);
         }else{
@@ -75,19 +75,19 @@ public class Kickers
         }else{
             _kickerRight.setPosition(zeroR);
         }*/
+        if(speed/targetSpeed>0.9) {
+            if (_gamepad.dpad_left) {
+                timerL.reset();
+            }
 
-        if(_gamepad.dpad_left){
-            timerL.reset();
+            if (_gamepad.dpad_up) {
+                timerM.reset();
+            }
+
+            if (_gamepad.dpad_right) {
+                timerR.reset();
+            }
         }
-
-        if(_gamepad.dpad_up){
-            timerM.reset();
-        }
-
-        if(_gamepad.dpad_right){
-            timerR.reset();
-        }
-
         if(timerL.seconds() < KICKER_ACTION_DELAY){
             _kickerLeft.setPosition(kickedL);
         }else{

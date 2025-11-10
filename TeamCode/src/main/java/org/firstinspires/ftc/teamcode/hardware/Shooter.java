@@ -45,8 +45,8 @@ public class Shooter
     public double speed;
 
 
-    public static double kP = 200;
-    public static double kI = 10;
+    public static double kP = 700;
+    public static double kI = 20;
     public static double kD = 60;
     public static double kF = 0;
 

@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.hardware.DriveRR;
 import org.firstinspires.ftc.teamcode.hardware.LimelightHardware;
 import org.firstinspires.ftc.teamcode.hardware.Shooter;
 import org.firstinspires.ftc.teamcode.hardware.Intake_Incomplete;
@@ -102,6 +103,7 @@ public class RobotHardware {
     public Intake_Incomplete intake;
     public LimelightHardware limelightHardware;
     public Drive drive;
+    public DriveRR driveRR;
     public IMU imu;
     public Kickers kickers;
 
@@ -182,7 +184,7 @@ public class RobotHardware {
         shooter = new Shooter(
                 motorShooterLeft,
                 motorShooterRight,
-                myOpMode.gamepad1,
+                myOpMode.gamepad2,
                 myOpMode.telemetry,
                 _showInfo
         );
@@ -196,6 +198,17 @@ public class RobotHardware {
                 myOpMode.telemetry,
                 robotVersion,
                 _showInfo
+        );
+        driveRR = new DriveRR(
+                motorDriveFrontLeft,
+                motorDriveFrontRight,
+                motorDriveRearLeft,
+                motorDriveRearRight,
+                myOpMode.gamepad1,
+                myOpMode.telemetry,
+                robotVersion,
+                _showInfo,
+                myOpMode.hardwareMap
         );
         intake = new Intake_Incomplete(
                 motorIntake,
