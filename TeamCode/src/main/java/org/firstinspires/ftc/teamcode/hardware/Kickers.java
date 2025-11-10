@@ -57,7 +57,7 @@ public class Kickers
         this._showInfo = showInfo;
     }
 
-    public void run(int targetSpeed, double speed){
+    public void run(double targetSpeed, double speed){
         /*if(_gamepad.dpad_left){
             _kickerLeft.setPosition(kickedL);
         }else{

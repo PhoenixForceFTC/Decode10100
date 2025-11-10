@@ -125,7 +125,7 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
                 }
             }
             _robot.intake.run();
-            _robot.kickers.run(speed,_robot.shooter.getSpeed());
+            _robot.kickers.run(_robot.shooter.speed,_robot.shooter.getSpeed());
             telemetry.addData("speed in rpm", speed);
             telemetry.addData("speed reading from the motor in ticks per second",_robot.shooter.getSpeed());
             _robot.shooter.getTelemetry();
