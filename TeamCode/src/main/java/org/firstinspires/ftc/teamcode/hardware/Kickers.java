@@ -32,6 +32,7 @@ public class Kickers
 
     // delay before going to zero position
     private final double KICKER_ACTION_DELAY = 1.0;
+    private final double GLOBAL_ACTION_DELAY = 0.5;
 
     private Servo _kickerLeft;
     private Servo _kickerMid;
@@ -40,6 +41,7 @@ public class Kickers
     private ElapsedTime timerL = new ElapsedTime(2);
     private ElapsedTime timerM = new ElapsedTime(2);
     private ElapsedTime timerR = new ElapsedTime(2);
+    private ElapsedTime timerGlobal = new ElapsedTime(2);
 
 
     //endregion
@@ -75,17 +77,20 @@ public class Kickers
         }else{
             _kickerRight.setPosition(zeroR);
         }*/
-        if(speed/targetSpeed>0.9) {
-            if (_gamepad.dpad_left) {
+        if(speed/targetSpeed>0.9 && speed/targetSpeed<1.01) {
+            if (_gamepad.dpad_left && timerGlobal.seconds() < GLOBAL_ACTION_DELAY) {
                 timerL.reset();
+                timerGlobal.reset();
             }
 
-            if (_gamepad.dpad_up) {
+            else if (_gamepad.dpad_up && timerGlobal.seconds() < GLOBAL_ACTION_DELAY) {
                 timerM.reset();
+                timerGlobal.reset();
             }
 
-            if (_gamepad.dpad_right) {
+            else if (_gamepad.dpad_right && timerGlobal.seconds() < GLOBAL_ACTION_DELAY) {
                 timerR.reset();
+                timerGlobal.reset();
             }
         }
         if(timerL.seconds() < KICKER_ACTION_DELAY){
