@@ -38,6 +38,8 @@ public class Shooter
 
 
     //endregion
+
+    //region --- Variables ---
     private final Boolean _showInfo;
 
     public static Integer ticksPerRotation = 28;
@@ -49,6 +51,7 @@ public class Shooter
     public static double kI = 20;
     public static double kD = 60;
     public static double kF = 0;
+    //endregion
 
     //defualt pidf is p:10 i:3 d:0 f:0
 
@@ -69,13 +72,15 @@ public class Shooter
         this._showInfo = showInfo;
         speed = 0;
     }
-
+    //endregion
 
     public void initialize()
     {
         //_motorShooterLeft.setVelocityPIDFCoefficients(kP,kI ,kD , kF);
         //_motorShooterRight.setVelocityPIDFCoefficients(kP,kI ,kD , kF);
     }
+
+    //--- get shooter into shooting abiltity
     public void shoot(int speed){
 
         _motorShooterLeft.setVelocityPIDFCoefficients(kP, kI,kD , kF);
@@ -86,6 +91,7 @@ public class Shooter
         this.speed = speed*ticksPerRotation/60;
     }
 
+    //--- Access telemetry data
     public void getTelemetry(){
         TelemetryPacket packet = new TelemetryPacket();
         packet.put("pidf coeficients for get velocoity", _motorShooterLeft.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));
@@ -94,6 +100,8 @@ public class Shooter
         packet.put("speed", speed);
         dashboard.sendTelemetryPacket(packet);
     }
+
+    //--- Get motor speed
     public double getSpeed(){
         return(_motorShooterLeft.getVelocity());
     }
