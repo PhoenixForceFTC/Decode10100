@@ -78,17 +78,17 @@ public class Kickers
             _kickerRight.setPosition(zeroR);
         }*/
         if(speed/targetSpeed>0.9) {
-            if (_gamepad.dpad_left && timerGlobal.seconds() < GLOBAL_ACTION_DELAY) {
+            if (_gamepad.dpad_left && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
                 timerL.reset();
                 timerGlobal.reset();
             }
 
-            else if (_gamepad.dpad_up && timerGlobal.seconds() < GLOBAL_ACTION_DELAY) {
+            else if (_gamepad.dpad_up && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
                 timerM.reset();
                 timerGlobal.reset();
             }
 
-            else if (_gamepad.dpad_right && timerGlobal.seconds() < GLOBAL_ACTION_DELAY) {
+            else if (_gamepad.dpad_right && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
                 timerR.reset();
                 timerGlobal.reset();
             }
