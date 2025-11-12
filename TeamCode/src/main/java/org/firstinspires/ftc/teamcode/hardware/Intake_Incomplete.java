@@ -47,20 +47,23 @@ public class Intake_Incomplete
         this._telemetry = telemetry;
         this._showInfo = showInfo;
     }
+    //endregion
 
+    //region --- Movement ---
     public void forward(){
         _intake.setPower(0.5);
-    }
+    } //--- Inward movement of artifacts
 
     public void backward(){
         _intake.setPower(-0.5);
-    }
+    } //--- Outward movement
 
     public void stop(){
         _intake.setPower(0);
     }
+    //endregion
 
-
+    //--- Uses controls to control intake, outtake, and stop
     public void run(){
         // change controls later
         if (_gamepad.a){
@@ -74,10 +77,12 @@ public class Intake_Incomplete
         }
     }
 
-
+    //--- Displays telemetry data
     public void getTelemetry(){
         _telemetry.addData("motor power: ", _intake.getPower());
     }
+
+    //--- Gets speed of intake
     public double getSpeed(){
         return(_intake.getVelocity());
     }

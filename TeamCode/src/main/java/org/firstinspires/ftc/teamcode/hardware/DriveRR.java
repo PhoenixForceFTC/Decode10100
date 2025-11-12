@@ -43,8 +43,8 @@ public class DriveRR
     private final Gamepad _gamepad;
     private final Telemetry _telemetry;
     private final boolean _showInfo;
-    
-    private final MecanumDrive mecanumDrive;
+
+    private final MecanumDrive mecanumDrive; //--- Mecanum drive from roadrunner scripts
 
     private int _robotVersion;
     //endregion
@@ -62,6 +62,7 @@ public class DriveRR
     }
     //endregion
 
+    //--- Get the position of robot
     public Pose2d getPosition(){
         return mecanumDrive.localizer.getPose();
     }
