@@ -16,9 +16,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import com.acmerobotics.dashboard.config.Config;
+
 
 import java.util.List;
-
+@Config
 public class LimelightHardware2Axis
 {
     //region --- Constants ---
@@ -26,8 +28,10 @@ public class LimelightHardware2Axis
 
     //region --- Variables ---
     private double _cameraTiltAngle = 0.0; // Camera tilt angle in degrees (positive = tilted up)
-    private double _yawPosition = 0.5;
-    private double _pitchPosition = 0.5;
+    private double _yawPositionStart = 0.5;
+    private double _pitchPositionStart = 0.6;
+    private double _yawPosition = _yawPositionStart;
+    private double _pitchPosition = _pitchPositionStart;
 
     //endregion
 

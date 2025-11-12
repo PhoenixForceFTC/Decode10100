@@ -10,8 +10,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.hardware.DriveRR;
 import org.firstinspires.ftc.teamcode.hardware.LimelightHardware;
+import org.firstinspires.ftc.teamcode.hardware.LimelightHardware2Axis;
 import org.firstinspires.ftc.teamcode.hardware.Shooter;
 import org.firstinspires.ftc.teamcode.hardware.Intake_Incomplete;
 import org.firstinspires.ftc.teamcode.hardware.Kickers;
@@ -96,19 +101,23 @@ public class RobotHardware {
     public Servo kickerM = null;
     public Servo kickerR = null;
 
+    public Servo cameraYaw = null;
+    public Servo cameraPitch = null;
+
     //------------------------------------------------------------------------------------------
     //--- Custom Hardware Classes
     //------------------------------------------------------------------------------------------
     public Shooter shooter;
     public Intake_Incomplete intake;
     public LimelightHardware limelightHardware;
+    public LimelightHardware2Axis limelightHardware2Axis;
     public Drive drive;
     public DriveRR driveRR;
     public IMU imu;
     public Kickers kickers;
 
     public Limelight3A limelight;
-    public RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP, RevHubOrientationOnRobot.UsbFacingDirection.LEFT);
+    public RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(new Orientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES,135,0,0,0));
     //------------------------------------------------------------------------------------------
     //--- Define a constructor that allows the OpMode to pass a reference to itself
     //------------------------------------------------------------------------------------------
@@ -165,6 +174,10 @@ public class RobotHardware {
         kickerM = myOpMode.hardwareMap.get(Servo.class, "KM");
         kickerR = myOpMode.hardwareMap.get(Servo.class, "KR");
 
+        cameraYaw = myOpMode.hardwareMap.get(Servo.class, "Yaw");
+        cameraPitch = myOpMode.hardwareMap.get(Servo.class, "Pitch");
+
+
         imu = myOpMode.hardwareMap.get(IMU.class,"imu");
         limelight = myOpMode.hardwareMap.get(Limelight3A.class,"limelight");
         //imu.initialize(new IMU.Parameters(revHubOrientationOnRobot));
@@ -216,10 +229,18 @@ public class RobotHardware {
                 myOpMode.telemetry,
                 false);
 
-        limelightHardware = new LimelightHardware(imu,
+        /* limelightHardware = new LimelightHardware(imu,
                 limelight,
                 myOpMode.gamepad1,
                 myOpMode.telemetry,
+                1,
+                true); */
+        limelightHardware2Axis = new LimelightHardware2Axis(imu,
+                limelight,
+                myOpMode.gamepad2,
+                myOpMode.telemetry,
+                cameraYaw,
+                cameraPitch,
                 1,
                 true);
 
