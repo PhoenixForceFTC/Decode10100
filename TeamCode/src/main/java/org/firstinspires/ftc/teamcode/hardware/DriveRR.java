@@ -44,7 +44,7 @@ public class DriveRR
     private final Telemetry _telemetry;
     private final boolean _showInfo;
 
-    private final MecanumDrive mecanumDrive; //--- Mecanum drive from roadrunner scripts
+    public final MecanumDrive mecanumDrive; //--- Mecanum drive from roadrunner scripts
 
     private int _robotVersion;
     //endregion
