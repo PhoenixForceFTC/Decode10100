@@ -19,7 +19,7 @@ public class Kickers
 
 
     private final Gamepad _gamepad;
-    private final Telemetry _telemetry;
+    public final Telemetry _telemetry;
 
     private final double kickedL = 0.3;
     private final double zeroL = 0.5;
@@ -94,24 +94,50 @@ public class Kickers
             }
         }
         if(timerL.seconds() < KICKER_ACTION_DELAY){
-            _kickerLeft.setPosition(kickedL);
+            setKickedL(true);
         }else{
-            _kickerLeft.setPosition(zeroL);
+            setKickedL(false);
         }
 
         if(timerM.seconds() < KICKER_ACTION_DELAY){
-            _kickerMid.setPosition(kickedM);
+            setKickedM(true);
         }else{
-            _kickerMid.setPosition(zeroM);
+            setKickedM(false);
         }
 
         if(timerR.seconds() < KICKER_ACTION_DELAY){
-            _kickerRight.setPosition(kickedR);
+            setKickedR(true);
         }else{
+            setKickedR(false);
+        }
+    }
+    public void setKickedL(boolean kicked){
+        if(kicked){
+            _kickerLeft.setPosition(kickedL);
+
+        }
+        else{
+            _kickerLeft.setPosition(zeroL);
+        }
+    }
+    public void setKickedM(boolean kicked){
+        if(kicked){
+            _kickerMid.setPosition(kickedM);
+
+        }
+        else{
+            _kickerMid.setPosition(zeroM);
+        }
+    }
+    public void setKickedR(boolean kicked){
+        if(kicked){
+            _kickerRight.setPosition(kickedR);
+
+        }
+        else{
             _kickerRight.setPosition(zeroR);
         }
     }
-
     public void initialize()
     {
         //_motorShooterLeft.setVelocityPIDFCoefficients(kP,kI ,kD , kF);

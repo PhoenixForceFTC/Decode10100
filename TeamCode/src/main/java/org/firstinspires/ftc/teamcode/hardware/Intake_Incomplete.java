@@ -25,7 +25,7 @@ public class Intake_Incomplete
 
 
     private final Gamepad _gamepad;
-    private final Telemetry _telemetry;
+    public final Telemetry _telemetry;
 
 
 

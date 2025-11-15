@@ -33,7 +33,7 @@ public class Shooter
 
     private final DcMotorEx _motorShooterRight;
     private final Gamepad _gamepad;
-    private final Telemetry _telemetry;
+    public final Telemetry _telemetry;
 
 
 
