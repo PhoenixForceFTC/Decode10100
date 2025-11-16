@@ -65,7 +65,8 @@ public class MeepMeepTesting {
 
                 // moves to first spike to intake artifacts, then moves back
                 .splineTo(new Vector2d(24, -24), 0)
-                .splineTo(new Vector2d(63.5, -60), -(Math.PI) / 2)
+                .splineTo(new Vector2d(60, -48), -(Math.PI) / 2)
+                .strafeTo(new Vector2d(63.5, -60))
                 .strafeToSplineHeading(new Vector2d(48, -24), (Math.PI/2-1.1642295)+Math.PI/2)
                 .splineTo(new Vector2d(-12, -12), -(3*Math.PI)/4)
                         //.turn(Math.PI)

@@ -31,7 +31,7 @@ public class Auto_Back_Red extends LinearOpMode{
         //incomplete
         _robot.init(1); // Initialize robot parts
         _TargetMotif = _robot.limelightHardware2Axis.getObliskTagId();
-        Pose2d _beginPos = new Pose2d(60, -24, Math.PI);
+        Pose2d _beginPos = new Pose2d(67, -15.5, Math.PI);
 
 
 
@@ -61,12 +61,10 @@ public class Auto_Back_Red extends LinearOpMode{
                 .waitSeconds(2)
 
                 // moves to first spike to intake artifacts, then moves back
-                .splineTo(new Vector2d(-12, -48), -(Math.PI) / 4, new VelConstraint() {
-                    @Override
-                    public double maxRobotVel(@NonNull Pose2dDual<Arclength> pose2dDual, @NonNull PosePath posePath, double v) {
-                        return 15;
-                    }
-                })
+                .splineTo(new Vector2d(24, -24), 0)
+                .splineTo(new Vector2d(60, -48), -(Math.PI) / 2)
+                .strafeTo(new Vector2d(63.5, -60))
+                .strafeToSplineHeading(new Vector2d(48, -24), (Math.PI/2-1.1642295)+Math.PI/2)
                 .splineTo(new Vector2d(-12, -12), -(3*Math.PI)/4)
 
                 // kicks artifacts from first spike
@@ -78,7 +76,8 @@ public class Auto_Back_Red extends LinearOpMode{
                 .waitSeconds(2)
 
                 // moves to second spike to intake artifacts, then moves back
-                .splineTo(new Vector2d(12, -48), -(Math.PI)/4)
+                .splineTo(new Vector2d(12, -24), -Math.PI/6)
+                .splineTo(new Vector2d(36, -48), -(Math.PI)/4)
                 .splineTo(new Vector2d(-12, -12), -(3*Math.PI)/4)
 
                 // kicks artifacts from second spike
