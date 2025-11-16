@@ -19,6 +19,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import com.acmerobotics.dashboard.config.Config;
 
 
+import java.util.ArrayList;
 import java.util.List;
 @Config
 public class LimelightHardware2Axis
@@ -269,6 +270,22 @@ public class LimelightHardware2Axis
         } else {
             _telemetry.addLine("No valid Limelight result");
         }
+    }
+    public void setPipeline(int index){
+        _limelight.pipelineSwitch(index);
+    }
+    public List<LLResultTypes.FiducialResult> getVisibleTags() {
+        LLResult llResult = _limelight.getLatestResult();
+        if (llResult == null || !llResult.isValid()) return null;
+        return llResult.getFiducialResults();
+    }
+    public boolean fiducialResultsContain(int id){
+        List<Integer> ids = new ArrayList<>();
+        for (LLResultTypes.FiducialResult f : getVisibleTags()) {
+            ids.add(f.getFiducialId());
+        }
+        return ids.contains(id);
+
     }
     //endregion
 }
