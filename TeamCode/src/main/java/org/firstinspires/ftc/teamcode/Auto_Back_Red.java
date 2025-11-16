@@ -31,7 +31,7 @@ public class Auto_Back_Red extends LinearOpMode{
         //incomplete
         _robot.init(1); // Initialize robot parts
         _TargetMotif = _robot.limelightHardware2Axis.getObliskTagId();
-        Pose2d _beginPos = new Pose2d(-72, -24, 0);
+        Pose2d _beginPos = new Pose2d(60, -24, Math.PI);
 
 
 
@@ -52,7 +52,7 @@ public class Auto_Back_Red extends LinearOpMode{
 
                 .splineTo(new Vector2d(-12, -12), -(3*Math.PI)/4)
 
-                // shoots the preloaded artifacts
+                /*// shoots the preloaded artifacts
                 .stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[0]))
                 .waitSeconds(0.5)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[1]))
@@ -86,7 +86,8 @@ public class Auto_Back_Red extends LinearOpMode{
                 .waitSeconds(0.5)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, secondSpikeKickingOrder[1]))
                 .waitSeconds(0.5)
-                .stopAndAdd(new AutoActions.KickerKick(_robot, secondSpikeKickingOrder[2]));
+                .stopAndAdd(new AutoActions.KickerKick(_robot, secondSpikeKickingOrder[2]))*/
+                ;
 
         Actions.runBlocking(trajectoryActionBuilder.build());
 
