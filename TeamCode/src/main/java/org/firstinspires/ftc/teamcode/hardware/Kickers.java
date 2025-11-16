@@ -19,7 +19,7 @@ public class Kickers
 
 
     private final Gamepad _gamepad;
-    public final Telemetry _telemetry;
+    private final Telemetry _telemetry;
 
     private final double kickedL = 0.3;
     private final double zeroL = 0.5;
@@ -60,84 +60,90 @@ public class Kickers
     }
 
     public void run(double targetSpeed, double speed){
-        /*if(_gamepad.dpad_left){
-            _kickerLeft.setPosition(kickedL);
-        }else{
-            _kickerLeft.setPosition(zeroL);
-        }
 
-        if(_gamepad.dpad_up){
-            _kickerMid.setPosition(kickedM);
-        }else{
-            _kickerMid.setPosition(zeroM);
-        }
-
-        if(_gamepad.dpad_right){
-            _kickerRight.setPosition(kickedR);
-        }else{
-            _kickerRight.setPosition(zeroR);
-        }*/
         if(speed/targetSpeed>0.9) {
-            if (_gamepad.dpad_left && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
+            if (_gamepad.dpad_left) {
+                fireKicker(0);
+            }
+            if (_gamepad.dpad_up) {
+                fireKicker(1);
+            }
+            if (_gamepad.dpad_right) {
+                fireKicker(2);
+            }
+
+        }
+    }
+
+    public int[] fireAutoKickerSeq(LimelightHardware2Axis.Motif targetMotif, LimelightHardware2Axis.Motif intakeMotif)
+    {
+        char[] targetMotifSeq = targetMotif.toString().toCharArray();
+        char[] intakeMotifSeq = intakeMotif.toString().toCharArray();
+        int[] seqArr = new int[3];
+        int count = 0;
+        for (char c : targetMotifSeq) {
+            int pos = findChar(intakeMotifSeq, c);
+            if (pos>-1 && pos<3) {
+                seqArr[count++]=pos;
+                intakeMotifSeq[pos] = 'x';
+            }
+        }
+
+        return seqArr;
+    }
+
+    private static int findChar(char[] arr, char target) {
+        if (arr == null) {
+            return -1; // handle null array
+        }
+
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] == target) {
+                return i; // found, return index
+            }
+        }
+
+        return -1; // not found
+    }
+
+    public void fireKicker(int kickerPos)
+    {
+
+            if (kickerPos == 0 && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
                 timerL.reset();
                 timerGlobal.reset();
             }
 
-            else if (_gamepad.dpad_up && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
+            else if (kickerPos==1 && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
                 timerM.reset();
                 timerGlobal.reset();
             }
 
-            else if (_gamepad.dpad_right && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
+            else if (kickerPos==2 && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
                 timerR.reset();
                 timerGlobal.reset();
             }
-        }
-        if(timerL.seconds() < KICKER_ACTION_DELAY){
-            setKickedL(true);
-        }else{
-            setKickedL(false);
-        }
+            if(timerL.seconds() < KICKER_ACTION_DELAY){
+                _kickerLeft.setPosition(kickedL);
+            }else{
+                _kickerLeft.setPosition(zeroL);
+            }
 
-        if(timerM.seconds() < KICKER_ACTION_DELAY){
-            setKickedM(true);
-        }else{
-            setKickedM(false);
-        }
+            if(timerM.seconds() < KICKER_ACTION_DELAY){
+                _kickerMid.setPosition(kickedM);
+            }else{
+                _kickerMid.setPosition(zeroM);
+            }
 
-        if(timerR.seconds() < KICKER_ACTION_DELAY){
-            setKickedR(true);
-        }else{
-            setKickedR(false);
-        }
+            if(timerR.seconds() < KICKER_ACTION_DELAY){
+                _kickerRight.setPosition(kickedR);
+            }else{
+                _kickerRight.setPosition(zeroR);
+            }
+
+
     }
-    public void setKickedL(boolean kicked){
-        if(kicked){
-            _kickerLeft.setPosition(kickedL);
 
-        }
-        else{
-            _kickerLeft.setPosition(zeroL);
-        }
-    }
-    public void setKickedM(boolean kicked){
-        if(kicked){
-            _kickerMid.setPosition(kickedM);
-
-        }
-        else{
-            _kickerMid.setPosition(zeroM);
-        }
-    }
-    public void setKickedR(boolean kicked){
-        if(kicked){
-            _kickerRight.setPosition(kickedR);
-
-        }
-        else{
-            _kickerRight.setPosition(zeroR);
-        }
-    }
     public void initialize()
     {
         //_motorShooterLeft.setVelocityPIDFCoefficients(kP,kI ,kD , kF);

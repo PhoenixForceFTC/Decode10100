@@ -30,10 +30,22 @@ public class LimelightHardware2Axis
     private double _cameraTiltAngle = 0.0; // Camera tilt angle in degrees (positive = tilted up)
     private double _yawPositionStart = 0.5;
     private double _pitchPositionStart = 0.6;
+    private double _yawPositionStartAutoBack = 0.5;
+    private double _pitchPositionStartAuto = 0.5;
     private double _yawPosition = _yawPositionStart;
     private double _pitchPosition = _pitchPositionStart;
 
     //endregion
+
+    // Define an enum representing the days of the week
+    public enum Motif {
+        PPG,
+        PGP,
+        GPP;
+
+    }
+
+
 
     //region --- Hardware ---
     private final Gamepad _gamepad;
@@ -170,6 +182,37 @@ public class LimelightHardware2Axis
         _yaw.setPosition(_yawPosition);
         _pitch.setPosition(_pitchPosition);
         _cameraTiltAngle=(_pitchPosition-0.5)*300;
+    }
+
+
+    public Motif getObliskTagId(){
+        return Motif.GPP;
+    }
+
+    private void readObeliskAuto(){
+        _yaw.setPosition(_yawPositionStartAutoBack);
+        _pitch.setPosition(_pitchPositionStartAuto);
+
+    }
+
+    private LLResultTypes.FiducialResult getFiducial(String targetTagIDs)
+    {
+        LLResult llResult = _limelight.getLatestResult();
+        if (llResult != null && llResult.isValid()) {
+            List<LLResultTypes.FiducialResult> fiducials = llResult.getFiducialResults();
+            if (fiducials != null && !fiducials.isEmpty()) {
+                // Get the first fiducial
+                for (LLResultTypes.FiducialResult fiducial : fiducials) {
+                    int tagId = fiducial.getFiducialId();
+                    if (targetTagIDs.contains(Integer.toString(tagId))) {
+                        return fiducial;
+                    }
+                }
+            }
+        }
+
+        return null;
+
     }
     public void loop(){
         YawPitchRollAngles orientation = _IMU.getRobotYawPitchRollAngles();
