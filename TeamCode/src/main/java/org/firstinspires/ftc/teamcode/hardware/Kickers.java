@@ -32,7 +32,7 @@ public class Kickers
 
     // delay before going to zero position
     private final double KICKER_ACTION_DELAY = 1.0;
-    private final double GLOBAL_ACTION_DELAY = 0.4;
+    private final double GLOBAL_ACTION_DELAY = 0.1;
 
     private Servo _kickerLeft;
     private Servo _kickerMid;

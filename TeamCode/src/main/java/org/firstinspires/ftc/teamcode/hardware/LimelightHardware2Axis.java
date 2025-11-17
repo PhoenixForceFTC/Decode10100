@@ -184,6 +184,10 @@ public class LimelightHardware2Axis
         _pitch.setPosition(_pitchPosition);
         _cameraTiltAngle=(_pitchPosition-0.5)*300;
     }
+    public void setServos(double yawPosition, double pitchPosition){
+        _yawPosition=yawPosition;
+        pitchPosition=pitchPosition;
+    };
 
 
     public Motif getObliskTagId(){
