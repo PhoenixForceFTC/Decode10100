@@ -42,6 +42,8 @@ public class Auto_Load_Blue extends LinearOpMode{
             }else{
                 _TargetMotif = LimelightHardware2Axis.Motif.GPP; // prevent errors
             }
+            telemetry.addData("target motif", _TargetMotif.toString());
+            telemetry.update();
         }
         _TargetMotif = LimelightHardware2Axis.Motif.GPP;
         _robot.limelightHardware2Axis.servos();

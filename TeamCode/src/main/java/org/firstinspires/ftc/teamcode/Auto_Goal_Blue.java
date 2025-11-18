@@ -39,6 +39,8 @@ public class Auto_Goal_Blue extends LinearOpMode{
             else if(_robot.limelightHardware2Axis.fiducialResultsContain(23)){
                 _TargetMotif = LimelightHardware2Axis.Motif.PPG;
             }
+            telemetry.addData("target motif", _TargetMotif.toString());
+            telemetry.update();
         }
         _robot.limelightHardware2Axis.servos();
         int[] initialKickingOrder = fireAutoKickerSeq(_TargetMotif, LimelightHardware2Axis.Motif.PPG);
