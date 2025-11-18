@@ -24,7 +24,7 @@ public class Kickers
     private final double kickedL = 0.3;
     private final double zeroL = 0.5;
 
-    private final double kickedM = 0.3;
+    private final double kickedM = 0.7;
     private final double zeroM = 0.5;
 
     private final double kickedR = 0.7;
@@ -59,9 +59,9 @@ public class Kickers
         this._showInfo = showInfo;
     }
 
-    public void run(double targetSpeed, double speed){
+    public void run(double targetSpeed, double speed, boolean run){
 
-        if(speed/targetSpeed>0.9) {
+        if(speed/targetSpeed>0.9 && run) {
             if (_gamepad.dpad_left) {
                 fireKicker(0);
             }

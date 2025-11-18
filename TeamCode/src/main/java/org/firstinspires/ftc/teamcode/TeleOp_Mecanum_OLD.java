@@ -76,7 +76,7 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
         //--- Robot Initialize
         //------------------------------------------------------------------------------------------
         int robotVersion = 1; //--- 1 for CRAB-IER and 2 for ARIEL
-        int speed = 10;
+        int speed = 0;
         _robot.init(robotVersion);
 
         //------------------------------------------------------------------------------------------
@@ -125,13 +125,14 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
                 }
             }
             _robot.intake.run();
-            _robot.kickers.run(_robot.shooter.speed,_robot.shooter.getSpeed());
+            _robot.kickers.run(_robot.shooter.speed,_robot.shooter.getSpeed(),true);
             telemetry.addData("speed in rpm", speed);
             telemetry.addData("speed reading from the motor in ticks per second",_robot.shooter.getSpeed());
             _robot.shooter.getTelemetry();
             //_robot.limelightHardware.loop();
             _robot.limelightHardware2Axis.loop();
             _robot.limelightHardware2Axis.servos();
+
             //------------------------------------------------------------------------------------------
             //--- Intake
             //------------------------------------------------------------------------------------------

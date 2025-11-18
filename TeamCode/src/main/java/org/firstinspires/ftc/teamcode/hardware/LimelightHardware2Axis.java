@@ -31,10 +31,10 @@ public class LimelightHardware2Axis
     private double _cameraTiltAngle = 0.0; // Camera tilt angle in degrees (positive = tilted up)
     private double _yawPositionStart = 0.5;
     private double _pitchPositionStart = 0.6;
-    private double _yawPositionStartAutoBack = 0.5;
-    private double _pitchPositionStartAuto = 0.5;
+
     private double _yawPosition = _yawPositionStart;
     private double _pitchPosition = _pitchPositionStart;
+    private LLResult _latestLLResult = null; // Stores the latest result from the loop
 
     //endregion
 
@@ -143,6 +143,14 @@ public class LimelightHardware2Axis
     }
 
     /**
+     * Get detailed distance information based on the latest Limelight result from the loop.
+     * @return Array [floorDistance, forwardDistance, lateralDistance, verticalOffset] or null if no target.
+     */
+    public double[] getDistanceBreakdown() {
+        return getDistanceBreakdown(_latestLLResult);
+    }
+
+    /**
      * Get detailed distance information
      * @param llResult The Limelight result
      * @return Array [floorDistance, forwardDistance, lateralDistance, verticalOffset] or null if no target
@@ -175,6 +183,18 @@ public class LimelightHardware2Axis
         return new double[] {floorDistance, z, x, y};
     }
 
+    /**
+     * Gets the calculated floor distance to the primary target from the last loop cycle.
+     * @return The floor distance in meters, or null if no valid target was found.
+     */
+    public Double getFloorDistance() {
+        double[] breakdown = getDistanceBreakdown();
+        if (breakdown != null) {
+            return breakdown[0]; // Return the floor distance component
+        }
+        return null; // Return null if no target is visible
+    }
+
     public void start()
     {
 
@@ -186,7 +206,7 @@ public class LimelightHardware2Axis
     }
     public void setServos(double yawPosition, double pitchPosition){
         _yawPosition=yawPosition;
-        pitchPosition=pitchPosition;
+        _pitchPosition=pitchPosition;
     };
 
 
@@ -194,11 +214,7 @@ public class LimelightHardware2Axis
         return Motif.GPP;
     }
 
-    private void readObeliskAuto(){
-        _yaw.setPosition(_yawPositionStartAutoBack);
-        _pitch.setPosition(_pitchPositionStartAuto);
 
-    }
 
     private LLResultTypes.FiducialResult getFiducial(String targetTagIDs)
     {
@@ -222,10 +238,10 @@ public class LimelightHardware2Axis
     public void loop(){
         YawPitchRollAngles orientation = _IMU.getRobotYawPitchRollAngles();
         _limelight.updateRobotOrientation(orientation.getYaw());
-        LLResult llResult = _limelight.getLatestResult();
+        _latestLLResult = _limelight.getLatestResult();
 
-        if (llResult != null && llResult.isValid()) {
-            List<LLResultTypes.FiducialResult> fiducials = llResult.getFiducialResults();
+        if (_latestLLResult != null && _latestLLResult.isValid()) {
+            List<LLResultTypes.FiducialResult> fiducials = _latestLLResult.getFiducialResults();
 
             if (fiducials != null && !fiducials.isEmpty()) {
                 // Get the first fiducial
@@ -233,10 +249,10 @@ public class LimelightHardware2Axis
                 int tagId = fiducial.getFiducialId();
 
                 // Calculate floor distance
-                double floorDistance = calculateFloorDistance(llResult);
+                double floorDistance = calculateFloorDistance(_latestLLResult);
 
                 // Get detailed breakdown
-                double[] breakdown = getDistanceBreakdown(llResult);
+                double[] breakdown = getDistanceBreakdown(_latestLLResult);
 
                 _telemetry.addLine("=== Tag ID: " + tagId + " ===");
 
@@ -252,8 +268,8 @@ public class LimelightHardware2Axis
                 _telemetry.addData("Camera Tilt", String.format("%.2f°", _cameraTiltAngle)+"°");
 
                 // Show raw angles too
-                double tx = llResult.getTx();
-                double ty = llResult.getTy();
+                double tx = _latestLLResult.getTx();
+                double ty = _latestLLResult.getTy();
                 _telemetry.addData("Tx (Horizontal)", String.format("%.2f°", tx));
                 _telemetry.addData("Ty (Vertical)", String.format("%.2f°", ty));
             } else {
@@ -261,7 +277,7 @@ public class LimelightHardware2Axis
             }
 
             // Get robot pose if available
-            Pose3D botPose = llResult.getBotpose();
+            Pose3D botPose = _latestLLResult.getBotpose();
             if (botPose != null) {
                 double x = botPose.getPosition().x;
                 double y = botPose.getPosition().y;
@@ -284,11 +300,15 @@ public class LimelightHardware2Axis
         return llResult.getFiducialResults();
     }
     public boolean fiducialResultsContain(int id){
-        List<Integer> ids = new ArrayList<>();
-        for (LLResultTypes.FiducialResult f : getVisibleTags()) {
-            ids.add(f.getFiducialId());
+        List<LLResultTypes.FiducialResult> results = getVisibleTags();
+        if(results==null){
+            return false;
         }
-        return ids.contains(id);
+
+        for (LLResultTypes.FiducialResult f : getVisibleTags()) {
+            if(f.getFiducialId()==id){return true;}
+        }
+        return false;
 
     }
     //endregion

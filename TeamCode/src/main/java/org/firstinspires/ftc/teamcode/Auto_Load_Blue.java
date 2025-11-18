@@ -27,6 +27,7 @@ public class Auto_Load_Blue extends LinearOpMode{
 
 
         //waitForStart();
+        _robot.limelightHardware2Axis.setPipeline(1);
 
         while (!isStarted()) {
             _robot.limelightHardware2Axis.loop();

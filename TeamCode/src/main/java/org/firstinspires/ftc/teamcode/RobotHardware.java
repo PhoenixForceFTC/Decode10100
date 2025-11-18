@@ -176,6 +176,7 @@ public class RobotHardware {
 
         cameraYaw = myOpMode.hardwareMap.get(Servo.class, "Yaw");
         cameraPitch = myOpMode.hardwareMap.get(Servo.class, "Pitch");
+        cameraPitch.setDirection(Servo.Direction.REVERSE);
 
 
         imu = myOpMode.hardwareMap.get(IMU.class,"imu");
