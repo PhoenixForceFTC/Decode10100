@@ -38,6 +38,8 @@ public class Auto_Load_Blue extends LinearOpMode{
             }
             else if(_robot.limelightHardware2Axis.fiducialResultsContain(23)){
                 _TargetMotif = LimelightHardware2Axis.Motif.PPG;
+            }else{
+                _TargetMotif = LimelightHardware2Axis.Motif.GPP; // prevent errors
             }
         }
         _TargetMotif = LimelightHardware2Axis.Motif.GPP;
@@ -81,6 +83,18 @@ public class Auto_Load_Blue extends LinearOpMode{
                 .stopAndAdd(new AutoActions.KickerKick(_robot, firstSpikeKickingOrder[1]))
                 .waitSeconds(0.5)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, firstSpikeKickingOrder[2]))
+                .waitSeconds(2)
+
+                //pickup from second spike
+                .strafeToSplineHeading(new Vector2d(12, -48), -(Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(-12, -12), -(3*Math.PI)/4)
+
+                //kicks artifacts from second spike
+                .stopAndAdd(new AutoActions.KickerKick(_robot, secondSpikeKickingOrder[0]))
+                .waitSeconds(0.5)
+                .stopAndAdd(new AutoActions.KickerKick(_robot, secondSpikeKickingOrder[1]))
+                .waitSeconds(0.5)
+                .stopAndAdd(new AutoActions.KickerKick(_robot, secondSpikeKickingOrder[2]))
                 .waitSeconds(2);
 
         Actions.runBlocking(trajectoryActionBuilder.build());

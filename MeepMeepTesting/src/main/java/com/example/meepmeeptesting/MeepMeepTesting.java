@@ -54,10 +54,10 @@ public class MeepMeepTesting {
 
                 .build());*/
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-39.5, 59.5, -Math.PI/2))
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(67, -15.5, Math.PI))
                 // move to shooting area
 
-                .strafeToSplineHeading(new Vector2d(-12, 12), (3*Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(-12, -12), -(3*Math.PI)/4)
 
 
                 .waitSeconds(2)
@@ -66,14 +66,15 @@ public class MeepMeepTesting {
                 //.waitSeconds(2)
 
                 // moves to second spike to intake artifacts, then moves back
-                .strafeToSplineHeading(new Vector2d(0, 36), (3*Math.PI)/4)
-                .strafeToSplineHeading(new Vector2d(-12, 48), (3*Math.PI)/4)
-                .strafeToSplineHeading(new Vector2d(-12, 12), (3*Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(12, -24), -(Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(36, -48), -(Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(12, -24), -(3*Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(-12, -12), -(3*Math.PI)/4)
 
                 .waitSeconds(2)
 
-                .strafeToSplineHeading(new Vector2d(12, 48), (Math.PI)/4)
-                .strafeToSplineHeading(new Vector2d(-12, 12), (3*Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(12, -48), -(Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(-12, -12), -(3*Math.PI)/4)
 
                 .build());
 

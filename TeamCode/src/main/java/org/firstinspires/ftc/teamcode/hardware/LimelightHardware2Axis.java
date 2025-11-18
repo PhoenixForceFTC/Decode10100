@@ -249,7 +249,7 @@ public class LimelightHardware2Axis
                     _telemetry.addData("Floor Distance", "Cannot calculate");
                 }
 
-                _telemetry.addData("Camera Tilt", String.format("%.2f°", _cameraTiltAngle+"°"));
+                _telemetry.addData("Camera Tilt", String.format("%.2f°", _cameraTiltAngle)+"°");
 
                 // Show raw angles too
                 double tx = llResult.getTx();

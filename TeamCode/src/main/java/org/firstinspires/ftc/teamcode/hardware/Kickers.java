@@ -71,7 +71,27 @@ public class Kickers
             if (_gamepad.dpad_right) {
                 fireKicker(2);
             }
+            if (_gamepad.dpad_down){
+                fireKicker(3);
+            }
 
+        }
+        if(timerL.seconds() < KICKER_ACTION_DELAY){
+            _kickerLeft.setPosition(kickedL);
+        }else{
+            _kickerLeft.setPosition(zeroL);
+        }
+
+        if(timerM.seconds() < KICKER_ACTION_DELAY){
+            _kickerMid.setPosition(kickedM);
+        }else{
+            _kickerMid.setPosition(zeroM);
+        }
+
+        if(timerR.seconds() < KICKER_ACTION_DELAY){
+            _kickerRight.setPosition(kickedR);
+        }else{
+            _kickerRight.setPosition(zeroR);
         }
     }
 
@@ -106,6 +126,7 @@ public class Kickers
         return -1; // not found
     }
 
+    // 0 = leftmost kicker, 1 = middle kicker, 2 = rightmost kicker, 3 = all kickers
     public void fireKicker(int kickerPos)
     {
 
@@ -123,23 +144,15 @@ public class Kickers
                 timerR.reset();
                 timerGlobal.reset();
             }
-            if(timerL.seconds() < KICKER_ACTION_DELAY){
-                _kickerLeft.setPosition(kickedL);
-            }else{
-                _kickerLeft.setPosition(zeroL);
+
+            else if (kickerPos==3 && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
+                timerL.reset();
+                timerM.reset();
+                timerR.reset();
+                timerGlobal.reset();
             }
 
-            if(timerM.seconds() < KICKER_ACTION_DELAY){
-                _kickerMid.setPosition(kickedM);
-            }else{
-                _kickerMid.setPosition(zeroM);
-            }
 
-            if(timerR.seconds() < KICKER_ACTION_DELAY){
-                _kickerRight.setPosition(kickedR);
-            }else{
-                _kickerRight.setPosition(zeroR);
-            }
 
 
     }
