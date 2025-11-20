@@ -5,6 +5,8 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //endregion
 
 //region --- Controls ---
@@ -64,8 +66,12 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
     public ElapsedTime _runtime = new ElapsedTime();
 
 
-
-
+    enum position{
+        Close,
+        Medium,
+        Far,
+        None
+    }
     //------------------------------------------------------------------------------------------
     //--- OpMode
     //------------------------------------------------------------------------------------------
@@ -77,7 +83,11 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
         //------------------------------------------------------------------------------------------
         int robotVersion = 1; //--- 1 for CRAB-IER and 2 for ARIEL
         int speed = 0;
+        boolean three = false;
+        position robotPosition = position.None;
+
         _robot.init(robotVersion);
+        RisingEdge g1RE = new RisingEdge();
 
         //------------------------------------------------------------------------------------------
         //--- Display and wait for the game to start (driver presses START)
@@ -86,6 +96,7 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
         telemetry.update();
         waitForStart();
         _runtime.reset();
+
 
         //------------------------------------------------------------------------------------------
         //--- Hardware Initialize
@@ -124,9 +135,39 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
                     speed = 6000;
                 }
             }
+            //y close x mid a far and b toggle between 3 and 1
+            if(gamepad1.y){
+                robotPosition=position.Close;
+                if (three) {
+                    speed = 2280;
+                } else {
+                    speed = 2090;
+                }
+            };
+            if(gamepad1.x){
+                robotPosition=position.Medium;
+                if (three) {
+                    speed = 2650;
+                } else {
+                    speed = 2430;
+                }
+            };
+            if(gamepad1.a){
+                robotPosition=position.Far;
+                if (three) {
+                    speed = 3330;
+                } else {
+                    speed = 3060;
+                }
+            };
+            if(g1RE.RisingEdgeButton(gamepad1, "b")){
+                three = !three;
+            }
             _robot.intake.run();
             _robot.kickers.run(_robot.shooter.speed,_robot.shooter.getSpeed(),true);
-            telemetry.addData("speed in rpm", speed);
+            telemetry.addData("target speed in rpm", speed);
+            telemetry.addData("three ball mode", three);
+            telemetry.addData("robot shooting position", robotPosition.toString());
             telemetry.addData("speed reading from the motor in ticks per second",_robot.shooter.getSpeed());
             _robot.shooter.getTelemetry();
             //_robot.limelightHardware.loop();
