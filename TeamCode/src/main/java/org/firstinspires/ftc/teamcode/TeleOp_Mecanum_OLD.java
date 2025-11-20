@@ -82,8 +82,8 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
         //--- Robot Initialize
         //------------------------------------------------------------------------------------------
         int robotVersion = 1; //--- 1 for CRAB-IER and 2 for ARIEL
-        int speed = 0;
-        boolean three = false;
+        int shooterSpeedRpm = 0;
+        boolean isThreeBallMode = false;
         position robotPosition = position.None;
 
         _robot.init(robotVersion);
@@ -117,73 +117,64 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
             //--- Drive
             //------------------------------------------------------------------------------------------
             _robot.drive.driveControl(0.5); //--- Both D-pad for directional movement and Joysticks for mecanum movement
-            _robot.shooter.shoot(speed);
-            if(gamepad2.left_bumper&&speed>0){
-                if(speed>10){
-                    speed -=10;
+
+
+            if(gamepad2.left_bumper&&(shooterSpeedRpm>0)){
+                if(shooterSpeedRpm>10){
+                    shooterSpeedRpm -=10;
                 }
                 else{
-                    speed = 0;
+                    shooterSpeedRpm = 0;
                 }
             }
-            if(gamepad2.right_bumper&&speed<6000){
-                if(speed<5990){
-                    speed +=10;
+            if(gamepad2.right_bumper&&(shooterSpeedRpm<6000)){
+                if(shooterSpeedRpm<5990){
+                    shooterSpeedRpm +=10;
 
                 }
                 else{
-                    speed = 6000;
+                    shooterSpeedRpm = 6000;
                 }
             }
             //y close x mid a far and b toggle between 3 and 1
             if(gamepad1.y){
                 robotPosition=position.Close;
-                if (three) {
-                    speed = 2280;
+                if (isThreeBallMode) {
+                    shooterSpeedRpm = 2280;
                 } else {
-                    speed = 2090;
+                    shooterSpeedRpm = 2090;
                 }
             };
             if(gamepad1.x){
                 robotPosition=position.Medium;
-                if (three) {
-                    speed = 2650;
+                if (isThreeBallMode) {
+                    shooterSpeedRpm = 2650;
                 } else {
-                    speed = 2430;
+                    shooterSpeedRpm = 2430;
                 }
             };
             if(gamepad1.a){
                 robotPosition=position.Far;
-                if (three) {
-                    speed = 3330;
+                if (isThreeBallMode) {
+                    shooterSpeedRpm = 3330;
                 } else {
-                    speed = 3060;
+                    shooterSpeedRpm = 3060;
                 }
             };
             if(g1RE.RisingEdgeButton(gamepad1, "b")){
-                three = !three;
+                isThreeBallMode = !isThreeBallMode;
             }
+            _robot.shooter.shoot(shooterSpeedRpm);
             _robot.intake.run();
             _robot.kickers.run(_robot.shooter.speed,_robot.shooter.getSpeed(),true);
-            telemetry.addData("target speed in rpm", speed);
-            telemetry.addData("three ball mode", three);
+            telemetry.addData("target speed in rpm", shooterSpeedRpm);
+            telemetry.addData("three ball mode", isThreeBallMode);
             telemetry.addData("robot shooting position", robotPosition.toString());
             telemetry.addData("speed reading from the motor in ticks per second",_robot.shooter.getSpeed());
             _robot.shooter.getTelemetry();
             //_robot.limelightHardware.loop();
             _robot.limelightHardware2Axis.loop();
             _robot.limelightHardware2Axis.servos();
-
-            //------------------------------------------------------------------------------------------
-            //--- Intake
-            //------------------------------------------------------------------------------------------
-
-
-            //------------------------------------------------------------------------------------------
-            //--- Arm
-            //------------------------------------------------------------------------------------------
-
-            //_robot.arm.controlArmManual();
 
             //------------------------------------------------------------------------------------------
             //--- Update Telemetry Display

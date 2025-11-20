@@ -8,14 +8,18 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 public class RisingEdge
 {
     public Gamepad previous = null;
+    public RisingEdge(){
+        this.previous=new Gamepad();
+    }
 
     public boolean RisingEdgeButton(Gamepad gamepad, String button) {
         if(previous!=null) {
             if (getButton(gamepad, button) != getButton(previous, button) && getButton(gamepad, button)) {
+                this.previous.copy(gamepad);
                 return true;
             }
         }
-        this.previous=gamepad;
+        this.previous.copy(gamepad);
         return false;
     }
     private boolean getButton(Gamepad g, String button) {
