@@ -44,7 +44,7 @@ public class Shooter
 
     public static Integer ticksPerRotation = 28;
 
-    public double speed;
+    public double speed; // in ticks per second
 
 
     public static double kP = 700;
