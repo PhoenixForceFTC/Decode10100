@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.autos.AutoActions;
 import org.firstinspires.ftc.teamcode.hardware.LimelightHardware2Axis;
+import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 
 
 @Autonomous(name="Auton Goal Blue")
@@ -23,7 +24,7 @@ public class Auto_Goal_Blue extends LinearOpMode{
         //_TargetMotif = _robot.limelightHardware2Axis.getObliskTagId();
 
         Pose2d _beginPos = new Pose2d(-39.5, -59.5, Math.PI/2);
-
+        MecanumDrive drive = new MecanumDrive(hardwareMap,_beginPos);
 
 
         //waitForStart();
@@ -53,9 +54,9 @@ public class Auto_Goal_Blue extends LinearOpMode{
 
         //Action trajectoryActionBuilder = _robot.driveRR.mecanumDrive.actionBuilder(_beginPos);
 
-        TrajectoryActionBuilder trajectoryActionBuilder = _robot.driveRR.mecanumDrive.actionBuilder(_beginPos)
+        TrajectoryActionBuilder trajectoryActionBuilder = drive.actionBuilder(_beginPos)
                 // starts intake and shooter
-                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 0)) // speed is placeholder
+                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2350)) // speed is placeholder
                 .stopAndAdd(new AutoActions.IntakeRun(_robot))
 
                 // move to shooting area
@@ -63,7 +64,7 @@ public class Auto_Goal_Blue extends LinearOpMode{
                 .strafeToSplineHeading(new Vector2d(-12, -12), -(3*Math.PI)/4)
 
                 // shoots the preloaded artifacts
-                .stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[0]))
+                /*.stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[0]))
                 .waitSeconds(0.5)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[1]))
                 .waitSeconds(0.5)
@@ -92,7 +93,7 @@ public class Auto_Goal_Blue extends LinearOpMode{
                 .waitSeconds(0.5)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, thirdSpikeKickingOrder[1]))
                 .waitSeconds(0.5)
-                .stopAndAdd(new AutoActions.KickerKick(_robot, thirdSpikeKickingOrder[2]));
+                .stopAndAdd(new AutoActions.KickerKick(_robot, thirdSpikeKickingOrder[2]))*/;
 
         Actions.runBlocking(trajectoryActionBuilder.build());
 

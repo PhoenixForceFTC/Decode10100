@@ -157,6 +157,34 @@ public class Kickers
 
     }
 
+    public void fireKickerAuto(int kickerPos)
+    {
+
+        if (kickerPos == 0){
+            _kickerLeft.setPosition(kickedL);
+        }
+        else if (kickerPos == 1){
+            _kickerMid.setPosition(kickedM);
+        }
+        else if (kickerPos == 2){
+            _kickerRight.setPosition(kickedR);
+        }
+    }
+
+    public void retractKickerAuto(int kickerPos)
+    {
+
+        if (kickerPos == 0){
+            _kickerLeft.setPosition(zeroL);
+        }
+        else if (kickerPos == 1){
+            _kickerMid.setPosition(zeroM);
+        }
+        else if (kickerPos == 2){
+            _kickerRight.setPosition(zeroR);
+        }
+    }
+
     public void initialize()
     {
         //_motorShooterLeft.setVelocityPIDFCoefficients(kP,kI ,kD , kF);

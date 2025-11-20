@@ -57,11 +57,26 @@ public class AutoActions {
         }
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-            robot.kickers.fireKicker(this.pos);
+            robot.kickers.fireKickerAuto(this.pos);
             return false;
         }
     }
-    
+
+    public static class KickerUnkick implements Action{
+        private final RobotHardware robot;
+        private int pos;
+        public KickerUnkick(RobotHardware robot, int kickerPos){
+            this.robot = robot;
+            //robot.kickers._telemetry.addData("left kicker flipped",1);
+            this.pos = kickerPos;
+        }
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            robot.kickers.retractKickerAuto(this.pos);
+            return false;
+        }
+    }
+
     public static class IntakeRun implements Action{
         private final RobotHardware robot;
         public IntakeRun(RobotHardware robot){
