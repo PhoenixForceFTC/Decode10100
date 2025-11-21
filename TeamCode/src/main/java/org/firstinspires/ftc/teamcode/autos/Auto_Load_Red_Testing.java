@@ -1,34 +1,31 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.autos;
 
+import com.acmerobotics.roadrunner.AngularVelConstraint;
+import com.acmerobotics.roadrunner.MinVelConstraint;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
+import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.VelConstraint;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.autos.AutoActions;
+import org.firstinspires.ftc.teamcode.RobotHardware;
 import org.firstinspires.ftc.teamcode.hardware.LimelightHardware2Axis;
 import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
-
-
-import com.acmerobotics.roadrunner.VelConstraint;
-import com.acmerobotics.roadrunner.MinVelConstraint;
-import com.acmerobotics.roadrunner.AccelConstraint;
-import com.acmerobotics.roadrunner.TranslationalVelConstraint;
-import com.acmerobotics.roadrunner.AngularVelConstraint;
 
 import java.util.Arrays;
 
 
-@Autonomous(name="Auton Load Blue")
-public class Auto_Load_Blue extends LinearOpMode{
+@Autonomous(name="Auton Load Red Testing")
+public class Auto_Load_Red_Testing extends LinearOpMode{
     RobotHardware _robot = new RobotHardware(this);
     private LimelightHardware2Axis.Motif _TargetMotif;
 
     //slow down bot temporarily
     VelConstraint slowVelConstraint = new MinVelConstraint(Arrays.asList(
-            new TranslationalVelConstraint(25.0),
+            new TranslationalVelConstraint(10.0),
             new AngularVelConstraint(Math.PI / 2)
     ));
 
@@ -40,7 +37,7 @@ public class Auto_Load_Blue extends LinearOpMode{
         _robot.limelightHardware2Axis.servos();
         //_TargetMotif = _robot.limelightHardware2Axis.getObliskTagId();
 
-        Pose2d _beginPos = new Pose2d(67, -15.5, Math.PI);
+        Pose2d _beginPos = new Pose2d(67, 15.5, Math.PI);
         MecanumDrive drive = new MecanumDrive(hardwareMap, _beginPos);
 
 
@@ -67,11 +64,11 @@ public class Auto_Load_Blue extends LinearOpMode{
 
         int[] initialKickingOrder = fireAutoKickerSeq(_TargetMotif, LimelightHardware2Axis.Motif.PPG);
         // Towards opposite alliance loading zone
-        int[] firstSpikeKickingOrder = fireAutoKickerSeq(_TargetMotif, LimelightHardware2Axis.Motif.GPP);
+        int[] firstSpikeKickingOrder = fireAutoKickerSeq(_TargetMotif, LimelightHardware2Axis.Motif.PPG);
         // Middle spike
         int[] secondSpikeKickingOrder = fireAutoKickerSeq(_TargetMotif, LimelightHardware2Axis.Motif.PGP);
         // Towards goal
-        int[] thirdSpikeKickingOrder = fireAutoKickerSeq(_TargetMotif, LimelightHardware2Axis.Motif.GPP);
+        int[] thirdSpikeKickingOrder = fireAutoKickerSeq(_TargetMotif, LimelightHardware2Axis.Motif.PPG);
 
         //Action trajectoryActionBuilder = _robot.driveRR.mecanumDrive.actionBuilder(_beginPos);
 
@@ -83,46 +80,51 @@ public class Auto_Load_Blue extends LinearOpMode{
 
                 // move to shooting area
 
-                .strafeTo(new Vector2d(-7, -7))
-                .turn(Math.PI/4)
-                .waitSeconds(3)
+                .strafeToSplineHeading(new Vector2d(-20, 20), (3*Math.PI)/4+Math.PI/36)
+                .waitSeconds(1)
 
                 // shoots the preloaded artifacts
                 .stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[0]))
-                .waitSeconds(0.5)
+                .waitSeconds(1.3)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[1]))
-                .waitSeconds(0.5)
+                .waitSeconds(1.3)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[2]))
-                .waitSeconds(0.5)
+                .waitSeconds(1.3)
 
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot, 0))
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot, 1))
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot, 2))
 
+                // in case auto is not able to be finished, we move to the side
+                //.strafeToSplineHeading(new Vector2d(-60, 24), Math.PI/2)
+
+                // ERROR CORRECTION -- THEORETICAL
+                // add 12 to x, 24 to y
+
                 // moves to first spike to intake artifacts, then moves back
-                // TODO: make robot go 50% speed
-                .turn(Math.PI/2)
-                .strafeTo(new Vector2d(24, -24));
-                /*.strafeToSplineHeading(new Vector2d(36, -48), -(Math.PI)/4, slowVelConstraint)
-                .strafeToSplineHeading(new Vector2d(24, -24), -(3*Math.PI)/4)
-                .strafeToSplineHeading(new Vector2d(-7, -7), -(3*Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(12, 24), Math.PI/4)
+                .strafeToSplineHeading(new Vector2d(30, 75), Math.PI/4, slowVelConstraint)
+                .strafeToSplineHeading(new Vector2d(8, 24), (3*Math.PI)/4+Math.PI/36)
+                .strafeToSplineHeading(new Vector2d(-10, 10), (3*Math.PI)/4+Math.PI/36)
 
                 // kicks artifacts from first spike
                 .stopAndAdd(new AutoActions.KickerKick(_robot, firstSpikeKickingOrder[0]))
-                .waitSeconds(0.5)
+                .waitSeconds(1.3)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, firstSpikeKickingOrder[1]))
-                .waitSeconds(0.5)
+                .waitSeconds(1.3)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, firstSpikeKickingOrder[2]))
-                .waitSeconds(2)*/
+                .waitSeconds(2)
 
-                /*.stopAndAdd(new AutoActions.KickerUnkick(_robot, 0))
+                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 0))
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot, 1))
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot, 2))
 
-                //pickup from second spike
-                .strafeToSplineHeading(new Vector2d(2.5, -27.5), -(Math.PI)/4)
-                .strafeToSplineHeading(new Vector2d(12, -48), -(Math.PI)/4, slowVelConstraint)
-                .strafeToSplineHeading(new Vector2d(-7, -7), -(3*Math.PI)/4)
+                .strafeTo(new Vector2d(-60, 24));
+
+                /*//pickup from second spike
+                .strafeToSplineHeading(new Vector2d(14.5, 3.5), (Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(24, 24), (Math.PI)/4, slowVelConstraint)
+                .strafeToSplineHeading(new Vector2d(-7, 7), (3*Math.PI)/4)
 
                 //kicks artifacts from second spike
                 .stopAndAdd(new AutoActions.KickerKick(_robot, secondSpikeKickingOrder[0]))
@@ -133,9 +135,9 @@ public class Auto_Load_Blue extends LinearOpMode{
                 .waitSeconds(2)
 
 
-                .strafeToSplineHeading(new Vector2d(0, -24), -(3*Math.PI)/4)
-                .strafeToSplineHeading(new Vector2d(-12, -48), -(3*Math.PI)/4, slowVelConstraint)
-                .strafeToSplineHeading(new Vector2d(-7, -7), -(3*Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(12, 0), (3*Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(0, 24), (3*Math.PI)/4, slowVelConstraint)
+                .strafeToSplineHeading(new Vector2d(-7, 7), (3*Math.PI)/4)
 
                 .stopAndAdd(new AutoActions.KickerKick(_robot, thirdSpikeKickingOrder[0]))
                 .waitSeconds(0.5)
