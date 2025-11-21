@@ -103,7 +103,7 @@ public class Auto_Load_Blue_Testing extends LinearOpMode{
 
                 // moves to first spike to intake artifacts, then moves back
                 .strafeToSplineHeading(new Vector2d(24, 0), -Math.PI/4)
-                .strafeToSplineHeading(new Vector2d(40, -34), -Math.PI/4, slowVelConstraint)
+                .strafeToSplineHeading(new Vector2d(44, -38), -Math.PI/4, slowVelConstraint)
                 .strafeToSplineHeading(new Vector2d(20, 0), -(3*Math.PI)/4)
                 .strafeToSplineHeading(new Vector2d(-2, -4), -(3*Math.PI)/4)
 
@@ -117,7 +117,9 @@ public class Auto_Load_Blue_Testing extends LinearOpMode{
 
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot, 0))
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot, 1))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 2));
+                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 2))
+
+                .strafeTo(new Vector2d(-60, -24));
 
                 /*//pickup from second spike
                 .strafeToSplineHeading(new Vector2d(14.5, -3.5), -(Math.PI)/4)
