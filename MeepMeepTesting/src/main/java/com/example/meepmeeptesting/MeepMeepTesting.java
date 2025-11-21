@@ -54,27 +54,29 @@ public class MeepMeepTesting {
 
                 .build());*/
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(67, -15.5, Math.PI))
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-39.5, -59.5, Math.PI/2))
                 // move to shooting area
-
                 .strafeToSplineHeading(new Vector2d(-12, -12), -(3*Math.PI)/4)
 
-
+                // shoots the preloaded artifacts
                 .waitSeconds(2)
 
+                // moves to third spike to intake artifacts, then moves back
+                //.strafeToSplineHeading(new Vector2d(0, -36), -(3*Math.PI)/4)
+                .turn((Math.PI)/4)
 
-                //.waitSeconds(2)
+                .strafeToSplineHeading(new Vector2d(-6, -36), -(Math.PI)/2)
+                .strafeToSplineHeading(new Vector2d(-18, -42), -(Math.PI)/2)
+                .strafeToSplineHeading(new Vector2d(-12, -12), -(3*Math.PI)/4)
+
+                // kicks artifacts from third spike
 
                 // moves to second spike to intake artifacts, then moves back
-                .strafeToSplineHeading(new Vector2d(12, -24), -(Math.PI)/4)
-                .strafeToSplineHeading(new Vector2d(36, -48), -(Math.PI)/4)
-                .strafeToSplineHeading(new Vector2d(12, -24), -(3*Math.PI)/4)
-                .strafeToSplineHeading(new Vector2d(-12, -12), -(3*Math.PI)/4)
-
-                .waitSeconds(2)
-
                 .strafeToSplineHeading(new Vector2d(12, -48), -(Math.PI)/4)
                 .strafeToSplineHeading(new Vector2d(-12, -12), -(3*Math.PI)/4)
+
+                // kicks artifacts from second spike
+
 
                 .build());
 
