@@ -226,6 +226,7 @@ public class RobotHardware {
         );
         intake = new Intake_Incomplete(
                 motorIntake,
+                myOpMode.gamepad1,
                 myOpMode.gamepad2,
                 myOpMode.telemetry,
                 false);

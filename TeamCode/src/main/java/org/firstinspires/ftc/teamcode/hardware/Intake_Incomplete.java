@@ -25,6 +25,7 @@ public class Intake_Incomplete
 
 
     private final Gamepad _gamepad;
+    private final Gamepad _gamepad2;
     public final Telemetry _telemetry;
 
 
@@ -38,12 +39,13 @@ public class Intake_Incomplete
 
 
     //region --- Constructor
-    public Intake_Incomplete( DcMotorEx intake, Gamepad gamepad, Telemetry telemetry, boolean showInfo)
+    public Intake_Incomplete( DcMotorEx intake, Gamepad gamepad,Gamepad gamepad2, Telemetry telemetry, boolean showInfo)
     {
         this._intake = intake;
         this._intake.setDirection(DcMotorSimple.Direction.REVERSE);
         this._intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         this._gamepad = gamepad;
+        this._gamepad2 = gamepad2;
         this._telemetry = telemetry;
         this._showInfo = showInfo;
     }
@@ -66,13 +68,13 @@ public class Intake_Incomplete
     //--- Uses controls to control intake, outtake, and stop
     public void run(){
         // change controls later
-        if (_gamepad.a){
+        if (_gamepad2.left_trigger>0.2){
             forward();
         }
-        if (_gamepad.y){
+        if (_gamepad2.right_trigger>0.2){
             backward();
         }
-        if (_gamepad.b){
+        if (_gamepad.y){
             stop();
         }
     }
