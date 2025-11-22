@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.RobotHardware;
@@ -19,7 +20,7 @@ import com.acmerobotics.roadrunner.AngularVelConstraint;
 
 import java.util.Arrays;
 
-
+@Disabled
 @Autonomous(name="Auton Load Blue")
 public class Auto_Load_Blue extends LinearOpMode{
     RobotHardware _robot = new RobotHardware(this);

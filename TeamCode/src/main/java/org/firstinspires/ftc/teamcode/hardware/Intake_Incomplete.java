@@ -51,11 +51,11 @@ public class Intake_Incomplete
 
     //region --- Movement ---
     public void forward(){
-        _intake.setPower(0.7);
+        _intake.setPower(0.8);
     } //--- Inward movement of artifacts
 
     public void backward(){
-        _intake.setPower(-0.7);
+        _intake.setPower(-0.8);
     } //--- Outward movement
 
     public void stop(){

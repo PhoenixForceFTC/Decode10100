@@ -5,13 +5,14 @@ import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.RobotHardware;
 import org.firstinspires.ftc.teamcode.hardware.LimelightHardware2Axis;
 import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 
-
+@Disabled
 @Autonomous(name="Auton Goal Blue")
 public class Auto_Goal_Blue extends LinearOpMode{
     RobotHardware _robot = new RobotHardware(this);

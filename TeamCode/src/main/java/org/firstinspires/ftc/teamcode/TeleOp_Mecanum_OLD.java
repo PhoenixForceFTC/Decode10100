@@ -119,7 +119,7 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
             _robot.drive.driveControl(0.5); //--- Both D-pad for directional movement and Joysticks for mecanum movement
 
 
-            if(gamepad2.left_bumper&&(shooterSpeedRpm>0)){
+            if(gamepad1.left_bumper&&(shooterSpeedRpm>0)){
                 if(shooterSpeedRpm>10){
                     shooterSpeedRpm -=10;
                 }
@@ -127,7 +127,7 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
                     shooterSpeedRpm = 0;
                 }
             }
-            if(gamepad2.right_bumper&&(shooterSpeedRpm<6000)){
+            if(gamepad1.right_bumper&&(shooterSpeedRpm<6000)){
                 if(shooterSpeedRpm<5990){
                     shooterSpeedRpm +=10;
 

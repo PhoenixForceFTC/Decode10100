@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 //region -- Imports ---
 
 import com.acmerobotics.roadrunner.Pose2d;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -54,7 +55,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 //  - B (○)             - Mode -> Specimens
 //----------------------------------------------------------------------
 //endregion
-
+@Disabled
 @TeleOp(name="TeleOp_Mecanum_New", group="1")
 public class TeleOp_Mecanum_New extends LinearOpMode
 {

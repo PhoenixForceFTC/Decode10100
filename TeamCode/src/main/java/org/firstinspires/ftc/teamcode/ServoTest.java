@@ -10,6 +10,7 @@ import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 @TeleOp(name="ServoTest", group="1")
 @Config
+@Disabled
 public class ServoTest extends LinearOpMode {
     public Servo servo1;
     public static double position = 0.5;
