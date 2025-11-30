@@ -74,7 +74,7 @@ public class Auto_Load_Red_Testing extends LinearOpMode{
 
         TrajectoryActionBuilder trajectoryActionBuilder1 = drive.actionBuilder(_beginPos)
                 // starts intake and shooter
-                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2350)) // speed is placeholder
+                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2250)) // speed is placeholder
                 .stopAndAdd(new AutoActions.IntakeRun(_robot))
                 .waitSeconds(3)
 

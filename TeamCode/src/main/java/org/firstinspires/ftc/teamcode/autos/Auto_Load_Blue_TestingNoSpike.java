@@ -18,8 +18,8 @@ import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 import java.util.Arrays;
 
 
-@Autonomous(name="Auton Load Blue Testing")
-public class Auto_Load_Blue_Testing extends LinearOpMode{
+@Autonomous(name="Auton Load Blue Testing No Spike")
+public class Auto_Load_Blue_TestingNoSpike extends LinearOpMode{
     RobotHardware _robot = new RobotHardware(this);
     private LimelightHardware2Axis.Motif _TargetMotif;
 
@@ -100,24 +100,6 @@ public class Auto_Load_Blue_Testing extends LinearOpMode{
 
                 // ERROR CORRECTION -- THEORETICAL
                 // add 12 to x, 24 to y
-
-                // moves to first spike to intake artifacts, then moves back
-                .strafeToSplineHeading(new Vector2d(24, 0), -Math.PI/4)
-                .strafeToSplineHeading(new Vector2d(44, -38), -Math.PI/4, slowVelConstraint)
-                .strafeToSplineHeading(new Vector2d(20, 0), -(3*Math.PI)/4)
-                .strafeToSplineHeading(new Vector2d(-2, -4), -(3*Math.PI)/4)
-
-                // kicks artifacts from first spike
-                .stopAndAdd(new AutoActions.KickerKick(_robot, firstSpikeKickingOrder[0]))
-                .waitSeconds(1.3)
-                .stopAndAdd(new AutoActions.KickerKick(_robot, firstSpikeKickingOrder[1]))
-                .waitSeconds(1.3)
-                .stopAndAdd(new AutoActions.KickerKick(_robot, firstSpikeKickingOrder[2]))
-                .waitSeconds(2)
-
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 0))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 1))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 2))
 
                 .strafeTo(new Vector2d(-60, -24));
 

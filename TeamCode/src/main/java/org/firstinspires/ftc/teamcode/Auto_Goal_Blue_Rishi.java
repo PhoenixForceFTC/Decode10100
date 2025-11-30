@@ -81,7 +81,7 @@ public class Auto_Goal_Blue_Rishi extends LinearOpMode{
                 // move to shooting area
 
 
-                .strafeToSplineHeading(new Vector2d(-31, -30), -3*Math.PI/4)
+                .strafeToSplineHeading(new Vector2d(-7, -30), -3*Math.PI/4)
 
                 //shoots the preloaded artifacts
                 .stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[0]))
@@ -90,7 +90,7 @@ public class Auto_Goal_Blue_Rishi extends LinearOpMode{
                 .waitSeconds(0.5)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[2]))
                 .waitSeconds(2)
-                .strafeToSplineHeading(new Vector2d(-63, -12), -(3*Math.PI)/4);
+                .strafeToSplineHeading(new Vector2d(-39, -12), -(3*Math.PI)/4);
 
                 /*
                 // moves to third spike to intake artifacts, then moves back
