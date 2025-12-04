@@ -19,8 +19,8 @@ import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 import java.util.Arrays;
 
 @Disabled
-@Autonomous(name="Auton Goal Blue 12pt")
-public class Auto_Goal_Blue_12pt extends LinearOpMode{
+@Autonomous(name="Auton Goal Red 12pt")
+public class Auto_Goal_Red_12pt extends LinearOpMode{
     RobotHardware _robot = new RobotHardware(this);
     private LimelightHardware2Axis.Motif _TargetMotif;
 
@@ -38,7 +38,7 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
         _robot.limelightHardware2Axis.servos();
         //_TargetMotif = _robot.limelightHardware2Axis.getObliskTagId();
 
-        Pose2d _beginPos = new Pose2d(-39.5, -59.5, -Math.PI/2);
+        Pose2d _beginPos = new Pose2d(-39.5, 59.5, -Math.PI/2);
         MecanumDrive drive = new MecanumDrive(hardwareMap, _beginPos);
 
 
@@ -86,7 +86,7 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
                 //.waitSeconds(3)
 
                 // move to shooting area
-                .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(-30, 30), (3*Math.PI)/4)
 
                 // shoots the preloaded artifacts
                 .stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[0]))
@@ -97,15 +97,15 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
                 .waitSeconds(0.5)
 
                 //go to first spike
-                .turn(Math.PI/4)
-                .strafeToSplineHeading(new Vector2d(-12, -48), 0)
+                .turn(-Math.PI/4)
+                .strafeToSplineHeading(new Vector2d(-12, 48), 0)
 
                 //clear gate
-                .strafeToSplineHeading(new Vector2d(0, -57.5), 0)
+                .strafeToSplineHeading(new Vector2d(0, 57.5), 0)
 
                 //back to shooting zone
                 .waitSeconds(1)
-                .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(-30, 30), (3*Math.PI)/4)
 
                 // shoots the first spike
                 .stopAndAdd(new AutoActions.KickerKick(_robot, firstSpikeKickingOrder[0]))
@@ -116,10 +116,10 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
                 .waitSeconds(0.5)
 
                 //second spike
-                .strafeToSplineHeading(new Vector2d(12, -48), 0)
+                .strafeToSplineHeading(new Vector2d(12, 48), 0)
 
                 //back to shooting
-                .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(-30, 30), (3*Math.PI)/4)
 
                 // shoots the second spike
                 .stopAndAdd(new AutoActions.KickerKick(_robot, secondSpikeKickingOrder[0]))
@@ -131,11 +131,11 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
 
                 //third spike
                 .waitSeconds(2)
-                .strafeToSplineHeading(new Vector2d(36, -48), 0)
+                .strafeToSplineHeading(new Vector2d(36, 48), 0)
 
                 //back to shooting
                 .waitSeconds(2)
-                .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(-30, 30), (3*Math.PI)/4)
 
                 // shoots the second spike
                 .stopAndAdd(new AutoActions.KickerKick(_robot, thirdSpikeKickingOrder[0]))
@@ -146,8 +146,8 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
                 .waitSeconds(0.5)
 
                 //loading zone
-                .strafeToSplineHeading(new Vector2d(63.5, -30), -Math.PI/2)
-                .strafeToSplineHeading(new Vector2d(63.5, -70.5), -Math.PI/2);
+                .strafeToSplineHeading(new Vector2d(63.5, 30), Math.PI/2)
+                .strafeToSplineHeading(new Vector2d(63.5, 70.5), Math.PI/2);
 
         //TrajectoryActionBuilder TrajectoryActionBuilder2 = drive.actionBuilder(new Pose2d(-12, -12, -(3*Math.PI)4/))
         //        .splineTo(new Vector2d(24, -24), -(Math.PI)/4);

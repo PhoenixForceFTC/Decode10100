@@ -54,38 +54,38 @@ public class MeepMeepTesting {
 
                 .build());*/
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-39.5, -59.5, Math.PI/2))
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-39.5, 59.5, -Math.PI/2))
 
                 // move to shooting area
 
 
-                .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(-30, 30), (3*Math.PI)/4)
 
                 .waitSeconds(2)
-                .turn(Math.PI/4)
-                .strafeToSplineHeading(new Vector2d(-12, -48), 0)
+                .turn(-Math.PI/4)
+                .strafeToSplineHeading(new Vector2d(-12, 48), 0)
 
                 .waitSeconds(2)
-                .strafeToSplineHeading(new Vector2d(0, -57.5), 0)
+                .strafeToSplineHeading(new Vector2d(0, 57.5), 0)
 
                 .waitSeconds(2)
-                .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(-30, 30), (3*Math.PI)/4)
 
                 .waitSeconds(2)
-                .strafeToSplineHeading(new Vector2d(12, -48), 0)
+                .strafeToSplineHeading(new Vector2d(12, 48), 0)
 
                 .waitSeconds(2)
-                .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(-30, 30), (3*Math.PI)/4)
 
                 .waitSeconds(2)
-                .strafeToSplineHeading(new Vector2d(36, -48), 0)
+                .strafeToSplineHeading(new Vector2d(36, 48), 0)
 
                 .waitSeconds(2)
-                .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4)
+                .strafeToSplineHeading(new Vector2d(-30, 30), (3*Math.PI)/4)
 
                 .waitSeconds(2)
-                .strafeToSplineHeading(new Vector2d(63.5, -30), -Math.PI/2)
-                .strafeToSplineHeading(new Vector2d(63.5, -70.5), -Math.PI/2)
+                .strafeToSplineHeading(new Vector2d(63.5, 30), Math.PI/2)
+                .strafeToSplineHeading(new Vector2d(63.5, 70.5), Math.PI/2)
 
                 .build());
 
