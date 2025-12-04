@@ -59,16 +59,33 @@ public class MeepMeepTesting {
                 // move to shooting area
 
 
-                .strafeToSplineHeading(new Vector2d(-31, -30), Math.PI/2)
-                .turn((3*Math.PI)/4)
                 .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4)
 
-                //shoots the preloaded artifacts
-                .waitSeconds(0.5)
-                .waitSeconds(0.5)
                 .waitSeconds(2)
-                .strafeToSplineHeading(new Vector2d(-63, -12), -(2*Math.PI)/4)
+                .turn(Math.PI/4)
+                .strafeToSplineHeading(new Vector2d(-12, -48), 0)
 
+                .waitSeconds(2)
+                .strafeToSplineHeading(new Vector2d(0, -57.5), 0)
+
+                .waitSeconds(2)
+                .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4)
+
+                .waitSeconds(2)
+                .strafeToSplineHeading(new Vector2d(12, -48), 0)
+
+                .waitSeconds(2)
+                .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4)
+
+                .waitSeconds(2)
+                .strafeToSplineHeading(new Vector2d(36, -48), 0)
+
+                .waitSeconds(2)
+                .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4)
+
+                .waitSeconds(2)
+                .strafeToSplineHeading(new Vector2d(63.5, -30), -Math.PI/2)
+                .strafeToSplineHeading(new Vector2d(63.5, -70.5), -Math.PI/2)
 
                 .build());
 
