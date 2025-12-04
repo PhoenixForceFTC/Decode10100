@@ -6,7 +6,6 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -20,6 +19,7 @@ import org.firstinspires.ftc.teamcode.hardware.LimelightHardware2Axis;
 import org.firstinspires.ftc.teamcode.hardware.Shooter;
 import org.firstinspires.ftc.teamcode.hardware.Intake_Incomplete;
 import org.firstinspires.ftc.teamcode.hardware.Kickers;
+import org.firstinspires.ftc.teamcode.hardware.Kickstand;
 
 import org.firstinspires.ftc.teamcode.hardware.Drive;
 //endregion
@@ -85,7 +85,7 @@ public class RobotHardware {
     public DcMotor motorDriveFrontLeft = null;
     public DcMotor motorDriveRearRight = null;
     public DcMotor motorDriveRearLeft = null;
-
+    public DcMotorEx motorKickstand = null;
 
     //------------------------------------------------------------------------------------------
     //--- Utility Motors
@@ -115,6 +115,7 @@ public class RobotHardware {
     public DriveRR driveRR;
     public IMU imu;
     public Kickers kickers;
+    public Kickstand kickstand;
 
     public Limelight3A limelight;
     public RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(new Orientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES,135,0,0,0));
@@ -149,17 +150,18 @@ public class RobotHardware {
         motorDriveFrontLeft.setDirection(DcMotor.Direction.REVERSE);
         motorDriveRearLeft.setDirection(DcMotor.Direction.REVERSE);
         motorDriveFrontRight.setDirection(DcMotor.Direction.FORWARD);
-        motorDriveRearRight.setDirection(DcMotor.Direction.FORWARD);
+        motorDriveRearRight.setDirection(DcMotor.Direction.FORWARD); // this is a comment
 
         //--- Utility Motors
         motorShooterLeft = myOpMode.hardwareMap.get(DcMotorEx.class, "flyleft"); //--- Lifting Arm Left
         motorShooterRight = myOpMode.hardwareMap.get(DcMotorEx.class, "flyright"); //--- Lifting Arm Right
         motorIntake = myOpMode.hardwareMap.get(DcMotorEx.class, "intake_motor");
+        motorKickstand = myOpMode.hardwareMap.get(DcMotorEx.class, "kickstand");
 
         motorShooterLeft.setDirection(DcMotor.Direction.REVERSE);
         motorShooterRight.setDirection(DcMotor.Direction.FORWARD);
         motorIntake.setDirection(DcMotor.Direction.FORWARD);
-
+        motorKickstand.setDirection(DcMotor.Direction.FORWARD);
 
 
         motorShooterLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -252,6 +254,11 @@ public class RobotHardware {
                 myOpMode.gamepad2,
                 myOpMode.telemetry,
                 true);
+
+        kickstand = new Kickstand(motorKickstand,
+                myOpMode.gamepad2,
+                myOpMode.telemetry,
+                false);
 
 
         //------------------------------------------------------------------------------------------
