@@ -24,7 +24,7 @@ public class Kickers
     private final double kickedL = 0.3;
     private final double zeroL = 0.5;
 
-    private final double kickedM = 0.7;
+    private final double kickedM = 0.3;
     private final double zeroM = 0.5;
 
     private final double kickedR = 0.7;

@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -14,6 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.hardware.DriveRR;
+import org.firstinspires.ftc.teamcode.hardware.Lights;
 import org.firstinspires.ftc.teamcode.hardware.LimelightHardware;
 import org.firstinspires.ftc.teamcode.hardware.LimelightHardware2Axis;
 import org.firstinspires.ftc.teamcode.hardware.Shooter;
@@ -104,6 +106,10 @@ public class RobotHardware {
     public Servo cameraYaw = null;
     public Servo cameraPitch = null;
 
+    public Servo servoLightLeft = null;
+    public Servo servoLightMiddle = null;
+    public Servo servoLightRight = null;
+
     //------------------------------------------------------------------------------------------
     //--- Custom Hardware Classes
     //------------------------------------------------------------------------------------------
@@ -118,6 +124,10 @@ public class RobotHardware {
     public Kickstand kickstand;
 
     public Limelight3A limelight;
+    public ColorSensor colorSensorLeft = null;
+    public ColorSensor colorSensorMiddle = null;
+    public ColorSensor colorSensorRight = null;
+    public Lights lights;
     public RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(new Orientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES,135,0,0,0));
     //------------------------------------------------------------------------------------------
     //--- Define a constructor that allows the OpMode to pass a reference to itself
@@ -131,8 +141,7 @@ public class RobotHardware {
      * Initialize all the robot's hardware.
      * This method must be called ONCE when the OpMode is initialized.
      */
-    public void init(int robotVersion)
-    {
+    public void init(int robotVersion) {
         //FtcDashboard dashboard = FtcDashboard.getInstance();
         //myOpMode.telemetry = dashboard.getTelemetry();
         // i do this in the main teleop now that might be wrong code structure
@@ -180,9 +189,19 @@ public class RobotHardware {
         cameraPitch = myOpMode.hardwareMap.get(Servo.class, "Pitch");
         cameraPitch.setDirection(Servo.Direction.REVERSE);
 
+        //--- Color Sensors
+        colorSensorLeft = myOpMode.hardwareMap.get(ColorSensor.class, "ckl");
+        colorSensorMiddle = myOpMode.hardwareMap.get(ColorSensor.class, "ckm");
+        colorSensorRight = myOpMode.hardwareMap.get(ColorSensor.class, "ckr");
 
-        imu = myOpMode.hardwareMap.get(IMU.class,"imu");
-        limelight = myOpMode.hardwareMap.get(Limelight3A.class,"limelight");
+        //--- Lights
+        servoLightLeft = myOpMode.hardwareMap.get(Servo.class, "LLight");
+        servoLightMiddle = myOpMode.hardwareMap.get(Servo.class, "MLight");
+        servoLightRight = myOpMode.hardwareMap.get(Servo.class, "RLight");
+
+
+        imu = myOpMode.hardwareMap.get(IMU.class, "imu");
+        limelight = myOpMode.hardwareMap.get(Limelight3A.class, "limelight");
         //imu.initialize(new IMU.Parameters(revHubOrientationOnRobot));
 
 
@@ -260,6 +279,21 @@ public class RobotHardware {
                 myOpMode.telemetry,
                 false);
 
+        lights = new Lights(
+                servoLightLeft,
+                servoLightMiddle,
+                servoLightRight,
+                myOpMode.gamepad1,
+                myOpMode.gamepad2,
+                myOpMode.telemetry,
+                robotVersion,
+                _showInfo
+        );
+        lights.initialize();
+
+        //--- Connect color sensors and lights to intake for ball detection
+        intake.setColorSensors(colorSensorLeft, colorSensorMiddle, colorSensorRight);
+        intake.setLights(lights);
 
         //------------------------------------------------------------------------------------------
         //--- Messages
@@ -267,4 +301,11 @@ public class RobotHardware {
         myOpMode.telemetry.addData(">", "Hardware Initialized");
         myOpMode.telemetry.update();
     }
-}
+
+
+    public void run()
+    {
+        intake.run();
+        lights.run();
+    }
+    }

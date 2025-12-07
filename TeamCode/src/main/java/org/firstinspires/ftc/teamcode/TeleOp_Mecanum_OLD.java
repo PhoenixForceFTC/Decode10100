@@ -102,11 +102,18 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
         //--- Hardware Initialize
         //------------------------------------------------------------------------------------------
         _robot.shooter.initialize();
+       // _robot.intake.initialize();
+        _robot.lights.initialize();
 
         //------------------------------------------------------------------------------------------
         //--- Run until the end of the match (driver presses STOP)
         //------------------------------------------------------------------------------------------
         while (opModeIsActive()) {
+
+            //------------------------------------------------------------------------------------------
+            //--- Hardware Run (updates lights, etc.)
+            //------------------------------------------------------------------------------------------
+            _robot.run();
 
             //------------------------------------------------------------------------------------------
             //--- Start Telemetry Display
@@ -167,7 +174,7 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
             _robot.shooter.shoot(shooterSpeedRpm);
             _robot.intake.run();
             _robot.kickers.run(_robot.shooter.speed,_robot.shooter.getSpeed(),true);
-            _robot.kickstand.run();
+           // _robot.kickstand.run();
             telemetry.addData("target speed in rpm", shooterSpeedRpm);
             telemetry.addData("three ball mode", isThreeBallMode);
             telemetry.addData("robot shooting position", robotPosition.toString());
@@ -178,9 +185,17 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
             _robot.limelightHardware2Axis.servos();
 
             //------------------------------------------------------------------------------------------
+            //--- Intake
+            //------------------------------------------------------------------------------------------
+            _robot.intake.testColorSensors();  //--- Show color sensor values for tuning
+
+
+            //------------------------------------------------------------------------------------------
             //--- Update Telemetry Display
             //------------------------------------------------------------------------------------------
             telemetry.update();
+
+
         }
     }
 }
