@@ -16,10 +16,9 @@ import org.firstinspires.ftc.teamcode.hardware.Kickstand;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 //endregion
 
-@Config
+@TeleOp(name="Kickstand Test", group="1")
 public class Kickstand_Test extends LinearOpMode
 {
-    private LinearOpMode myOpMode = null;
     public DcMotorEx motorKickstand = null;
 
     public Kickstand kickstand;
@@ -27,10 +26,10 @@ public class Kickstand_Test extends LinearOpMode
     @Override
     public void runOpMode() throws InterruptedException {
 
-        motorKickstand = myOpMode.hardwareMap.get(DcMotorEx.class, "kickstand");
+        motorKickstand = hardwareMap.get(DcMotorEx.class, "kickstand");
         kickstand = new Kickstand(motorKickstand,
-                myOpMode.gamepad2,
-                myOpMode.telemetry,
+                gamepad2,
+                telemetry,
                 false);
 
         while (opModeIsActive()) {

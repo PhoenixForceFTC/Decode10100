@@ -152,12 +152,12 @@ public class Intake_Incomplete
             restoreLights();
         }
 
-        detectBalls();
+       // detectBalls();
         _telemetry.addData("I detected the left ball", _leftBallColor);
         _telemetry.addData("I detected the middle ball", _middleBallColor);
         _telemetry.addData("I detected the right ball", _rightBallColor);
 
-        updateLights();
+        //updateLights();
 
         loopCount++;
         _telemetry.addData("Loop count:", "%d", loopCount);

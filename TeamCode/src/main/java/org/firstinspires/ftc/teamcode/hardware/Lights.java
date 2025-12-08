@@ -350,12 +350,12 @@ public class Lights {
         if (_gamepad2.dpad_up)
         {
             _testPosition += 0.01;
-            sleep(200);
+         //   sleep(200);
         }
         else if (_gamepad2.dpad_down)
         {
             _testPosition -= 0.01;
-            sleep(200);
+         //   sleep(200);
         }
 
         //--- Clamp value between 0 and 1
@@ -409,11 +409,12 @@ public class Lights {
 //            _telemetry.addData("Light Pattern", "X: Blue Red Yellow(fast)");
 //        }
 //    }
+//    private void sleep(long milliseconds)
+//    {
+//        try { Thread.sleep(milliseconds); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+//    }
 
-    private void sleep(long milliseconds)
-    {
-        try { Thread.sleep(milliseconds); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-    }
+
 
     //endregion
 

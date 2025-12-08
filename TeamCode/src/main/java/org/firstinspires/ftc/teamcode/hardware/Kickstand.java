@@ -18,6 +18,7 @@ public class Kickstand
     FtcDashboard dashboard = FtcDashboard.getInstance();
 
 
+
     private final DcMotorEx _kickstand;
     private final Gamepad _gamepad;
     public final Telemetry _telemetry;
@@ -42,6 +43,8 @@ public class Kickstand
     public Kickstand(DcMotorEx kickstand, Gamepad gamepad, Telemetry telemetry, boolean showInfo)
     {
         this._kickstand = kickstand;
+        this._kickstand.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this._kickstand.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this._kickstand.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         this._kickstand.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this._gamepad = gamepad;
@@ -53,7 +56,7 @@ public class Kickstand
     public void run()
     {
         // when button pressed
-        if(_gamepad.left_bumper && !button_was_pressed){
+        if(_gamepad.left_stick_button && !button_was_pressed){
             to_kick = !to_kick; // if kicking
             button_was_pressed = true;
             _kickstand.setTargetPosition(to_kick ? KICKED : UNKICKED);
@@ -61,14 +64,10 @@ public class Kickstand
             button_was_pressed = false;
         }
 
-        // Check if the motor is not moving or the target position has changed
-        if (!_kickstand.isBusy()) {
-            _kickstand.setPower(1); // Move to the target position
-        }
-
-        // Stop the motor once it has reached the target position
-        if (!_kickstand.isBusy()) {
-            _kickstand.setPower(0.2); // Stop the motor
+        if(to_kick){
+            _kickstand.setPower(0.1);
+        }else{
+            _kickstand.setPower(0);
         }
     }
 

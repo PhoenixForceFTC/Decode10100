@@ -187,7 +187,7 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
             //------------------------------------------------------------------------------------------
             //--- Intake
             //------------------------------------------------------------------------------------------
-            _robot.intake.testColorSensors();  //--- Show color sensor values for tuning
+           // _robot.intake.testColorSensors();  //--- Show color sensor values for tuning
 
 
             //------------------------------------------------------------------------------------------
