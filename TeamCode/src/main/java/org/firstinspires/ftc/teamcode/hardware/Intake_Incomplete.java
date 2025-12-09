@@ -156,7 +156,7 @@ public class Intake_Incomplete
 //        _telemetry.addData("I detected the left ball", _leftBallColor);
 //        _telemetry.addData("I detected the middle ball", _middleBallColor);
 //        _telemetry.addData("I detected the right ball", _rightBallColor);
-        _telemetry.addData("Left distance is", "%d", _leftAvgDist);
+        //_telemetry.addData("Left distance is", "%d", _leftAvgDist);
 
         updateLights();
 

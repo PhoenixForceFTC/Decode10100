@@ -13,13 +13,14 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import com.acmerobotics.dashboard.config.Config;
 
 
-import java.util.ArrayList;
 import java.util.List;
 @Config
 public class LimelightHardware2Axis
@@ -28,12 +29,15 @@ public class LimelightHardware2Axis
     //endregion
 
     //region --- Variables ---
-    private double _cameraTiltAngle = 0.0; // Camera tilt angle in degrees (positive = tilted up)
-    private double _yawPositionStart = 0.5;
-    private double _pitchPositionStart = 0.6;
+    private double _cameraPitchAngle = 0.0; // Camera pitch angle in degrees (positive = tilted up)
 
-    private double _yawPosition = _yawPositionStart;
-    private double _pitchPosition = _pitchPositionStart;
+    private double _cameraYawAngle = 0.0; // Camera yaw angle in degrees (positive = counterclockwise from robot)
+
+    private static double _YawPositionStart = 0.5;
+    private static double _PitchPositionStart = 0.6;
+
+    private double _yawPosition = _YawPositionStart;
+    private double _pitchPosition = _PitchPositionStart;
     private LLResult _latestLLResult = null; // Stores the latest result from the loop
 
     //endregion
@@ -85,7 +89,7 @@ public class LimelightHardware2Axis
      * @param angle Tilt angle in degrees (positive = tilted up, negative = tilted down)
      */
     public void setCameraTiltAngle(double angle) {
-        _cameraTiltAngle = angle;
+        _cameraPitchAngle = angle;
     }
 
     /**
@@ -93,7 +97,7 @@ public class LimelightHardware2Axis
      * @return Camera tilt angle in degrees
      */
     public double getCameraTiltAngle() {
-        return _cameraTiltAngle;
+        return _cameraPitchAngle;
     }
 
     /**
@@ -128,12 +132,13 @@ public class LimelightHardware2Axis
         double x = tagPose.getPosition().x; // Lateral (left/right)
         double y = tagPose.getPosition().y; // Vertical (up/down)
         double z = tagPose.getPosition().z; // Forward (depth)
+        DistanceUnit distanceUnit = tagPose.getPosition().unit;
 
         // Calculate the straight-line distance from camera to tag
         double straightLineDistance = Math.sqrt(x * x + y * y + z * z);
 
         // Convert camera tilt angle to radians
-        double tiltRad = Math.toRadians(_cameraTiltAngle);
+        double tiltRad = Math.toRadians(_cameraPitchAngle);
 
         // Project the straight-line distance onto the floor plane
         // If camera is tilted up (positive angle), multiply by cos(tiltAngle)
@@ -155,6 +160,79 @@ public class LimelightHardware2Axis
      * @param llResult The Limelight result
      * @return Array [floorDistance, forwardDistance, lateralDistance, verticalOffset] or null if no target
      */
+    private Pose2D getRobotPos(LLResult llResult) {
+        if (llResult == null || !llResult.isValid()) {
+            return null;
+        }
+
+        List<LLResultTypes.FiducialResult> fiducials = llResult.getFiducialResults();
+        if (fiducials == null || fiducials.isEmpty()) {
+            return null;
+        }
+
+
+        Pose3D cameraPose = llResult.getBotpose_MT2();
+
+        if (cameraPose == null) {
+            return null;
+        }
+
+
+        // Your mechanism measurements
+        double yawHorizontal = 0.1; //inches
+        double pitchHorizontal = 0.1; //inches
+        double yawHight = 0.1; // inches
+        double pitchHight = 0.1; // inches
+        double yawRadius = Math.sqrt(yawHorizontal*yawHorizontal+yawHight*yawHight); // inches
+        double pitchRadius = Math.sqrt(pitchHorizontal*pitchHorizontal+pitchHight*pitchHight);; // inches
+        double cameraFrontBack = 10;
+        double cameraLeftRight = 4;
+
+
+
+        // Current mechanism state
+        double mechanismYaw = _cameraYawAngle; // Camera yaw angle in degrees (positive = counterclockwise from robot) (0=straight)
+        double mechanismPitch = _cameraPitchAngle; // Camera pitch angle in degrees (positive = tilted up)
+
+        // Camera's field heading in radians
+        double cameraFieldHeading = cameraPose.getOrientation().getYaw(AngleUnit.RADIANS);
+
+        double totalRadius=yawRadius+Math.cos(Math.toRadians(_cameraPitchAngle)+Math.tan(yawHight/yawHorizontal))*pitchRadius;
+
+        Pose2D pivotPose = new Pose2D(
+                DistanceUnit.INCH,
+                cameraPose.getPosition().x-Math.cos(Math.toRadians(mechanismYaw))*totalRadius-Math.sin(Math.toRadians(mechanismYaw))*yawHorizontal,
+                cameraPose.getPosition().y-Math.sin(Math.toRadians(mechanismYaw))*totalRadius+Math.cos(Math.toRadians(mechanismYaw))*yawHorizontal,
+                AngleUnit.RADIANS,
+                cameraPose.getOrientation().getYaw(AngleUnit.RADIANS)-Math.toRadians(mechanismPitch)// this is yaw
+        );
+        Pose2D botPose = new Pose2D(
+                DistanceUnit.INCH,
+                pivotPose.getX(DistanceUnit.INCH)-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack+Math.sin(pivotPose.getHeading(AngleUnit.RADIANS)*cameraLeftRight),
+                pivotPose.getY(DistanceUnit.INCH)-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS)*cameraLeftRight),
+                AngleUnit.RADIANS,
+                cameraPose.getOrientation().getYaw(AngleUnit.RADIANS)-Math.toRadians(mechanismPitch)// this is yaw
+        );
+
+
+
+
+
+
+        double tiltRad = Math.toRadians(_cameraPitchAngle);
+
+        return botPose;
+
+    }
+    public static Pose2D toPose2D(Pose3D pose3d) {
+        return new Pose2D(
+                DistanceUnit.INCH,
+                pose3d.getPosition().x,
+                pose3d.getPosition().y,
+                AngleUnit.RADIANS,
+                pose3d.getOrientation().getYaw(AngleUnit.RADIANS) // this is yaw
+        );
+    }
     private double[] getDistanceBreakdown(LLResult llResult) {
         if (llResult == null || !llResult.isValid()) {
             return null;
@@ -177,7 +255,7 @@ public class LimelightHardware2Axis
         double z = tagPose.getPosition().z; // Forward (depth)
 
         double straightLineDistance = Math.sqrt(x * x + y * y + z * z);
-        double tiltRad = Math.toRadians(_cameraTiltAngle);
+        double tiltRad = Math.toRadians(_cameraPitchAngle);
         double floorDistance = straightLineDistance * Math.cos(tiltRad);
 
         return new double[] {floorDistance, z, x, y};
@@ -202,7 +280,8 @@ public class LimelightHardware2Axis
     public void servos(){
         _yaw.setPosition(_yawPosition);
         _pitch.setPosition(_pitchPosition);
-        _cameraTiltAngle=(_pitchPosition-0.5)*300;
+        _cameraPitchAngle =(_pitchPosition-0.5)*300;
+        _cameraYawAngle =(_yawPosition-0.5)*300;
     }
     public void setServos(double yawPosition, double pitchPosition){
         _yawPosition=yawPosition;
@@ -265,7 +344,7 @@ public class LimelightHardware2Axis
                     _telemetry.addData("Floor Distance", "Cannot calculate");
                 }
 
-                _telemetry.addData("Camera Tilt", String.format("%.2f°", _cameraTiltAngle)+"°");
+                _telemetry.addData("Camera Tilt", String.format("%.2f°", _cameraPitchAngle)+"°");
 
                 // Show raw angles too
                 double tx = _latestLLResult.getTx();

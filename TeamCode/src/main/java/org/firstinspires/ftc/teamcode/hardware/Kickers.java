@@ -8,7 +8,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.utils.DataLog;
+import org.firstinspires.ftc.teamcode.utils.DataLogger;
 //endregion
 
 @Config
@@ -60,7 +63,6 @@ public class Kickers
     }
 
     public void run(double targetSpeed, double speed, boolean run){
-
         if(speed/targetSpeed>0.9 && run) {
             if (_gamepad.dpad_left) {
                 fireKicker(0);
@@ -93,6 +95,46 @@ public class Kickers
         }else{
             _kickerRight.setPosition(zeroR);
         }
+    }
+    public DataLog.Shooter run2(double targetSpeed, double speed, boolean run){
+        DataLog.Shooter shooter = DataLog.Shooter.Unkown;
+        if(speed/targetSpeed>0.9 && run) {
+            if (_gamepad.dpadLeftWasPressed()) {
+                fireKicker(0);
+                shooter = DataLog.Shooter.Left;
+            }
+            if (_gamepad.dpadUpWasPressed()) {
+                fireKicker(1);
+                shooter = DataLog.Shooter.Middle;
+            }
+            if (_gamepad.dpadRightWasPressed()) {
+                fireKicker(2);
+                shooter = DataLog.Shooter.Right;
+            }
+            if (_gamepad.dpadDownWasPressed()){
+                fireKicker(3);
+                shooter = DataLog.Shooter.All;
+            }
+
+        }
+        if(timerL.seconds() < KICKER_ACTION_DELAY){
+            _kickerLeft.setPosition(kickedL);
+        }else{
+            _kickerLeft.setPosition(zeroL);
+        }
+
+        if(timerM.seconds() < KICKER_ACTION_DELAY){
+            _kickerMid.setPosition(kickedM);
+        }else{
+            _kickerMid.setPosition(zeroM);
+        }
+
+        if(timerR.seconds() < KICKER_ACTION_DELAY){
+            _kickerRight.setPosition(kickedR);
+        }else{
+            _kickerRight.setPosition(zeroR);
+        }
+        return shooter;
     }
 
     public int[] fireAutoKickerSeq(LimelightHardware2Axis.Motif targetMotif, LimelightHardware2Axis.Motif intakeMotif)
