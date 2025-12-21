@@ -174,7 +174,6 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
             _robot.shooter.shoot(shooterSpeedRpm);
             _robot.intake.run();
             _robot.kickers.run(_robot.shooter.speed,_robot.shooter.getSpeed(),true);
-           // _robot.kickstand.run();
             telemetry.addData("target speed in rpm", shooterSpeedRpm);
             telemetry.addData("three ball mode", isThreeBallMode);
             telemetry.addData("robot shooting position", robotPosition.toString());

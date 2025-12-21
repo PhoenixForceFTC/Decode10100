@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.hardware.LimelightHardware2Axis;
 import org.firstinspires.ftc.teamcode.hardware.Shooter;
 import org.firstinspires.ftc.teamcode.hardware.Intake_Incomplete;
 import org.firstinspires.ftc.teamcode.hardware.Kickers;
-import org.firstinspires.ftc.teamcode.hardware.Kickstand;
+//import org.firstinspires.ftc.teamcode.hardware.Kickstand;
 
 import org.firstinspires.ftc.teamcode.hardware.Drive;
 //endregion
@@ -121,8 +121,6 @@ public class RobotHardware {
     public DriveRR driveRR;
     public IMU imu;
     public Kickers kickers;
-    public Kickstand kickstand;
-
     public Limelight3A limelight;
     public ColorSensor colorSensorLeft = null;
     public ColorSensor colorSensorMiddle = null;
@@ -165,13 +163,10 @@ public class RobotHardware {
         motorShooterLeft = myOpMode.hardwareMap.get(DcMotorEx.class, "flyleft"); //--- Lifting Arm Left
         motorShooterRight = myOpMode.hardwareMap.get(DcMotorEx.class, "flyright"); //--- Lifting Arm Right
         motorIntake = myOpMode.hardwareMap.get(DcMotorEx.class, "intake_motor");
-        motorKickstand = myOpMode.hardwareMap.get(DcMotorEx.class, "kickstand");
 
         motorShooterLeft.setDirection(DcMotor.Direction.REVERSE);
         motorShooterRight.setDirection(DcMotor.Direction.FORWARD);
         motorIntake.setDirection(DcMotor.Direction.FORWARD);
-        motorKickstand.setDirection(DcMotor.Direction.FORWARD);
-
 
         motorShooterLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorShooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -273,11 +268,6 @@ public class RobotHardware {
                 myOpMode.gamepad2,
                 myOpMode.telemetry,
                 true);
-
-        kickstand = new Kickstand(motorKickstand,
-                myOpMode.gamepad2,
-                myOpMode.telemetry,
-                false);
 
         lights = new Lights(
                 servoLightLeft,

@@ -19,7 +19,7 @@ public class Kickstand
 
 
 
-    private final DcMotorEx _kickstand;
+    private final DcMotor _kickstand;
     private final Gamepad _gamepad;
     public final Telemetry _telemetry;
 
@@ -29,10 +29,10 @@ public class Kickstand
 
     //region --- Variables ---
     private final Boolean _showInfo;
-    private final double COUNTS_PER_MOTOR_REV = 3895.9;
+    private final double COUNTS_PER_MOTOR_REV = 5281.1; // for 30 rpm
 
     private final int UNKICKED = 0;
-    private final int KICKED = (int) (0.4*COUNTS_PER_MOTOR_REV);
+    private final int KICKED = (int) (0.1*COUNTS_PER_MOTOR_REV);
 
     private Boolean button_was_pressed = false; //was button pressed?
     private Boolean to_kick = false;
@@ -40,11 +40,12 @@ public class Kickstand
     //endregion
 
     //region --- Constructor
-    public Kickstand(DcMotorEx kickstand, Gamepad gamepad, Telemetry telemetry, boolean showInfo)
+    public Kickstand(DcMotor kickstand, Gamepad gamepad, Telemetry telemetry, boolean showInfo)
     {
         this._kickstand = kickstand;
         this._kickstand.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this._kickstand.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this._kickstand.setTargetPosition(0);
         this._kickstand.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         this._kickstand.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this._gamepad = gamepad;
@@ -53,7 +54,7 @@ public class Kickstand
     }
     //endregion
 
-    public void run()
+    public boolean run()
     {
         // when button pressed
         if(_gamepad.left_stick_button && !button_was_pressed){
@@ -69,6 +70,8 @@ public class Kickstand
         }else{
             _kickstand.setPower(0);
         }
+
+        return to_kick; // returns if kicked
     }
 
 
