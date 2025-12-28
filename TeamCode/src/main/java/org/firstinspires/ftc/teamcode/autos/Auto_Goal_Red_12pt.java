@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 
 import java.util.Arrays;
 
-@Disabled
+
 @Autonomous(name="Auton Goal Red 12pt")
 public class Auto_Goal_Red_12pt extends LinearOpMode{
     RobotHardware _robot = new RobotHardware(this);
@@ -34,7 +34,7 @@ public class Auto_Goal_Red_12pt extends LinearOpMode{
     public void runOpMode() throws InterruptedException {
         //incomplete
         _robot.init(1); // Initialize robot parts
-        _robot.limelightHardware2Axis.setServos(0.5,0.5);
+        _robot.limelightHardware2Axis.setServos(0.5,0.6);
         _robot.limelightHardware2Axis.servos();
         //_TargetMotif = _robot.limelightHardware2Axis.getObliskTagId();
 

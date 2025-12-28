@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 
 import java.util.Arrays;
 
-@Disabled
+
 @Autonomous(name="Auton Goal Blue 12pt")
 public class Auto_Goal_Blue_12pt extends LinearOpMode{
     RobotHardware _robot = new RobotHardware(this);
@@ -34,7 +34,7 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
     public void runOpMode() throws InterruptedException {
         //incomplete
         _robot.init(1); // Initialize robot parts
-        _robot.limelightHardware2Axis.setServos(0.5,0.5);
+        _robot.limelightHardware2Axis.setServos(0.4,0.6);
         _robot.limelightHardware2Axis.servos();
         //_TargetMotif = _robot.limelightHardware2Axis.getObliskTagId();
 
@@ -44,7 +44,7 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
 
         //waitForStart();
         _robot.limelightHardware2Axis.setPipeline(1);
-
+        _robot.limelightHardware2Axis.servos();
         while (!isStarted()) {
             _robot.limelightHardware2Axis.loop();
             if(_robot.limelightHardware2Axis.fiducialResultsContain(21)){
@@ -61,7 +61,7 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
             telemetry.addData("target motif", _TargetMotif.toString());
             telemetry.update();
         }
-        _robot.limelightHardware2Axis.servos();
+        //_robot.limelightHardware2Axis.servos();
 
         int[] initialKickingOrder = fireAutoKickerSeq(_TargetMotif, LimelightHardware2Axis.Motif.PPG);
         // Towards opposite alliance loading zone
@@ -173,6 +173,8 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
     // intake motif is left to right kicker
     private int[] fireAutoKickerSeq(LimelightHardware2Axis.Motif targetMotif, LimelightHardware2Axis.Motif intakeMotif)
     {
+        if(targetMotif == null){targetMotif = LimelightHardware2Axis.Motif.GPP;}
+
         char[] targetMotifSeq = targetMotif.toString().toCharArray();
         char[] intakeMotifSeq = intakeMotif.toString().toCharArray();
         int[] seqArr = new int[3];
