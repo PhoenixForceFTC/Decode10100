@@ -385,6 +385,8 @@ public class Intake_Incomplete
         _telemetry.addData("I set the middle light color", ballColorToLightColor(_middleBallColor));
         //--- Update right light based on right ball color
         _lights.setRight(ballColorToLightColor(_rightBallColor));
+        _telemetry.addData("I set the right light color", ballColorToLightColor(_rightBallColor));
+
     }
 
     private Lights.Color ballColorToLightColor(BallColor ballColor)
