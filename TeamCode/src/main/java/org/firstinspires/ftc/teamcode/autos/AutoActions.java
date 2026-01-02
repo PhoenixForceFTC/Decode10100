@@ -90,6 +90,22 @@ public class AutoActions {
             return false;
         }
     }
+
+    public static class IntakeRunSlow implements Action{
+        private final RobotHardware robot;
+
+        public IntakeRunSlow(RobotHardware robot){
+            this.robot = robot;
+            robot.intake._telemetry.addData("Intake running",1);
+
+        }
+
+        public boolean run(@NonNull TelemetryPacket telemetryPacket){
+            robot.intake.backward_slow();
+            return false;
+        }
+
+    }
     public static class IntakeStop implements Action{
         private final RobotHardware robot;
         public IntakeStop(RobotHardware robot){

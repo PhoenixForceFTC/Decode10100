@@ -132,6 +132,8 @@ public class Intake_Incomplete
         _intake.setPower(-0.8);
     } //--- Outward movement
 
+    public void backward_slow(){_intake.setPower(-0.4);}
+
     public void stop(){
         _intake.setPower(0);
     }
