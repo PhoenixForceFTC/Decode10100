@@ -194,9 +194,6 @@ public class Kickers
                 timerGlobal.reset();
             }
 
-
-
-
     }
 
     public void fireKickerAuto(int kickerPos)

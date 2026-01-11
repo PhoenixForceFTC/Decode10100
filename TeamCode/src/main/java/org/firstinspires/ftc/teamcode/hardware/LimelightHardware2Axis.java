@@ -214,11 +214,6 @@ public class LimelightHardware2Axis
                 cameraPose.getOrientation().getYaw(AngleUnit.RADIANS)-Math.toRadians(mechanismPitch)// this is yaw
         );
 
-
-
-
-
-
         double tiltRad = Math.toRadians(_cameraPitchAngle);
 
         return botPose;
