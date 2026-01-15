@@ -25,13 +25,13 @@ public class Kickers
     private final Telemetry _telemetry;
 
     private final double kickedL = 0.3;
-    private final double zeroL = 0.5;
+    private final double zeroL = 0.6;
 
     private final double kickedM = 0.3;
-    private final double zeroM = 0.5;
+    private final double zeroM = 0.6;
 
     private final double kickedR = 0.7;
-    private final double zeroR = 0.5;
+    private final double zeroR = 0.4;
 
     // delay before going to zero position
     private final double KICKER_ACTION_DELAY = 1.0;
