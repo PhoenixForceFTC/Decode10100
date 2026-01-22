@@ -1,13 +1,16 @@
 package org.firstinspires.ftc.teamcode.utils;
 
 //region --- Imports ---
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 //endregion
 
+@Config
 public class DriveUtils
 {
+    public static double FrontMultiplier = 1.2;
     //--- Arcade Drive Method
     public static void arcadeDrive(DcMotor frontLeft, DcMotor frontRight, DcMotor rearLeft, DcMotor rearRight,
                                    Gamepad gamepad, Telemetry telemetry, boolean showInfo,
@@ -22,8 +25,8 @@ public class DriveUtils
         double yaw = (gamepad.right_stick_x)*Math.abs(gamepad.right_stick_x) * speedMultiplierRotate; //--- Scale yaw separately
 
         //--- Combine the joystick requests for each axis-motion to determine each wheel's power.
-        double leftFrontPower = (axial + lateral + yaw) * speedMultiplier;
-        double rightFrontPower = (axial - lateral - yaw) * speedMultiplier;
+        double leftFrontPower = (axial + lateral + yaw) * speedMultiplier* FrontMultiplier;
+        double rightFrontPower = (axial - lateral - yaw) * speedMultiplier* FrontMultiplier;
         double leftBackPower = (axial - lateral + yaw) * speedMultiplier;
         double rightBackPower = (axial + lateral - yaw) * speedMultiplier;
 
