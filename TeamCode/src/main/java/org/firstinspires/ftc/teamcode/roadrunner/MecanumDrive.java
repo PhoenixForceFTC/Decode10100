@@ -51,6 +51,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.firstinspires.ftc.teamcode.utils.Location;
+
 @Config
 public final class
 MecanumDrive {
@@ -453,6 +455,7 @@ MecanumDrive {
     public PoseVelocity2d updatePoseEstimate() {
         PoseVelocity2d vel = localizer.update();
         poseHistory.add(localizer.getPose());
+        Location.pose = localizer.getPose();
         
         while (poseHistory.size() > 100) {
             poseHistory.removeFirst();
