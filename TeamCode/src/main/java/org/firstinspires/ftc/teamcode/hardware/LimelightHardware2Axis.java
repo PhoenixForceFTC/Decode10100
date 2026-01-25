@@ -34,7 +34,7 @@ public class LimelightHardware2Axis
     private double _cameraYawAngle = 0.0; // Camera yaw angle in degrees (positive = counterclockwise from robot)
 
     private static double _YawPositionStart = 0.5;
-    private static double _PitchPositionStart = 0.6;
+    private static double _PitchPositionStart = 0.5;
 
     private double _yawPosition = _YawPositionStart;
     private double _pitchPosition = _PitchPositionStart;
