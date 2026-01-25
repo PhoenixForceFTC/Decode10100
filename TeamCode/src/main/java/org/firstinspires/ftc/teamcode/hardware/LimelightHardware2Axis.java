@@ -64,6 +64,8 @@ public class LimelightHardware2Axis
     FtcDashboard dashboard = FtcDashboard.getInstance();
 
     private int _robotVersion;
+
+    FtcDashboard ftcDashboard = FtcDashboard.getInstance();
     //endregion
 
     //region --- Constructor ---
@@ -171,7 +173,7 @@ public class LimelightHardware2Axis
         }
 
 
-        Pose3D cameraPose = llResult.getBotpose_MT2();
+        Pose3D cameraPose = llResult.getBotpose();
 
         if (cameraPose == null) {
             return null;
@@ -179,14 +181,12 @@ public class LimelightHardware2Axis
 
 
         // Your mechanism measurements
-        double yawHorizontal = 0.1; //inches
-        double pitchHorizontal = 0.1; //inches
-        double yawHight = 0.1; // inches
-        double pitchHight = 0.1; // inches
-        double yawRadius = Math.sqrt(yawHorizontal*yawHorizontal+yawHight*yawHight); // inches
-        double pitchRadius = Math.sqrt(pitchHorizontal*pitchHorizontal+pitchHight*pitchHight);; // inches
-        double cameraFrontBack = 10;
-        double cameraLeftRight = 4;
+        double yawFrontBack = 0;// posotive means forward from poivot
+        double yawLeftRight = 3;//inches posotive means it goes to right of pivot negative means left
+        double pitchHorizontal = 0; //inches
+        double pitchHight = 0; // inches
+        double cameraFrontBack = 11;
+        double cameraLeftRight = 1;
 
 
 
@@ -197,21 +197,20 @@ public class LimelightHardware2Axis
         // Camera's field heading in radians
         double cameraFieldHeading = cameraPose.getOrientation().getYaw(AngleUnit.RADIANS);
 
-        double totalRadius=yawRadius+Math.cos(Math.toRadians(_cameraPitchAngle)+Math.tan(yawHight/yawHorizontal))*pitchRadius;
 
         Pose2D pivotPose = new Pose2D(
                 DistanceUnit.INCH,
-                cameraPose.getPosition().x-Math.cos(Math.toRadians(mechanismYaw))*totalRadius-Math.sin(Math.toRadians(mechanismYaw))*yawHorizontal,
-                cameraPose.getPosition().y-Math.sin(Math.toRadians(mechanismYaw))*totalRadius+Math.cos(Math.toRadians(mechanismYaw))*yawHorizontal,
+                cameraPose.getPosition().x*39.3701-Math.sin(cameraPose.getOrientation().getYaw(AngleUnit.RADIANS))*yawLeftRight-Math.cos(cameraPose.getOrientation().getYaw(AngleUnit.RADIANS))*yawFrontBack,
+                cameraPose.getPosition().y*39.3701-Math.cos(cameraPose.getOrientation().getYaw(AngleUnit.RADIANS))*yawLeftRight-Math.sin(cameraPose.getOrientation().getYaw(AngleUnit.RADIANS))*yawFrontBack,
                 AngleUnit.RADIANS,
-                cameraPose.getOrientation().getYaw(AngleUnit.RADIANS)-Math.toRadians(mechanismPitch)// this is yaw
+                cameraPose.getOrientation().getYaw(AngleUnit.RADIANS)-Math.toRadians(mechanismYaw)// this is yaw
         );
         Pose2D botPose = new Pose2D(
                 DistanceUnit.INCH,
                 pivotPose.getX(DistanceUnit.INCH)-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack+Math.sin(pivotPose.getHeading(AngleUnit.RADIANS)*cameraLeftRight),
                 pivotPose.getY(DistanceUnit.INCH)-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS)*cameraLeftRight),
                 AngleUnit.RADIANS,
-                cameraPose.getOrientation().getYaw(AngleUnit.RADIANS)-Math.toRadians(mechanismPitch)// this is yaw
+                cameraPose.getOrientation().getYaw(AngleUnit.RADIANS)-Math.toRadians(mechanismYaw)// this is yaw
         );
 
         double tiltRad = Math.toRadians(_cameraPitchAngle);
@@ -351,11 +350,12 @@ public class LimelightHardware2Axis
             }
 
             // Get robot pose if available
-            Pose3D botPose = _latestLLResult.getBotpose();
+            Pose3D botPose = _latestLLResult.getBotpose();//need algorithm that doesnt use the imu
+            Pose2D botPose2d = getRobotPos(_latestLLResult);
             if (botPose != null) {
-                double x = botPose.getPosition().x;
-                double y = botPose.getPosition().y;
-                double yaw = botPose.getOrientation().getYaw();
+                double x = botPose2d.getX(DistanceUnit.INCH);//converting from meters to inches
+                double y = botPose2d.getY(DistanceUnit.INCH);
+                double yaw = botPose2d.getHeading(AngleUnit.DEGREES);
 
                 _telemetry.addLine("--- Robot Pose ---");
                 _telemetry.addData("Position", String.format("(%.2f, %.2f)", x, y));

@@ -78,6 +78,39 @@ public class Drive
             _telemetry.addData("Drive -> Rotate Mode", _isRotateFast ? "FAST" : "SLOW");
         }
     }
+    public void arcadeDriveSpeedControl2(double x,double y,double yaw,double yawImportant)
+    {
+        if (_gamepad.left_stick_button && !_wasLeftStickButtonPressed)
+        {
+            _isSpeedFast = !_isSpeedFast; //--- Toggle movement speed
+        }
+        _wasLeftStickButtonPressed = _gamepad.left_stick_button;
+
+        if (_gamepad.right_stick_button && !_wasRightStickButtonPressed)
+        {
+            _isRotateFast = !_isRotateFast; //--- Toggle rotation speed
+        }
+        _wasRightStickButtonPressed = _gamepad.right_stick_button;
+
+        double speedMultiplier = _isSpeedFast ? SPEED_FAST : SPEED_SLOW;
+        double speedMultiplierRotate = _isRotateFast ? SPEED_ROTATE_FAST : SPEED_ROTATE_SLOW;
+
+        DriveUtils.arcadeDrive2(_frontLeft, _frontRight, _rearLeft, _rearRight, x , y, yaw, yawImportant, _telemetry, _showInfo, speedMultiplier, speedMultiplierRotate);
+
+        if (_showInfo)
+        {
+            _telemetry.addData("Drive -> Speed Mode", _isSpeedFast ? "FAST" : "SLOW");
+            _telemetry.addData("Drive -> Rotate Mode", _isRotateFast ? "FAST" : "SLOW");
+        }
+    }
+    public double getSpeedMultiplier(){
+        double speedMultiplier = _isSpeedFast ? SPEED_FAST : SPEED_SLOW;
+        return speedMultiplier;
+    }
+    public double getSpeedMultiplierRotate(){
+        double speedMultiplierRotate = _isRotateFast ? SPEED_ROTATE_FAST : SPEED_ROTATE_SLOW;
+        return speedMultiplierRotate;
+    }
 
     //--- Directional Driving with D-Pad
     public void directionDrive(double speed)
