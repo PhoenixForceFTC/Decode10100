@@ -74,9 +74,7 @@ public class Auto_Goal_Blue extends LinearOpMode{
                 .stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[2]))
                 .waitSeconds(2)
 
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 0))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 1))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 2))
+                .stopAndAdd(new AutoActions.KickerUnkick(_robot))
 
                 // moves to third spike to intake artifacts, then moves back
                 .strafeToSplineHeading(new Vector2d(-24, -36), -(Math.PI)/4)
@@ -91,9 +89,7 @@ public class Auto_Goal_Blue extends LinearOpMode{
                 .stopAndAdd(new AutoActions.KickerKick(_robot, thirdSpikeKickingOrder[2]))
                 .waitSeconds(2)
 
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 0))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 1))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 2))
+                .stopAndAdd(new AutoActions.KickerUnkick(_robot))
 
                 // moves to second spike to intake artifacts, then moves back
                 .strafeToSplineHeading(new Vector2d(12, -48), 0)
@@ -106,9 +102,7 @@ public class Auto_Goal_Blue extends LinearOpMode{
                 .waitSeconds(0.5)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, secondSpikeKickingOrder[2]))
 
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 0))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 1))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 2))
+                .stopAndAdd(new AutoActions.KickerUnkick(_robot))
 
                 .strafeToSplineHeading(new Vector2d(36, -48), 0)
                 .strafeToSplineHeading(new Vector2d(-24, -24), -(3*Math.PI)/4)
@@ -119,9 +113,7 @@ public class Auto_Goal_Blue extends LinearOpMode{
                 .waitSeconds(0.5)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, firstSpikeKickingOrder[2]))
 
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 0))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 1))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 2));
+                .stopAndAdd(new AutoActions.KickerUnkick(_robot));
 
         Actions.runBlocking(trajectoryActionBuilder.build());
 

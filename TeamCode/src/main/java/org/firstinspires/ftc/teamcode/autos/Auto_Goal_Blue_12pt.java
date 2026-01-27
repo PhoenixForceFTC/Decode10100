@@ -83,9 +83,9 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
         TrajectoryActionBuilder trajectoryActionBuilder1 = drive.actionBuilder(_beginPos)
                 // starts intake and shooter
                 .stopAndAdd(new AutoActions.IntakeRun(_robot))
-                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2150)) // speed is placeholder
+                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2450)) // speed is placeholder
                 .stopAndAdd(new AutoActions.IntakeRunSlow(_robot))
-                .waitSeconds(4)
+                .waitSeconds(2.5)
 
                 // move to shooting area
 
@@ -98,74 +98,73 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
 
 
                 // shoots the preloaded artifacts
-                .stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[0]))
-                .waitSeconds(0.5)
-                .stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[1]))
-                .waitSeconds(0.5)
-                .stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[2]))
-                .waitSeconds(0.5)
+                //.stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[0]))
+                //.waitSeconds(0.5)
+                //.stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[1]))
+                //.waitSeconds(0.5)
+                //.stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[2]))
+                .stopAndAdd(new AutoActions.KickerTripleKick(_robot))
+                .waitSeconds(0.4)
 
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, initialKickingOrder[0]))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, initialKickingOrder[1]))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, initialKickingOrder[2]))
+                .stopAndAdd(new AutoActions.KickerUnkick(_robot))
+                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2150))
 
                 //go to first spike
-                .strafeToSplineHeading(new Vector2d(-12, -25), -Math.PI/2, fastVelConstraint)
-                .strafeToSplineHeading(new Vector2d(-12, -56), -Math.PI/2, fastVelConstraint)
+                .strafeToSplineHeading(new Vector2d(-12, -20), -Math.PI/2, fastVelConstraint)
+                .strafeToSplineHeading(new Vector2d(-12, -60), -Math.PI/2, fastVelConstraint)
                 //.turn((3*Math.PI)/4)
                 //.strafeToSplineHeading(new Vector2d(-6, -58), -Math.PI/6, fastVelConstraint)
                 //.strafeToSplineHeading(new Vector2d(-4, -60), Math.PI/6, fastVelConstraint)
 
                 //clear gate
                 .strafeToSplineHeading(new Vector2d(0, -40), -Math.PI/2, fastVelConstraint)
-                .strafeToSplineHeading(new Vector2d(3, -56), -Math.PI/2,fastVelConstraint)
+                .strafeToSplineHeading(new Vector2d(3, -60), -Math.PI/2,fastVelConstraint)
                 //.turn(Math.PI/3)
                 //.strafeToSplineHeading(new Vector2d(0, -68), 0, fastVelConstraint)
 
                 //back to shooting zone
                 .waitSeconds(1)
-                .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4, fastVelConstraint)
+                .strafeToSplineHeading(new Vector2d(-30, -24), -(3*Math.PI)/4, fastVelConstraint)
 
                 // shoots the first spike
                 .stopAndAdd(new AutoActions.KickerKick(_robot, firstSpikeKickingOrder[0]))
-                .waitSeconds(0.5)
+                .waitSeconds(0.2)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, firstSpikeKickingOrder[1]))
-                .waitSeconds(0.5)
+                .waitSeconds(0.2)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, firstSpikeKickingOrder[2]))
-                .waitSeconds(0.5)
+                .waitSeconds(0.2)
 
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, firstSpikeKickingOrder[0]))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, firstSpikeKickingOrder[1]))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, firstSpikeKickingOrder[2]))
+                .stopAndAdd(new AutoActions.KickerUnkick(_robot))
 
                 //second spike
-                .strafeToSplineHeading(new Vector2d(12, -25), 0, fastVelConstraint)
-                .strafeToSplineHeading(new Vector2d(12, -72), 0, fastVelConstraint)
+                .strafeToSplineHeading(new Vector2d(18, -20), -Math.PI/2, fastVelConstraint)
+                .strafeToSplineHeading(new Vector2d(18, -72), -Math.PI/2, fastVelConstraint)
 
                 //back to shooting
-                .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4,fastVelConstraint)
+                .strafeToSplineHeading(new Vector2d(18, -50), -Math.PI/2, fastVelConstraint)
+                .strafeToSplineHeading(new Vector2d(-30, -30), -(5*Math.PI)/6,fastVelConstraint)
+
 
 
                 // shoots the second spike
                 .stopAndAdd(new AutoActions.KickerKick(_robot, secondSpikeKickingOrder[0]))
-                .waitSeconds(0.5)
+                .waitSeconds(0.2)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, secondSpikeKickingOrder[1]))
-                .waitSeconds(0.5)
+                .waitSeconds(0.2)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, secondSpikeKickingOrder[2]))
-                .waitSeconds(0.5)
+                .waitSeconds(0.2)
 
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, secondSpikeKickingOrder[0]))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, secondSpikeKickingOrder[1]))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, secondSpikeKickingOrder[2]))
+                .stopAndAdd(new AutoActions.KickerUnkick(_robot))
 
                 //third spike
-                .strafeToSplineHeading(new Vector2d(36, -48), 0, fastVelConstraint)
+                .strafeToSplineHeading(new Vector2d(36, -20), -Math.PI/2, fastVelConstraint)
+                .strafeToSplineHeading(new Vector2d(36, -72), -Math.PI/2, fastVelConstraint)
 
                 //back to shooting
                 .waitSeconds(2)
                 .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4, fastVelConstraint)
 
-                // shoots the second spike
+                // shoots the third spike
                 .stopAndAdd(new AutoActions.KickerKick(_robot, thirdSpikeKickingOrder[0]))
                 .waitSeconds(0.5)
                 .stopAndAdd(new AutoActions.KickerKick(_robot, thirdSpikeKickingOrder[1]))
@@ -173,9 +172,7 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
                 .stopAndAdd(new AutoActions.KickerKick(_robot, thirdSpikeKickingOrder[2]))
                 .waitSeconds(0.5)
 
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, thirdSpikeKickingOrder[0]))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, thirdSpikeKickingOrder[1]))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, thirdSpikeKickingOrder[2]))
+                .stopAndAdd(new AutoActions.KickerUnkick(_robot))
 
                 //loading zone
                 .strafeToSplineHeading(new Vector2d(63.5, -30), -Math.PI/2, fastVelConstraint)

@@ -47,6 +47,7 @@ public class AutoActions {
 //            return false;
 //        }
 //    }
+
     public static class KickerKick implements Action{
         private final RobotHardware robot;
         private int pos;
@@ -62,17 +63,30 @@ public class AutoActions {
         }
     }
 
-    public static class KickerUnkick implements Action{
+    public static class KickerTripleKick implements Action{
         private final RobotHardware robot;
-        private int pos;
-        public KickerUnkick(RobotHardware robot, int kickerPos){
+        public KickerTripleKick(RobotHardware robot){
             this.robot = robot;
             //robot.kickers._telemetry.addData("left kicker flipped",1);
-            this.pos = kickerPos;
         }
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-            robot.kickers.retractKickerAuto(this.pos);
+            robot.kickers.fireKickerAuto(3);
+            return false;
+        }
+    }
+
+    public static class KickerUnkick implements Action{
+        private final RobotHardware robot;
+        public KickerUnkick(RobotHardware robot){
+            this.robot = robot;
+            //robot.kickers._telemetry.addData("left kicker flipped",1);
+        }
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            robot.kickers.retractKickerAuto(0);
+            robot.kickers.retractKickerAuto(1);
+            robot.kickers.retractKickerAuto(2);
             return false;
         }
     }

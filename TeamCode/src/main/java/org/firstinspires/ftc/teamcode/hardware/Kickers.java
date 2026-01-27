@@ -208,6 +208,11 @@ public class Kickers
         else if (kickerPos == 2){
             _kickerRight.setPosition(kickedR);
         }
+        else if (kickerPos == 3) {
+            _kickerLeft.setPosition(kickedL);
+            _kickerMid.setPosition(kickedM);
+            _kickerRight.setPosition(kickedR);
+        }
     }
 
     public void retractKickerAuto(int kickerPos)

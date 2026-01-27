@@ -91,9 +91,7 @@ public class Auto_Load_Blue_Testing extends LinearOpMode{
                 .stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[2]))
                 .waitSeconds(1.3)
 
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 0))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 1))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 2))
+                .stopAndAdd(new AutoActions.KickerUnkick(_robot))
 
                 // in case auto is not able to be finished, we move to the side
                 //.strafeToSplineHeading(new Vector2d(-60, -24), -Math.PI/2)
@@ -115,9 +113,7 @@ public class Auto_Load_Blue_Testing extends LinearOpMode{
                 .stopAndAdd(new AutoActions.KickerKick(_robot, firstSpikeKickingOrder[2]))
                 .waitSeconds(2)
 
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 0))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 1))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 2))
+                .stopAndAdd(new AutoActions.KickerUnkick(_robot))
 
                 .strafeTo(new Vector2d(-60, -24));
 

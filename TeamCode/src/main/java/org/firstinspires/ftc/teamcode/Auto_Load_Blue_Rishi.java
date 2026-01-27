@@ -82,9 +82,7 @@ public class Auto_Load_Blue_Rishi extends LinearOpMode{
                 .stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[2]))
                 .waitSeconds(0.5)
 
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 0))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 1))
-                .stopAndAdd(new AutoActions.KickerUnkick(_robot, 2));
+                .stopAndAdd(new AutoActions.KickerUnkick(_robot));
 
                 // moves to first spike to intake artifacts, then moves back
         Actions.runBlocking(trajectoryActionBuilder.build());
