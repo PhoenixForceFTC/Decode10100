@@ -1,52 +1,91 @@
 package org.firstinspires.ftc.teamcode.autos;
 
+import static java.util.Arrays.asList;
+
 import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 
 import org.firstinspires.ftc.teamcode.RobotHardware;
+import org.firstinspires.ftc.teamcode.hardware.Intake_Incomplete;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
 
 public class AutoActions {
 
-    /// example classes
+    public enum Motif {
+        PPG,
+        PGP,
+        GPP,
+        INVALID;
 
-//    public static class WaitServoAction implements Action {
-//        Servo servo;
-//        double position;
-//        ElapsedTime timer;
-//
-//        public WaitServoAction(Servo s, double p) {
-//            this.servo = s;
-//            this.position = p;
-//        }
-//
-//        @Override
-//        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-//            if (timer == null) {
-//                timer = new ElapsedTime();
-//                servo.setPosition(position);
-//            }
-//            return timer.seconds() < 3;
-//        }
-//    }
-//
-//    // --- New Arm Action Classes ---
-//
-//    // Action to open the claw
-//    public static class ArmClawOpenAction implements Action {
-//        private final RobotHardware robot;
-//
-//        public ArmClawOpenAction(RobotHardware robot) {
-//            this.robot = robot;
-//            robot.arm._telemetry.addData("Initialize Arm", "-----------");
-//        }
-//
-//        @Override
-//        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-//            robot.arm.armClawOpen();
-//            return false;
-//        }
-//    }
+    }
+
+    public Motif colorsToMotif(Intake_Incomplete.BallColor[] colors){
+
+        List<Intake_Incomplete.BallColor> colorsList = Arrays.asList(colors);
+
+        //check if item is valid
+        if(colorsList.contains(Intake_Incomplete.BallColor.PURPLE)){
+            colorsList.remove(Intake_Incomplete.BallColor.PURPLE);
+            if(!colorsList.contains(Intake_Incomplete.BallColor.PURPLE)){return Motif.INVALID;}
+            if(!colorsList.contains(Intake_Incomplete.BallColor.GREEN)){return Motif.INVALID;}
+        }
+
+        if(colors[0] == Intake_Incomplete.BallColor.GREEN){
+            return Motif.GPP;
+        } else if (colors[1] == Intake_Incomplete.BallColor.GREEN){
+            return Motif.PGP;
+        } else if (colors[2] == Intake_Incomplete.BallColor.GREEN){
+            return Motif.PPG;
+        }
+
+        return Motif.INVALID;
+    }
+
+    public static class shootKickingColor implements Action{
+        private final RobotHardware robot;
+        private final double distThreshold;
+
+        public shootKickingColor(RobotHardware hardware, double distThreshold){
+            this.robot = hardware;
+            this.distThreshold = distThreshold;
+        }
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket){
+
+            return false;
+        }
+    }
+
+    public Intake_Incomplete.BallColor Color(RobotHardware hardware, String sensor, double distanceThreshold, Intake_Incomplete.BallColor previousColor){
+        RobotHardware robot;
+        ColorSensor colorSensor;
+        DistanceSensor distanceSensor;
+        double distThreshold;
+
+        robot = hardware;
+        distThreshold = distanceThreshold;
+        if(sensor.equals("left")){
+            colorSensor = robot.colorSensorLeft;
+        }else if(sensor.equals("middle")){
+            colorSensor  = robot.colorSensorMiddle;
+        }else if(sensor.equals("right")){
+            colorSensor = robot.colorSensorRight;
+        }else{
+            colorSensor = robot.colorSensorLeft;
+        }
+
+        distanceSensor = (DistanceSensor) colorSensor;
+        
+
+        return robot.intake.detectBallSticky(colorSensor, distanceSensor, distanceThreshold, Intake_Incomplete.BallColor.PURPLE);
+    }
 
     public static class KickerKick implements Action{
         private final RobotHardware robot;

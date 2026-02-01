@@ -324,38 +324,54 @@ public class Intake_Incomplete
         return BallColor.UNKNOWN;
     }
 
-    /*private BallColor detectBallSticky(
-            ColorSensor colorSensor, DistanceSensor distanceSensor,
-            double[] distBuffer, int[] redBuffer, int[] greenBuffer, int[] blueBuffer,
-            int bufferIndex, double distanceThreshold, String sensorName, BallColor previousColor){
+    public BallColor detectBallSticky(
+            ColorSensor colorSensor, DistanceSensor distanceSensor, double distanceThreshold, BallColor previousColor){
+
+        int AveragingSamples = 10;
 
         if(colorSensor == null || distanceSensor == null){
             return BallColor.NONE;
         }
 
         double avgRed = 0, avgGreen = 0, avgBlue = 0, avgDist = 0;
-        for(int i = 0; i < AVERAGING_SAMPLES; i++){
+        for(int i = 0; i < AveragingSamples; i++){
             double distance = distanceSensor.getDistance(DistanceUnit.MM);
             avgRed += colorSensor.red();
             avgBlue += colorSensor.blue();
             avgGreen += colorSensor.green();
             avgDist += Double.isNaN(distance) ? 999.0 : distance;
         }
-        avgRed /= AVERAGING_SAMPLES;
-        avgBlue /= AVERAGING_SAMPLES;
-        avgGreen /= AVERAGING_SAMPLES;
-        avgDist /= AVERAGING_SAMPLES;
+        avgRed /= AveragingSamples;
+        avgBlue /= AveragingSamples;
+        avgGreen /= AveragingSamples;
+        avgDist /= AveragingSamples;
 
         double greenToRed = (avgRed != 0 ? avgGreen/avgRed : 0);
         double blueToGreen = (avgGreen != 0 ? avgBlue/avgGreen : 0);
 
         if (avgDist > distanceThreshold)
         {
-            setStickyFlag(sensorName, false);
             return BallColor.NONE;
         }
 
-    }*/
+        if (blueToGreen > PURPLE_BG_THRESHOLD && greenToRed < PURPLE_GR_MAX)
+        {
+            return BallColor.PURPLE;
+        }
+
+        if (blueToGreen > PURPLE_BG_THRESHOLD && greenToRed < PURPLE_GR_MAX)
+        {
+            return BallColor.PURPLE;
+        }
+
+        if (previousColor == BallColor.GREEN || previousColor == BallColor.PURPLE)
+        {
+            return previousColor;  // Keep the last good color
+        }
+
+        //--- No previous good color, show UNKNOWN (red light)
+        return BallColor.UNKNOWN;
+    }
 
     private void setStickyFlag(String sensorName, boolean isSticky)
     {

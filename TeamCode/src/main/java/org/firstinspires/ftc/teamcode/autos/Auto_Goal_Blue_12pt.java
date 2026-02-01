@@ -83,7 +83,7 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
         TrajectoryActionBuilder trajectoryActionBuilder1 = drive.actionBuilder(_beginPos)
                 // starts intake and shooter
                 .stopAndAdd(new AutoActions.IntakeRun(_robot))
-                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2450)) // speed is placeholder
+                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2500)) // speed is placeholder
                 .stopAndAdd(new AutoActions.IntakeRunSlow(_robot))
                 .waitSeconds(2.5)
 
@@ -107,7 +107,7 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
                 .waitSeconds(0.4)
 
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot))
-                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2150))
+                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2300))
 
                 //go to first spike
                 .strafeToSplineHeading(new Vector2d(-12, -20), -Math.PI/2, fastVelConstraint)
