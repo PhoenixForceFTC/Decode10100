@@ -7,9 +7,11 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.RobotHardware;
 import org.firstinspires.ftc.teamcode.hardware.Intake_Incomplete;
+import org.firstinspires.ftc.teamcode.hardware.LimelightHardware2Axis;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,22 +27,19 @@ public class AutoActions {
 
     }
 
-    public Motif colorsToMotif(Intake_Incomplete.BallColor[] colors){
+    public static Motif colorsToMotif(Intake_Incomplete.BallColor[] colors){
 
-        List<Intake_Incomplete.BallColor> colorsList = Arrays.asList(colors);
-
-        //check if item is valid
-        if(colorsList.contains(Intake_Incomplete.BallColor.PURPLE)){
-            colorsList.remove(Intake_Incomplete.BallColor.PURPLE);
-            if(!colorsList.contains(Intake_Incomplete.BallColor.PURPLE)){return Motif.INVALID;}
-            if(!colorsList.contains(Intake_Incomplete.BallColor.GREEN)){return Motif.INVALID;}
-        }
-
-        if(colors[0] == Intake_Incomplete.BallColor.GREEN){
+        if (colors[0] == Intake_Incomplete.BallColor.GREEN &&
+                colors[1] == Intake_Incomplete.BallColor.PURPLE &&
+                colors[2] == Intake_Incomplete.BallColor.PURPLE){
             return Motif.GPP;
-        } else if (colors[1] == Intake_Incomplete.BallColor.GREEN){
+        } else if (colors[0] == Intake_Incomplete.BallColor.PURPLE &&
+                colors[1] == Intake_Incomplete.BallColor.GREEN &&
+                colors[2] == Intake_Incomplete.BallColor.PURPLE){
             return Motif.PGP;
-        } else if (colors[2] == Intake_Incomplete.BallColor.GREEN){
+        } else if (colors[0] == Intake_Incomplete.BallColor.PURPLE &&
+                colors[1] == Intake_Incomplete.BallColor.PURPLE &&
+                colors[2] == Intake_Incomplete.BallColor.GREEN){
             return Motif.PPG;
         }
 
@@ -50,20 +49,40 @@ public class AutoActions {
     public static class shootKickingColor implements Action{
         private final RobotHardware robot;
         private final double distThreshold;
+        private final Motif targetMotif;
 
-        public shootKickingColor(RobotHardware hardware, double distThreshold){
+        public shootKickingColor(RobotHardware hardware, double distThreshold, Motif TargetMotif){
             this.robot = hardware;
             this.distThreshold = distThreshold;
+            this.targetMotif = TargetMotif;
         }
 
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket){
 
+            Intake_Incomplete.BallColor color1 = Color(robot, "left", distThreshold, Intake_Incomplete.BallColor.PURPLE);
+            Intake_Incomplete.BallColor color2 = Color(robot, "middle", distThreshold, Intake_Incomplete.BallColor.PURPLE);
+            Intake_Incomplete.BallColor color3 = Color(robot, "right", distThreshold, Intake_Incomplete.BallColor.PURPLE);
+
+            Intake_Incomplete.BallColor[] colors = {color1, color2, color3};
+
+            Motif IntookMotif = colorsToMotif(colors);
+
+            int[] sequence = fireAutoKickerSeq(targetMotif, IntookMotif);
+
+            ElapsedTime timer = new ElapsedTime();
+
+            KickerKickInternal(robot, sequence[0]);
+            while(timer.seconds() < 0.4){}
+            KickerKickInternal(robot, sequence[1]);
+            while(timer.seconds() < 0.8){}
+            KickerKickInternal(robot, sequence[2]);
+
             return false;
         }
     }
 
-    public Intake_Incomplete.BallColor Color(RobotHardware hardware, String sensor, double distanceThreshold, Intake_Incomplete.BallColor previousColor){
+    public static Intake_Incomplete.BallColor Color(RobotHardware hardware, String sensor, double distanceThreshold, Intake_Incomplete.BallColor previousColor){
         RobotHardware robot;
         ColorSensor colorSensor;
         DistanceSensor distanceSensor;
@@ -100,6 +119,10 @@ public class AutoActions {
             robot.kickers.fireKickerAuto(this.pos);
             return false;
         }
+    }
+
+    private static void KickerKickInternal(RobotHardware robot, int KickerPos){
+        robot.kickers.fireKickerAuto(KickerPos);
     }
 
     public static class KickerTripleKick implements Action{
@@ -201,5 +224,39 @@ public class AutoActions {
         }
     }
 
+    private static int[] fireAutoKickerSeq(Motif targetMotif, Motif intakeMotif)
+    {
+        if(targetMotif == null || targetMotif == Motif.INVALID){targetMotif = Motif.GPP;}
+        if(intakeMotif == null || intakeMotif == Motif.INVALID){intakeMotif = Motif.GPP;}
+
+        char[] targetMotifSeq = targetMotif.toString().toCharArray();
+        char[] intakeMotifSeq = intakeMotif.toString().toCharArray();
+        int[] seqArr = new int[3];
+        int count = 0;
+        for (char c : targetMotifSeq) {
+            int pos = findChar(intakeMotifSeq, c);
+            if (pos>-1 && pos<3) {
+                seqArr[count]=pos;
+                count++;
+                intakeMotifSeq[pos] = 'x';
+            }
+        }
+
+        return seqArr;
+    }
+
+    private static int findChar(char[] arr, char target) {
+        if (arr == null) {
+            return -1; // handle null array
+        }
+
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] == target) {
+                return i; // found, return index
+            }
+        }
+
+        return -1; // not found
+    }
 
 }

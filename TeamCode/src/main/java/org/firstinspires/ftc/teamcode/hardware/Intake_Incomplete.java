@@ -27,6 +27,8 @@ public class Intake_Incomplete
     private final DcMotorEx _intake;
     FtcDashboard _dashboard = FtcDashboard.getInstance();
 
+    private double intakePower = 0.7;
+
 
     private final Gamepad _gamepad;
     private final Gamepad _gamepad2;
@@ -57,12 +59,12 @@ public class Intake_Incomplete
     //endregion
 
     //--- Color Sensors (cast to DistanceSensor for distance reading)
-    private ColorSensor _colorSensorLeft = null;
-    private ColorSensor _colorSensorMiddle = null;
-    private ColorSensor _colorSensorRight = null;  // Future use
-    private DistanceSensor _distanceSensorLeft = null;
-    private DistanceSensor _distanceSensorMiddle = null;
-    private DistanceSensor _distanceSensorRight = null;  // Future use
+    public ColorSensor _colorSensorLeft = null;
+    public ColorSensor _colorSensorMiddle = null;
+    public ColorSensor _colorSensorRight = null;  // Future use
+    public DistanceSensor _distanceSensorLeft = null;
+    public DistanceSensor _distanceSensorMiddle = null;
+    public DistanceSensor _distanceSensorRight = null;  // Future use
 
     //--- Lights reference for ball indication
     private Lights _lights = null;
@@ -76,9 +78,9 @@ public class Intake_Incomplete
     private ElapsedTime _outtakeTimer = new ElapsedTime();
 
     //--- Ball detection state
-    private BallColor _leftBallColor = BallColor.NONE;
-    private BallColor _middleBallColor = BallColor.NONE;
-    private BallColor _rightBallColor = BallColor.NONE;
+    public BallColor _leftBallColor = BallColor.NONE;
+    public BallColor _middleBallColor = BallColor.NONE;
+    public BallColor _rightBallColor = BallColor.NONE;
 
     //--- Sensor averaging buffers (circular buffers for last N readings)
     private double[] _leftDistBuffer = new double[AVERAGING_SAMPLES];
@@ -125,14 +127,14 @@ public class Intake_Incomplete
 
     //region --- Movement ---
     public void forward(){
-        _intake.setPower(0.8);
+        _intake.setPower(intakePower);
     } //--- Inward movement of artifacts
 
     public void backward(){
-        _intake.setPower(-0.8);
+        _intake.setPower(-intakePower);
     } //--- Outward movement
 
-    public void backward_slow(){_intake.setPower(-0.8);}
+    public void backward_slow(){_intake.setPower(-intakePower);}
 
     public void stop(){
         _intake.setPower(0);
@@ -153,6 +155,11 @@ public class Intake_Incomplete
             stop();
             restoreLights();
         }
+        if (_gamepad2.y && _gamepad2.left_stick_y > 0.5){
+            intakePower = Math.min(1, intakePower + 0.005);
+        } else if (_gamepad2.y && _gamepad2.left_stick_y < -0.5){
+            intakePower = Math.max(0, intakePower - 0.005);
+        }
 
         detectBalls();
 //        _telemetry.addData("I detected the left ball", _leftBallColor);
@@ -164,6 +171,7 @@ public class Intake_Incomplete
 
         loopCount++;
         _telemetry.addData("Loop count:", "%d", loopCount);
+        _telemetry.addData("Intake Power: ", intakePower);
         //--- Only detect balls and update lights while intaking or outtaking
        /*
         if (isIntakeOn() || isOuttakeActive())
@@ -359,9 +367,9 @@ public class Intake_Incomplete
             return BallColor.PURPLE;
         }
 
-        if (blueToGreen > PURPLE_BG_THRESHOLD && greenToRed < PURPLE_GR_MAX)
+        if (greenToRed > GREEN_RATIO_THRESHOLD)
         {
-            return BallColor.PURPLE;
+            return BallColor.GREEN;
         }
 
         if (previousColor == BallColor.GREEN || previousColor == BallColor.PURPLE)
