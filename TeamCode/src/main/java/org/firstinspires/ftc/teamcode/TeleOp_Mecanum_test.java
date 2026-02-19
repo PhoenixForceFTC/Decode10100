@@ -57,7 +57,7 @@ import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //----------------------------------------------------------------------
 //endregion
 
-@TeleOp(name="TeleOpOld", group="1")
+@TeleOp(name="TeleOpOldMecanumTest", group="1")
 public class TeleOp_Mecanum_test extends LinearOpMode
 {
     //------------------------------------------------------------------------------------------

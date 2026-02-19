@@ -83,8 +83,8 @@ public class Shooter
     //--- get shooter into shooting abiltity
     public void shoot(int speed){
 
-        _motorShooterLeft.setVelocityPIDFCoefficients(kP, kI,kD , kF);
-        _motorShooterRight.setVelocityPIDFCoefficients(kP, kI,kD , kF);
+        //_motorShooterLeft.setVelocityPIDFCoefficients(kP, kI,kD , kF);
+        //_motorShooterRight.setVelocityPIDFCoefficients(kP, kI,kD , kF);
         _motorShooterLeft.setVelocity(speed*ticksPerRotation/60);
         _motorShooterRight.setVelocity(speed*ticksPerRotation/60);
 

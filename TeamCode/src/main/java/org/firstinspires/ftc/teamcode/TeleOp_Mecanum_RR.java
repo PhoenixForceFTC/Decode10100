@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.utils.DriveUtilsAdvanced;
+import org.firstinspires.ftc.teamcode.utils.Location;
 import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //endregion
 
@@ -88,7 +89,9 @@ public class TeleOp_Mecanum_RR extends LinearOpMode
 
 
         _robot.init(robotVersion);
-        _driveUtilsAdvanced = new DriveUtilsAdvanced(hardwareMap,new Pose2d(0,0,-3*Math.PI/4),_robot.drive,this.telemetry);
+        _driveUtilsAdvanced = new DriveUtilsAdvanced(hardwareMap,new Pose2d(0,0,-3*Math.PI/4),_robot.drive,_robot.limelightHardware2Axis,this.telemetry);
+
+        //_driveUtilsAdvanced = new DriveUtilsAdvanced(hardwareMap, Location.pose,_robot.drive,_robot.limelightHardware2Axis,this.telemetry);
 
 
         //------------------------------------------------------------------------------------------
@@ -117,6 +120,7 @@ public class TeleOp_Mecanum_RR extends LinearOpMode
             //------------------------------------------------------------------------------------------
             //_robot.run();
             _driveUtilsAdvanced.driveMecanum(gamepad1);
+            _driveUtilsAdvanced.updateCamera();
 
 
             //------------------------------------------------------------------------------------------
@@ -131,7 +135,7 @@ public class TeleOp_Mecanum_RR extends LinearOpMode
 
             _robot.shooter.getTelemetry();
 
-            _robot.limelightHardware2Axis.loop();
+            //_robot.limelightHardware2Axis.loop();
             _robot.limelightHardware2Axis.servos();
 
             //------------------------------------------------------------------------------------------

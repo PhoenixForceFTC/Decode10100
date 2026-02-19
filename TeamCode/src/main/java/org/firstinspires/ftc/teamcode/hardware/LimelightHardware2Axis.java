@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.canvas.Canvas;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -18,6 +21,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.roadrunner.Drawing;
+
 import com.acmerobotics.dashboard.config.Config;
 
 
@@ -29,6 +34,8 @@ public class LimelightHardware2Axis
     //endregion
 
     //region --- Variables ---
+
+
     private double _cameraPitchAngle = 0.0; // Camera pitch angle in degrees (positive = tilted up)
 
     private double _cameraYawAngle = 0.0; // Camera yaw angle in degrees (positive = counterclockwise from robot)
@@ -65,7 +72,7 @@ public class LimelightHardware2Axis
 
     private int _robotVersion;
 
-    FtcDashboard ftcDashboard = FtcDashboard.getInstance();
+
     //endregion
 
     //region --- Constructor ---
@@ -162,7 +169,7 @@ public class LimelightHardware2Axis
      * @param llResult The Limelight result
      * @return Array [floorDistance, forwardDistance, lateralDistance, verticalOffset] or null if no target
      */
-    private Pose2D getRobotPos(LLResult llResult) {
+    public Pose2D getRobotPos(LLResult llResult,Canvas canvas) {
         if (llResult == null || !llResult.isValid()) {
             return null;
         }
@@ -182,11 +189,11 @@ public class LimelightHardware2Axis
 
         // Your mechanism measurements
         double yawFrontBack = 0;// posotive means forward from poivot
-        double yawLeftRight = 3;//inches posotive means it goes to right of pivot negative means left
+        double yawLeftRight = 0;//inches posotive means it goes to right of pivot negative means left
         double pitchHorizontal = 0; //inches
         double pitchHight = 0; // inches
         double cameraFrontBack = 11;
-        double cameraLeftRight = 1;
+        double cameraLeftRight = 3;
 
 
 
@@ -200,18 +207,33 @@ public class LimelightHardware2Axis
 
         Pose2D pivotPose = new Pose2D(
                 DistanceUnit.INCH,
-                cameraPose.getPosition().x*39.3701-Math.sin(cameraPose.getOrientation().getYaw(AngleUnit.RADIANS))*yawLeftRight-Math.cos(cameraPose.getOrientation().getYaw(AngleUnit.RADIANS))*yawFrontBack,
-                cameraPose.getPosition().y*39.3701-Math.cos(cameraPose.getOrientation().getYaw(AngleUnit.RADIANS))*yawLeftRight-Math.sin(cameraPose.getOrientation().getYaw(AngleUnit.RADIANS))*yawFrontBack,
+                cameraPose.getPosition().x*39.3701-Math.sin(cameraPose.getOrientation().getYaw(AngleUnit.RADIANS))*yawLeftRight+Math.cos(cameraPose.getOrientation().getYaw(AngleUnit.RADIANS))*yawFrontBack,
+                cameraPose.getPosition().y*39.3701-Math.cos(cameraPose.getOrientation().getYaw(AngleUnit.RADIANS))*yawLeftRight+Math.sin(cameraPose.getOrientation().getYaw(AngleUnit.RADIANS))*yawFrontBack,
                 AngleUnit.RADIANS,
                 cameraPose.getOrientation().getYaw(AngleUnit.RADIANS)-Math.toRadians(mechanismYaw)// this is yaw
         );
+
+        TelemetryPacket packet = new TelemetryPacket();
+        Canvas c = packet.fieldOverlay();
+        if (canvas!=null){
+            c = canvas;
+        }
+
+
+            c.strokeLine(cameraPose.getPosition().x*39.3701,cameraPose.getPosition().y*39.3701,pivotPose.getX(DistanceUnit.INCH),pivotPose.getY(DistanceUnit.INCH));
+
+
         Pose2D botPose = new Pose2D(
                 DistanceUnit.INCH,
-                pivotPose.getX(DistanceUnit.INCH)-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack+Math.sin(pivotPose.getHeading(AngleUnit.RADIANS)*cameraLeftRight),
-                pivotPose.getY(DistanceUnit.INCH)-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS)*cameraLeftRight),
+                pivotPose.getX(DistanceUnit.INCH)-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS)*cameraLeftRight),
+                pivotPose.getY(DistanceUnit.INCH)-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack+Math.cos(pivotPose.getHeading(AngleUnit.RADIANS)*cameraLeftRight),
                 AngleUnit.RADIANS,
                 cameraPose.getOrientation().getYaw(AngleUnit.RADIANS)-Math.toRadians(mechanismYaw)// this is yaw
         );
+            //c.strokeLine(pivotPose.getX(DistanceUnit.INCH),pivotPose.getY(DistanceUnit.INCH),botPose.getX(DistanceUnit.INCH),botPose.getY(DistanceUnit.INCH));
+            c.strokeLine(pivotPose.getX(DistanceUnit.INCH),pivotPose.getY(DistanceUnit.INCH),pivotPose.getX(DistanceUnit.INCH)-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack,pivotPose.getY(DistanceUnit.INCH)-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack);
+            c.strokeLine(pivotPose.getX(DistanceUnit.INCH)-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack,pivotPose.getY(DistanceUnit.INCH)-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack,botPose.getX(DistanceUnit.INCH),botPose.getY(DistanceUnit.INCH));
+        dashboard.sendTelemetryPacket(packet);
 
         double tiltRad = Math.toRadians(_cameraPitchAngle);
 
@@ -281,6 +303,26 @@ public class LimelightHardware2Axis
         _yawPosition=yawPosition;
         _pitchPosition=pitchPosition;
     };
+    public void setServoAngles(double yawAngle, double pitchAngles){
+
+
+        if(yawAngle/300 +0.5>1){
+            _yawPosition = 1;
+        } else if (yawAngle/300 +0.5<0) {
+            _yawPosition=0;
+        }else{
+            _yawPosition=yawAngle/300 +0.5;
+        }
+
+        if(yawAngle/300 +0.5>1){
+            _pitchPosition = 1;
+        } else if (yawAngle/300 +0.5<0) {
+            _pitchPosition=0;
+        }else{
+            _pitchPosition=pitchAngles/300 +0.5;
+        }
+    }
+
 
 
     public Motif getObliskTagId(){
@@ -351,8 +393,8 @@ public class LimelightHardware2Axis
 
             // Get robot pose if available
             Pose3D botPose = _latestLLResult.getBotpose();//need algorithm that doesnt use the imu
-            Pose2D botPose2d = getRobotPos(_latestLLResult);
-            if (botPose != null) {
+            Pose2D botPose2d = getRobotPos(_latestLLResult,null);
+            if (botPose != null && botPose2d != null) {
                 double x = botPose2d.getX(DistanceUnit.INCH);//converting from meters to inches
                 double y = botPose2d.getY(DistanceUnit.INCH);
                 double yaw = botPose2d.getHeading(AngleUnit.DEGREES);
@@ -364,6 +406,10 @@ public class LimelightHardware2Axis
         } else {
             _telemetry.addLine("No valid Limelight result");
         }
+    }
+    public Pose2D getPos(Canvas canvas){
+        return getRobotPos(_latestLLResult,canvas);
+
     }
     public void setPipeline(int index){
         _limelight.pipelineSwitch(index);

@@ -62,7 +62,7 @@ public class Kickers
         this._showInfo = showInfo;
     }
 
-    public void run(double targetSpeed, double speed, boolean run){
+    public boolean run(double targetSpeed, double speed, boolean run){
         if(speed/targetSpeed>0.9 && run) {
             if (_gamepad.dpad_left) {
                 fireKicker(0);
@@ -80,21 +80,26 @@ public class Kickers
         }
         if(timerL.seconds() < KICKER_ACTION_DELAY){
             _kickerLeft.setPosition(kickedL);
+            return true;
         }else{
             _kickerLeft.setPosition(zeroL);
+
         }
 
         if(timerM.seconds() < KICKER_ACTION_DELAY){
             _kickerMid.setPosition(kickedM);
+            return true;
         }else{
             _kickerMid.setPosition(zeroM);
         }
 
         if(timerR.seconds() < KICKER_ACTION_DELAY){
             _kickerRight.setPosition(kickedR);
+            return true;
         }else{
             _kickerRight.setPosition(zeroR);
         }
+        return false;
     }
     public DataLog.Shooter run2(double targetSpeed, double speed, boolean run){
         DataLog.Shooter shooter = DataLog.Shooter.Unkown;

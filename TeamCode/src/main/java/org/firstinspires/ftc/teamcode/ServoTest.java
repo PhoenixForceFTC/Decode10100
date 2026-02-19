@@ -10,17 +10,20 @@ import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 @TeleOp(name="ServoTest", group="1")
 @Config
-@Disabled
+
 public class ServoTest extends LinearOpMode {
     public Servo servo1;
+    public Servo servo2;
     public static double position = 0.5;
 
 
     @Override
     public void runOpMode() {
-        servo1 = hardwareMap.get(Servo.class, "st");
+        servo1 = hardwareMap.get(Servo.class, "Pitch");
+        servo2 = hardwareMap.get(Servo.class, "Yaw");
 
         telemetry.addData("Servo1 : ", servo1.getPosition());
+        telemetry.addData("Servo2 : ", servo2.getPosition());
 
         waitForStart();
 
@@ -31,8 +34,10 @@ public class ServoTest extends LinearOpMode {
 
             while (opModeIsActive()) {
                 servo1.setPosition(position);
+                servo2.setPosition(position);
 
-                telemetry.addData("Position >", servo1.getPosition());
+                telemetry.addData("Servo 1 Position >", servo1.getPosition());
+                telemetry.addData("Servo 2 Position >", servo2.getPosition());
                 telemetry.update();
                 waitForStart();
             }

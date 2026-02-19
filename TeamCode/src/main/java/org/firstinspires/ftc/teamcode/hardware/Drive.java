@@ -57,13 +57,13 @@ public class Drive
     {
         if (_gamepad.left_stick_button && !_wasLeftStickButtonPressed)
         {
-            _isSpeedFast = !_isSpeedFast; //--- Toggle movement speed
+            //_isSpeedFast = !_isSpeedFast; //--- Toggle movement speed
         }
         _wasLeftStickButtonPressed = _gamepad.left_stick_button;
 
         if (_gamepad.right_stick_button && !_wasRightStickButtonPressed)
         {
-            _isRotateFast = !_isRotateFast; //--- Toggle rotation speed
+            //_isRotateFast = !_isRotateFast; //--- Toggle rotation speed
         }
         _wasRightStickButtonPressed = _gamepad.right_stick_button;
 
