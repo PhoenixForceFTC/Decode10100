@@ -32,7 +32,7 @@ public class Kickstand
     private final double COUNTS_PER_MOTOR_REV = 5281.1; // for 30 rpm
 
     private final int UNKICKED = 0;
-    private final int KICKED = (int) (0.1*COUNTS_PER_MOTOR_REV);
+    private final int KICKED = (int) (0.15*COUNTS_PER_MOTOR_REV);
 
     private Boolean button_was_pressed = false; //was button pressed?
     private Boolean to_kick = false;
@@ -66,7 +66,7 @@ public class Kickstand
         }
 
         if(to_kick){
-            _kickstand.setPower(0.1);
+            _kickstand.setPower(1);
         }else{
             _kickstand.setPower(0);
         }

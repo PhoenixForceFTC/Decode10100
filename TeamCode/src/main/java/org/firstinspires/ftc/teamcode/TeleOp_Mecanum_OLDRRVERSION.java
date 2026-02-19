@@ -3,10 +3,12 @@ package org.firstinspires.ftc.teamcode;
 //region -- Imports ---
 
 import com.acmerobotics.roadrunner.Pose2d;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.utils.DriveUtilsAdvanced;
+import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //endregion
 
 //region --- Controls ---
@@ -55,41 +57,43 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 //  - B (○)             - Mode -> Specimens
 //----------------------------------------------------------------------
 //endregion
-@Disabled
-@TeleOp(name="TeleOpMecanumNew", group="1")
-public class TeleOp_Mecanum_New extends LinearOpMode
+
+@TeleOp(name="TeleOpMecanumOld", group="1")
+public class TeleOp_Mecanum_OLDRRVERSION extends LinearOpMode
 {
     //------------------------------------------------------------------------------------------
     // Variables
     //------------------------------------------------------------------------------------------
     RobotHardware _robot = new RobotHardware(this);
+    DriveUtilsAdvanced _driveUtilsAdvanced;
+
     public ElapsedTime _runtime = new ElapsedTime();
-    public static Pose2d lastAutoPose = new Pose2d(0, 0, 0);
 
 
-
-
+    enum position{
+        Close,
+        Medium,
+        Far,
+        None
+    }
     //------------------------------------------------------------------------------------------
     //--- OpMode
     //------------------------------------------------------------------------------------------
     @Override
-
     public void runOpMode()
     {
         //------------------------------------------------------------------------------------------
         //--- Robot Initialize
         //------------------------------------------------------------------------------------------
-        int robotVersion = 1; //--- 1 for Alpha and 2 for Beta
-        int speed = 0;
-        boolean isShooting = false;
-        boolean readyForShooting = false;
-        boolean trippleShooting = false;
-        Double floorDistance = null;
-
-        ElapsedTime servoScanTimer = new ElapsedTime();
-        double targetPitch = 0.6;
+        int robotVersion = 1; //--- 1 for CRAB-IER and 2 for ARIEL
+        int shooterSpeedRpm = 0;
+        boolean isThreeBallMode = false;
+        position robotPosition = position.None;
 
         _robot.init(robotVersion);
+        _driveUtilsAdvanced = new DriveUtilsAdvanced(hardwareMap,new Pose2d(0,0,-3*Math.PI/4),_robot.drive,_robot.limelightHardware2Axis,this.telemetry);
+
+        RisingEdge g1RE = new RisingEdge();
 
         //------------------------------------------------------------------------------------------
         //--- Display and wait for the game to start (driver presses START)
@@ -99,116 +103,109 @@ public class TeleOp_Mecanum_New extends LinearOpMode
         waitForStart();
         _runtime.reset();
 
+
         //------------------------------------------------------------------------------------------
         //--- Hardware Initialize
         //------------------------------------------------------------------------------------------
         _robot.shooter.initialize();
+       // _robot.intake.initialize();
+        _robot.lights.initialize();
 
         //------------------------------------------------------------------------------------------
         //--- Run until the end of the match (driver presses STOP)
         //------------------------------------------------------------------------------------------
         while (opModeIsActive()) {
-            telemetry.addData("floor distance final", floorDistance);
-            telemetry.addData("target pitch", targetPitch);
-            telemetry.addData("is shooting", isShooting);
-            telemetry.addData("ready for shooting", readyForShooting);
-            // Limelight aiming and shooting logic
-            // Right trigger ENTERS shooting mode
-            if(gamepad1.right_trigger > 0.7){
-                if (!isShooting) { // Runs only on the first press of the trigger
-                    isShooting = true;
-                    readyForShooting = false; // Assume not ready until a target is found
-                    servoScanTimer.reset(); // Start the scan timer
-                }
-            }
 
-            // Left trigger EXITS shooting mode
-            if (gamepad1.left_trigger > 0.7) {
-                if (isShooting) {
-                    // Exit shooting mode
-                    isShooting = false;
-                    readyForShooting = false;
-                    floorDistance = null; // Reset distance when shooting stops
-                    _robot.limelightHardware2Axis.setServos(0.5, 0.6); // Reset servos to default
-                    targetPitch = 0.6;
-                }
-            }
-
-            // Handle servo scanning when trying to shoot but no target is locked
-            if (isShooting && !readyForShooting) {
-                // Try to find a target.
-                floorDistance = _robot.limelightHardware2Axis.getFloorDistance();
-
-                if (floorDistance != null) {
-                    // Target found and locked
-                    readyForShooting = true;
-                    // You might want to lock the servo here, e.g., _robot.limelightHardware2Axis.setServos(0.5, currentPitch);
-                } else {
-                    // No target found, continue scanning
-                    if (servoScanTimer.seconds() > 0.7) {
-                        // Every 0.2 seconds, swap the target pitch
-                        if (targetPitch == 0.5) targetPitch = 0.6;
-                        else targetPitch = 0.5;
-                        _robot.limelightHardware2Axis.setServos(0.5, targetPitch);
-                        servoScanTimer.reset();
-                    }
-                }
-            }
-
+            //------------------------------------------------------------------------------------------
+            //--- Hardware Run (updates lights, etc.)
+            //------------------------------------------------------------------------------------------
+            _robot.run();
 
             //------------------------------------------------------------------------------------------
             //--- Start Telemetry Display
             //------------------------------------------------------------------------------------------
             telemetry.addData("Status", "Run Time: " + _runtime.toString());
-            //------------------------------------------------------------------------------------------
-            //--- Camera
-            //------------------------------------------------------------------------------------------
-            _robot.limelightHardware2Axis.loop();
-            _robot.limelightHardware2Axis.servos();
+
             //------------------------------------------------------------------------------------------
             //--- Drive
             //------------------------------------------------------------------------------------------
-            _robot.drive.driveControl(0.5); //--- Both D-pad for directional movement and Joysticks for mecanum movement
+            //_robot.drive.driveControl(0.5); //--- Both D-pad for directional movement and Joysticks for mecanum movement
+            _driveUtilsAdvanced.driveMecanum(gamepad1);
+            _driveUtilsAdvanced.updateCamera();
+            if(true){
+                _driveUtilsAdvanced.reset(true);
+            }
+            if(gamepad2.right_stick_button){
+                _driveUtilsAdvanced.autoAlign();
+            }
+            if(gamepad2.left_bumper&&(shooterSpeedRpm>0)){
+                if(shooterSpeedRpm>10){
+                    shooterSpeedRpm -=10;
+                }
+                else{
+                    shooterSpeedRpm = 0;
+                }
+            }
+            if(gamepad2.right_bumper&&(shooterSpeedRpm<6000)){
+                if(shooterSpeedRpm<5990){
+                    shooterSpeedRpm +=10;
+
+                }
+                else{
+                    shooterSpeedRpm = 6000;
+                }
+            }
+            //y close x mid a far and b toggle between 3 and 1
+            if(gamepad2.y){
+                robotPosition= position.Close;
+                if (isThreeBallMode) {
+                    shooterSpeedRpm = 2280;
+                } else {
+                    shooterSpeedRpm = 2090;
+                }
+            };
+            if(gamepad2.x){
+                robotPosition= position.Medium;
+                if (isThreeBallMode) {
+                    shooterSpeedRpm = 2650;
+                } else {
+                    shooterSpeedRpm = 2430;
+                }
+            };
+            if(gamepad2.a){
+                robotPosition= position.Far;
+                if (isThreeBallMode) {
+                    shooterSpeedRpm = 3330;
+                } else {
+                    shooterSpeedRpm = 3060;
+                }
+            };
+            if(g1RE.RisingEdgeButton(gamepad2, "b")){
+                isThreeBallMode = !isThreeBallMode;
+            }
+            _robot.shooter.shoot(shooterSpeedRpm);
+            _robot.intake.run();
+            _robot.kickers.run(_robot.shooter.speed,_robot.shooter.getSpeed(),true);
+            telemetry.addData("target speed in rpm", shooterSpeedRpm);
+            telemetry.addData("three ball mode", isThreeBallMode);
+            telemetry.addData("robot shooting position", robotPosition.toString());
+            telemetry.addData("speed reading from the motor in ticks per second",_robot.shooter.getSpeed());
+            _robot.shooter.getTelemetry();
+            //_robot.limelightHardware.loop();
+            _robot.limelightHardware2Axis.loop();
+            _robot.limelightHardware2Axis.servos();
+
             //------------------------------------------------------------------------------------------
             //--- Intake
             //------------------------------------------------------------------------------------------
-            _robot.intake.run();
+           // _robot.intake.testColorSensors();  //--- Show color sensor values for tuning
 
 
-
-
-            //------------------------------------------------------------------------------------------
-            //--- Shooter
-            //------------------------------------------------------------------------------------------
-            _robot.shooter.shoot(speed);//change so speed is set in shooter based on the distance
-            telemetry.addData("speed reading from the motor in ticks per second",_robot.shooter.getSpeed());
-            _robot.shooter.getTelemetry();
-
-
-
-            //_robot.arm.controlArmManual();
-            if(gamepad2.left_bumper&&speed>0){
-                if(speed>10){
-                    speed -=10;
-                }
-                else{
-                    speed = 0;
-                }
-            }
-            if(gamepad2.right_bumper&&speed<6000){
-                if(speed<5990){
-                    speed +=10;
-
-                }
-                else{
-                    speed = 6000;
-                }
-            }
-            _robot.kickers.run(_robot.shooter.speed, _robot.shooter.getSpeed(),readyForShooting);
             //------------------------------------------------------------------------------------------
             //--- Update Telemetry Display
             //------------------------------------------------------------------------------------------
             telemetry.update();
+
 
         }
     }
