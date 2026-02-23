@@ -2,15 +2,9 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.RobotHardware;
+import org.firstinspires.ftc.teamcode.autos.AutoActions;
 
 public class MotifKicking {
-    /*Pseudocodish
-    *
-    * detect balls
-    * find ball-motif
-    * find kicking order
-    * kick balls
-    * */
 
     public enum Motif {
         PPG,
@@ -19,7 +13,27 @@ public class MotifKicking {
         INVALID;
     }
 
+    public static Motif GameMotif = Motif.PPG;
+    private RobotHardware hardware;
 
+    public MotifKicking(RobotHardware hardware){
+        this.hardware = hardware;
+    }
+
+    private static Motif AutoActionstoKickerKickMotif(AutoActions.Motif motif){
+        if (motif == AutoActions.Motif.PPG) {
+            return Motif.PPG;
+        } else if  (motif == AutoActions.Motif.PGP) {
+            return Motif.PGP;
+        } else if (motif == AutoActions.Motif.GPP) {
+            return Motif.GPP;
+        }
+        return Motif.INVALID;
+    }
+
+    public static void updateMotif(AutoActions.Motif motif){
+        GameMotif = AutoActionstoKickerKickMotif(motif);
+    }
 
     private static Motif colorsToMotif(Intake_Incomplete.BallColor[] colors){
 
@@ -77,7 +91,7 @@ public class MotifKicking {
 
 
 
-    public void kickForMotifTeleOp(RobotHardware hardware, Motif targetMotif){
+    public void kickForMotifTeleOp(){
 
         Intake_Incomplete.BallColor leftColor =
                 hardware.intake.detectBallSticky(hardware.intake._colorSensorLeft,
@@ -98,7 +112,7 @@ public class MotifKicking {
 
         Motif intakeMotif = colorsToMotif(colors);
 
-        int[] shootingSequence = fireAutoKickerSeq(targetMotif, intakeMotif);
+        int[] shootingSequence = fireAutoKickerSeq(GameMotif, intakeMotif);
 
         ElapsedTime timer = new ElapsedTime();
 
@@ -107,6 +121,10 @@ public class MotifKicking {
         hardware.kickers.fireKicker(shootingSequence[1]);
         while(timer.seconds() < 0.8){}
         hardware.kickers.fireKicker(shootingSequence[2]);
+
+        hardware.kickers.retractKickerAuto(0);
+        hardware.kickers.retractKickerAuto(1);
+        hardware.kickers.retractKickerAuto(2);
 
     }
 }

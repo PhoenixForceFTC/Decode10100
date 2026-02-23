@@ -6,6 +6,7 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.teamcode.hardware.MotifKicking;
 
 import org.firstinspires.ftc.teamcode.utils.DriveUtilsAdvanced;
 import org.firstinspires.ftc.teamcode.utils.RisingEdge;
@@ -58,7 +59,7 @@ import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //----------------------------------------------------------------------
 //endregion
 
-@TeleOp(name="TeleOpMecanumOld", group="1")
+@TeleOp(name="TeleOpMecanumWisconsinFTCStateChampionships2026", group="1")
 public class TeleOp_Mecanum_OLDRRVERSION extends LinearOpMode
 {
     //------------------------------------------------------------------------------------------
@@ -68,6 +69,8 @@ public class TeleOp_Mecanum_OLDRRVERSION extends LinearOpMode
     DriveUtilsAdvanced _driveUtilsAdvanced;
 
     public ElapsedTime _runtime = new ElapsedTime();
+
+    MotifKicking _kickMotif = new MotifKicking(_robot);
 
 
     enum position{
@@ -120,6 +123,9 @@ public class TeleOp_Mecanum_OLDRRVERSION extends LinearOpMode
             //--- Hardware Run (updates lights, etc.)
             //------------------------------------------------------------------------------------------
             _robot.run();
+            if(gamepad1.a){
+                _kickMotif.kickForMotifTeleOp();
+            }
 
             //------------------------------------------------------------------------------------------
             //--- Start Telemetry Display

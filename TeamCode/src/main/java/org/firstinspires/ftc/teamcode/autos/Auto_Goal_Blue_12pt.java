@@ -22,6 +22,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.RobotHardware;
 import org.firstinspires.ftc.teamcode.hardware.LimelightHardware2Axis;
+import org.firstinspires.ftc.teamcode.hardware.MotifKicking;
 import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 
 import java.util.Arrays;
@@ -75,6 +76,7 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
             }
             telemetry.addData("target motif", _TargetMotif.toString());
             telemetry.update();
+            MotifKicking.updateMotif(_TargetMotifAction);
         }
         _TargetMotif = LimelightHardware2Axis.Motif.GPP;
         telemetry.addData("target motif", _TargetMotif.toString());
