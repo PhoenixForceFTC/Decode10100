@@ -27,7 +27,7 @@ public class Intake_Incomplete
     private final DcMotorEx _intake;
     FtcDashboard _dashboard = FtcDashboard.getInstance();
 
-    private double intakePower = 0.7;
+    private double intakePower = 0.5;
 
 
     private final Gamepad _gamepad;

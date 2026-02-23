@@ -56,6 +56,7 @@ public class DriveUtilsAdvanced {
     private LimelightHardware2Axis limelightHardware2Axis;
     public DriveUtilsAdvanced(HardwareMap hardwareMap, Pose2d pose, Drive drive,LimelightHardware2Axis limelightHardware2Axis, Telemetry telemetry){
         driveClass = new MecanumDrive(hardwareMap, pose);
+        isAligning=false;
         this.drive = drive;
 
         this.telemetry = telemetry;
@@ -137,7 +138,13 @@ public class DriveUtilsAdvanced {
 
         // update running actions
         List<Action> newActions = new ArrayList<>();
+        if(runningActions.isEmpty()){
+            telemetry.addLine("RR is not running");
+            packet2.addLine("RR is not running");
+        }
         for (Action action : runningActions) {
+            telemetry.addLine("RR is running");
+            packet2.addLine("RR is running");
             action.preview(packet2.fieldOverlay());
             if (action.run(packet2)) {
                 newActions.add(action);
@@ -145,6 +152,7 @@ public class DriveUtilsAdvanced {
             }
         }
         runningActions = newActions;
+
 
         dashboard.sendTelemetryPacket(packet2);
 
@@ -164,8 +172,23 @@ public class DriveUtilsAdvanced {
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
             } else {
                 //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,thetadt());
-                if(false) {
-                    drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,thetadt()+((calcDif/4)*((Math.PI/2)-Math.abs(calcDif))));
+                if(isAligning) {
+                    if(Math.abs(calcDif)>Math.PI/8) {
+                        drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + ((calcDif / 4) * ((Math.PI / 2) - Math.abs(calcDif))));
+                    }else{
+                        double[] distBreakdown = limelightHardware2Axis.getDistanceBreakdown();
+                        double dist =0;
+                        if(distBreakdown == null ){
+                            dist =0;
+                        }else{
+                            dist = Math.atan2(distBreakdown[2],distBreakdown[1]);//we want to change to point towards the back corner not the aprilt ag
+
+
+                        }
+
+                        drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, dist);
+                    }
+
                 }else{
                     drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
                 }
@@ -189,6 +212,10 @@ public class DriveUtilsAdvanced {
                 .build()
 
         );
+    }
+    public double getDist(){
+        return Math.sqrt(x2*x2+y2*y2);
+        //1.01x+1630 for single shooter
     }
     public void endAutoAlign(){
         isAligning=false;
@@ -232,8 +259,19 @@ public class DriveUtilsAdvanced {
         TelemetryPacket packet = new TelemetryPacket();
             Canvas c = packet.fieldOverlay();
         Pose2D botPose = limelightHardware2Axis.getPos(c);
-        if(botPose!=null&&reset){
-            driveClass.localizer.setPose(new Pose2d(new Vector2d(botPose.getX(DistanceUnit.INCH),botPose.getY(DistanceUnit.INCH)), botPose.getHeading(AngleUnit.RADIANS)));
+        if(runningActions.isEmpty()){
+
+            if(botPose!=null&&reset){
+                if( Math.abs(botPose.getHeading(AngleUnit.RADIANS)-driveClass.localizer.getPose().heading.toDouble()) < Math.PI/16){
+                    if(Math.abs(botPose.getX(DistanceUnit.INCH)-driveClass.localizer.getPose().position.x)>4 || Math.abs(botPose.getY(DistanceUnit.INCH)-driveClass.localizer.getPose().position.y)>4){
+                        driveClass.localizer.setPose(new Pose2d(new Vector2d(botPose.getX(DistanceUnit.INCH),botPose.getY(DistanceUnit.INCH)), driveClass.localizer.getPose().heading.toDouble()));
+
+                    }
+
+                }else{
+                    driveClass.localizer.setPose(new Pose2d(new Vector2d(botPose.getX(DistanceUnit.INCH),botPose.getY(DistanceUnit.INCH)), botPose.getHeading(AngleUnit.RADIANS)));
+                }
+            }
         }
         dashboard.sendTelemetryPacket(packet);
     }

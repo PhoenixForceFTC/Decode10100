@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.hardware.MotifKicking;
 
+
+import org.firstinspires.ftc.teamcode.hardware.Shooter;
 import org.firstinspires.ftc.teamcode.utils.DriveUtilsAdvanced;
 import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //endregion
@@ -59,7 +61,7 @@ import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //----------------------------------------------------------------------
 //endregion
 
-@TeleOp(name="TeleOpMecanumWisconsinFTCStateChampionships2026", group="1")
+@TeleOp(name="TeleOpFinal", group="1")
 public class TeleOp_Mecanum_OLDRRVERSION extends LinearOpMode
 {
     //------------------------------------------------------------------------------------------
@@ -90,6 +92,7 @@ public class TeleOp_Mecanum_OLDRRVERSION extends LinearOpMode
         //------------------------------------------------------------------------------------------
         int robotVersion = 1; //--- 1 for CRAB-IER and 2 for ARIEL
         int shooterSpeedRpm = 0;
+        int shooterSpeedRpm3Ball = 0;
         boolean isThreeBallMode = false;
         position robotPosition = position.None;
 
@@ -123,9 +126,9 @@ public class TeleOp_Mecanum_OLDRRVERSION extends LinearOpMode
             //--- Hardware Run (updates lights, etc.)
             //------------------------------------------------------------------------------------------
             _robot.run();
-            if(gamepad1.a){
-                _kickMotif.kickForMotifTeleOp();
-            }
+//            if(gamepad1.a){
+//                _kickMotif.kickForMotifTeleOp();
+//            }
 
             //------------------------------------------------------------------------------------------
             //--- Start Telemetry Display
@@ -162,36 +165,41 @@ public class TeleOp_Mecanum_OLDRRVERSION extends LinearOpMode
                 }
             }
             //y close x mid a far and b toggle between 3 and 1
+
+            if(!isThreeBallMode){
+                shooterSpeedRpm=Math.round((float) ((_driveUtilsAdvanced.getDist()*10.1)+1630) );
+
+            }
             if(gamepad2.y){
                 robotPosition= position.Close;
-                if (isThreeBallMode) {
-                    shooterSpeedRpm = 2280;
-                } else {
+                    shooterSpeedRpm3Ball = 2280;
                     shooterSpeedRpm = 2090;
-                }
-            };
+            }
             if(gamepad2.x){
                 robotPosition= position.Medium;
-                if (isThreeBallMode) {
-                    shooterSpeedRpm = 2650;
-                } else {
+                    shooterSpeedRpm3Ball = 2650;
                     shooterSpeedRpm = 2430;
-                }
-            };
+            }
             if(gamepad2.a){
                 robotPosition= position.Far;
-                if (isThreeBallMode) {
-                    shooterSpeedRpm = 3330;
-                } else {
+                    shooterSpeedRpm3Ball = 3330;
                     shooterSpeedRpm = 3060;
-                }
-            };
+            }
             if(g1RE.RisingEdgeButton(gamepad2, "b")){
                 isThreeBallMode = !isThreeBallMode;
             }
-            _robot.shooter.shoot(shooterSpeedRpm);
+            if(isThreeBallMode){
+                _robot.shooter.shoot(shooterSpeedRpm3Ball);
+            }
+            else{
+                _robot.shooter.shoot(shooterSpeedRpm);
+
+            }
             _robot.intake.run();
-            _robot.kickers.run(_robot.shooter.speed,_robot.shooter.getSpeed(),true);
+
+            if(_robot.kickers.runFinal((double) shooterSpeedRpm*  Shooter.ticksPerRotation/60,_robot.shooter.getSpeed(),true,(double) shooterSpeedRpm3Ball* Shooter.ticksPerRotation/60)){
+                _driveUtilsAdvanced.endAutoAlign();
+            }
             telemetry.addData("target speed in rpm", shooterSpeedRpm);
             telemetry.addData("three ball mode", isThreeBallMode);
             telemetry.addData("robot shooting position", robotPosition.toString());
