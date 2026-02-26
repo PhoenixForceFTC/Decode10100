@@ -97,7 +97,7 @@ public class TeleOp_Mecanum_OLDRRVERSION extends LinearOpMode
         position robotPosition = position.None;
 
         _robot.init(robotVersion);
-        _driveUtilsAdvanced = new DriveUtilsAdvanced(hardwareMap,new Pose2d(0,0,-3*Math.PI/4),_robot.drive,_robot.limelightHardware2Axis,this.telemetry);
+        _driveUtilsAdvanced = new DriveUtilsAdvanced(hardwareMap,new Pose2d(0,0,-3*Math.PI/4),_robot.drive,_robot.limelightHardware2Axis,this.telemetry,false);
 
         RisingEdge g1RE = new RisingEdge();
 
@@ -150,18 +150,22 @@ public class TeleOp_Mecanum_OLDRRVERSION extends LinearOpMode
             if(gamepad2.left_bumper&&(shooterSpeedRpm>0)){
                 if(shooterSpeedRpm>10){
                     shooterSpeedRpm -=10;
+                    shooterSpeedRpm3Ball -=10;
                 }
                 else{
                     shooterSpeedRpm = 0;
+                    shooterSpeedRpm3Ball = 0;
                 }
             }
             if(gamepad2.right_bumper&&(shooterSpeedRpm<6000)){
                 if(shooterSpeedRpm<5990){
                     shooterSpeedRpm +=10;
+                    shooterSpeedRpm3Ball +=10;
 
                 }
                 else{
                     shooterSpeedRpm = 6000;
+                    shooterSpeedRpm3Ball = 6000;
                 }
             }
             //y close x mid a far and b toggle between 3 and 1
@@ -200,7 +204,8 @@ public class TeleOp_Mecanum_OLDRRVERSION extends LinearOpMode
             if(_robot.kickers.runFinal((double) shooterSpeedRpm*  Shooter.ticksPerRotation/60,_robot.shooter.getSpeed(),true,(double) shooterSpeedRpm3Ball* Shooter.ticksPerRotation/60)){
                 _driveUtilsAdvanced.endAutoAlign();
             }
-            telemetry.addData("target speed in rpm", shooterSpeedRpm);
+            telemetry.addData("target speed one ball in rpm", shooterSpeedRpm);
+            telemetry.addData("target speed 3 ball in rpm", shooterSpeedRpm3Ball);
             telemetry.addData("three ball mode", isThreeBallMode);
             telemetry.addData("robot shooting position", robotPosition.toString());
             telemetry.addData("speed reading from the motor in ticks per second",_robot.shooter.getSpeed());

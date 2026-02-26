@@ -63,6 +63,7 @@ public class Kickers
     }
 
     public boolean run(double targetSpeed, double speed, boolean run){
+        boolean kicked =false;
         if(speed/targetSpeed>0.9 && run) {
             if (_gamepad.dpad_left) {
                 fireKicker(0);
@@ -80,29 +81,29 @@ public class Kickers
         }
         if(timerL.seconds() < KICKER_ACTION_DELAY){
             _kickerLeft.setPosition(kickedL);
-            return true;
+            kicked = true;
         }else{
             _kickerLeft.setPosition(zeroL);
-
         }
 
         if(timerM.seconds() < KICKER_ACTION_DELAY){
             _kickerMid.setPosition(kickedM);
-            return true;
+            kicked = true;
         }else{
             _kickerMid.setPosition(zeroM);
         }
 
         if(timerR.seconds() < KICKER_ACTION_DELAY){
             _kickerRight.setPosition(kickedR);
-            return true;
+            kicked = true;
         }else{
             _kickerRight.setPosition(zeroR);
         }
-        return false;
+        return kicked;
     }
 
     public boolean runFinal(double targetSpeed, double speed, boolean run,double targetSpeed3Ball){
+        boolean kicked =false;
         if(speed/targetSpeed>0.9 && run) {
             if (_gamepad.dpad_left) {
                 fireKicker(0);
@@ -122,7 +123,7 @@ public class Kickers
         }
         if(timerL.seconds() < KICKER_ACTION_DELAY){
             _kickerLeft.setPosition(kickedL);
-            return true;
+            kicked = true;
         }else{
             _kickerLeft.setPosition(zeroL);
 
@@ -130,18 +131,18 @@ public class Kickers
 
         if(timerM.seconds() < KICKER_ACTION_DELAY){
             _kickerMid.setPosition(kickedM);
-            return true;
+            kicked = true;
         }else{
             _kickerMid.setPosition(zeroM);
         }
 
         if(timerR.seconds() < KICKER_ACTION_DELAY){
             _kickerRight.setPosition(kickedR);
-            return true;
+            kicked = true;
         }else{
             _kickerRight.setPosition(zeroR);
         }
-        return false;
+        return kicked;
     }
     public DataLog.Shooter run2(double targetSpeed, double speed, boolean run){
         DataLog.Shooter shooter = DataLog.Shooter.Unkown;

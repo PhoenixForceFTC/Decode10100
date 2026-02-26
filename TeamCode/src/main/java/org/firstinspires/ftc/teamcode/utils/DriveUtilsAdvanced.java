@@ -54,11 +54,11 @@ public class DriveUtilsAdvanced {
     private MecanumDrive driveClass;
 
     private LimelightHardware2Axis limelightHardware2Axis;
-    public DriveUtilsAdvanced(HardwareMap hardwareMap, Pose2d pose, Drive drive,LimelightHardware2Axis limelightHardware2Axis, Telemetry telemetry){
+    public DriveUtilsAdvanced(HardwareMap hardwareMap, Pose2d pose, Drive drive,LimelightHardware2Axis limelightHardware2Axis, Telemetry telemetry,Boolean isBlue){
         driveClass = new MecanumDrive(hardwareMap, pose);
         isAligning=false;
         this.drive = drive;
-
+        this.isBlue=isBlue;
         this.telemetry = telemetry;
         this.limelightHardware2Axis = limelightHardware2Axis;
     }
