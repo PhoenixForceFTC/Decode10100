@@ -73,9 +73,6 @@ public class Intake_Incomplete
 
     //region --- State ---
    // private boolean _intakeOn = false;
-    private boolean _triggerWasPressed = false;
-    //private boolean _outtakeActive = false;
-    private ElapsedTime _outtakeTimer = new ElapsedTime();
 
     //--- Ball detection state
     public BallColor _leftBallColor = BallColor.NONE;
@@ -83,16 +80,8 @@ public class Intake_Incomplete
     public BallColor _rightBallColor = BallColor.NONE;
 
     //--- Sensor averaging buffers (circular buffers for last N readings)
-    private double[] _leftDistBuffer = new double[AVERAGING_SAMPLES];
-    private int[] _leftRedBuffer = new int[AVERAGING_SAMPLES];
-    private int[] _leftGreenBuffer = new int[AVERAGING_SAMPLES];
-    private int[] _leftBlueBuffer = new int[AVERAGING_SAMPLES];
     private int _leftBufferIndex = 0;
 
-    private double[] _middleDistBuffer = new double[AVERAGING_SAMPLES];
-    private int[] _middleRedBuffer = new int[AVERAGING_SAMPLES];
-    private int[] _middleGreenBuffer = new int[AVERAGING_SAMPLES];
-    private int[] _middleBlueBuffer = new int[AVERAGING_SAMPLES];
     private int _middleBufferIndex = 0;
 
     private double[] _rightDistBuffer = new double[AVERAGING_SAMPLES];
@@ -173,27 +162,7 @@ public class Intake_Incomplete
         _telemetry.addData("Loop count:", "%d", loopCount);
         _telemetry.addData("Intake Power: ", intakePower);
         //--- Only detect balls and update lights while intaking or outtaking
-       /*
-        if (isIntakeOn() || isOuttakeActive())
-        {
-            detectBalls();
-            updateLights();
-        }
-
-        */
     }
-
-
-    //region --- Initialize ---
-    /*
-    public void initialize()
-    {
-        _intakeOn = false;
-        _outtakeActive = false;
-        stop();
-    }
-
-     */
 
     public void setColorSensors(ColorSensor left, ColorSensor middle, ColorSensor right)
     {
@@ -202,9 +171,9 @@ public class Intake_Incomplete
         _colorSensorRight = right;
 
         //--- REV Color Sensor V3 also implements DistanceSensor
-        if (left != null) _distanceSensorLeft = (DistanceSensor) left;
-        if (middle != null) _distanceSensorMiddle = (DistanceSensor) middle;
-        if (right != null) _distanceSensorRight = (DistanceSensor) right;
+        _distanceSensorLeft = (DistanceSensor) left;
+        _distanceSensorMiddle = (DistanceSensor) middle;
+        _distanceSensorRight = (DistanceSensor) right;
     }
 
     public void setLights(Lights lights)
@@ -220,116 +189,20 @@ public class Intake_Incomplete
     {
         //--- Update sensor buffers and detect balls using averaged values
         //--- Apply "sticky" color logic: only upgrade from UNKNOWN to a color, never downgrade
-        _leftBallColor = updateAndDetectSticky(
-                _colorSensorLeft, _distanceSensorLeft,
-                _leftDistBuffer, _leftRedBuffer, _leftGreenBuffer, _leftBlueBuffer,
-                _leftBufferIndex, LEFT_DISTANCE_THRESHOLD_MM, "left", _leftBallColor);
+        _leftBallColor = detectBallSticky(
+                _colorSensorLeft, _distanceSensorLeft, LEFT_DISTANCE_THRESHOLD_MM,
+                _leftBallColor);
         _leftBufferIndex = (_leftBufferIndex + 1) % AVERAGING_SAMPLES;
 
-        _middleBallColor = updateAndDetectSticky(
-                _colorSensorMiddle, _distanceSensorMiddle,
-                _middleDistBuffer, _middleRedBuffer, _middleGreenBuffer, _middleBlueBuffer,
-                _middleBufferIndex, MIDDLE_DISTANCE_THRESHOLD_MM, "middle", _middleBallColor);
+        _middleBallColor = detectBallSticky(
+                _colorSensorMiddle, _distanceSensorMiddle, MIDDLE_DISTANCE_THRESHOLD_MM,
+                _middleBallColor);
         _middleBufferIndex = (_middleBufferIndex + 1) % AVERAGING_SAMPLES;
 
-        _rightBallColor = updateAndDetectSticky(
-                _colorSensorRight, _distanceSensorRight,
-                _rightDistBuffer, _rightRedBuffer, _rightGreenBuffer, _rightBlueBuffer,
-                _rightBufferIndex, RIGHT_DISTANCE_THRESHOLD_MM, "right", _rightBallColor);
+        _rightBallColor = detectBallSticky(
+                _colorSensorRight, _distanceSensorRight, RIGHT_DISTANCE_THRESHOLD_MM,
+                _rightBallColor);
         _rightBufferIndex = (_rightBufferIndex + 1) % AVERAGING_SAMPLES;
-    }
-
-    private BallColor updateAndDetectSticky(
-            ColorSensor colorSensor, DistanceSensor distanceSensor,
-            double[] distBuffer, int[] redBuffer, int[] greenBuffer, int[] blueBuffer,
-            int bufferIndex, double distanceThreshold, String sensorName, BallColor previousColor)
-    {
-        if (colorSensor == null || distanceSensor == null)
-        {
-           // setStickyFlag(sensorName, false); //Added this 12/7
-            return BallColor.NONE;
-        }
-
-        //--- Read current sensor values
-        double distance = distanceSensor.getDistance(DistanceUnit.MM);
-        int red = colorSensor.red();
-        int green = colorSensor.green();
-        int blue = colorSensor.blue();
-
-        //--- Store in circular buffer
-        distBuffer[bufferIndex] = Double.isNaN(distance) ? 999.0 : distance;
-        redBuffer[bufferIndex] = red;
-        greenBuffer[bufferIndex] = green;
-        blueBuffer[bufferIndex] = blue;
-
-        //--- Calculate averages
-        double avgDist = 0, avgR = 0, avgG = 0, avgB = 0;
-        for (int i = 0; i < AVERAGING_SAMPLES; i++)
-        {
-            avgDist += distBuffer[i];
-            avgR += redBuffer[i];
-            avgG += greenBuffer[i];
-            avgB += blueBuffer[i];
-        }
-        avgDist /= AVERAGING_SAMPLES;
-        avgR /= AVERAGING_SAMPLES;
-        avgG /= AVERAGING_SAMPLES;
-        avgB /= AVERAGING_SAMPLES;
-
-        //--- Store averages for telemetry display
-        if (sensorName.equals("left"))
-        {
-            _leftAvgDist = avgDist; _leftAvgR = avgR; _leftAvgG = avgG; _leftAvgB = avgB;
-        }
-        else if (sensorName.equals("middle"))
-        {
-            _middleAvgDist = avgDist; _middleAvgR = avgR; _middleAvgG = avgG; _middleAvgB = avgB;
-        }
-        else if (sensorName.equals("right"))
-        {
-            _rightAvgDist = avgDist; _rightAvgR = avgR; _rightAvgG = avgG; _rightAvgB = avgB;
-        }
-
-        //--- Check distance threshold (per-sensor)
-        //--- If no ball detected, reset color to NONE
-        if (avgDist > distanceThreshold)
-        {
-            setStickyFlag(sensorName, false);
-            return BallColor.NONE;
-        }
-
-
-        //--- Ball is present (under distance threshold), determine color
-        //--- Calculate ratios from averaged values (with safety for divide by zero)
-        double gToR = (avgR > 0) ? avgG / avgR : 0;
-        double bToG = (avgG > 0) ? avgB / avgG : 0;
-
-        //--- Green ball: G/R > 2.5 (background is ~1.4, green balls are 3.0+)
-        if (gToR > GREEN_RATIO_THRESHOLD)
-        {
-            setStickyFlag(sensorName, false);
-            return BallColor.GREEN;
-        }
-
-        //--- Purple ball: B/G > 0.85 AND G/R < 1.8
-        if (bToG > PURPLE_BG_THRESHOLD && gToR < PURPLE_GR_MAX)
-        {
-            setStickyFlag(sensorName, false);
-            return BallColor.PURPLE;
-        }
-
-        //--- Ball detected but color unclear
-        //--- "Sticky" logic: keep previous color if it was GREEN or PURPLE
-        //--- Only show UNKNOWN (red light) if we never got a good reading
-        if (previousColor == BallColor.GREEN || previousColor == BallColor.PURPLE)
-        {
-            setStickyFlag(sensorName, true);
-            return previousColor;  // Keep the last good color
-        }
-
-        //--- No previous good color, show UNKNOWN (red light)
-        setStickyFlag(sensorName, false);
-        return BallColor.UNKNOWN;
     }
 
     public BallColor detectBallSticky(
@@ -364,11 +237,25 @@ public class Intake_Incomplete
 
         if (blueToGreen > PURPLE_BG_THRESHOLD && greenToRed < PURPLE_GR_MAX)
         {
+            if(colorSensor == _colorSensorLeft){
+                _leftBallColor = BallColor.PURPLE;
+            }else if(colorSensor == _colorSensorMiddle){
+                _middleBallColor = BallColor.PURPLE;
+            }else if(colorSensor == _colorSensorRight){
+                _rightBallColor = BallColor.PURPLE;
+            }
             return BallColor.PURPLE;
         }
 
         if (greenToRed > GREEN_RATIO_THRESHOLD)
         {
+            if(colorSensor == _colorSensorLeft){
+                _leftBallColor = BallColor.GREEN;
+            }else if(colorSensor == _colorSensorMiddle){
+                _middleBallColor = BallColor.GREEN;
+            }else if(colorSensor == _colorSensorRight){
+                _rightBallColor = BallColor.GREEN;
+            }
             return BallColor.GREEN;
         }
 
@@ -459,6 +346,7 @@ public class Intake_Incomplete
             case UNKNOWN:
                 return Lights.Color.RED;
             case NONE:
+                return Lights.Color.WHITE;
             default:
                 return Lights.Color.WHITE;
         }
@@ -475,25 +363,7 @@ public class Intake_Incomplete
 
     //endregion
 
-    //--- Check if intake is currently running
-    /*
-    public boolean isIntakeOn()
-    {
-        return _intakeOn;
-    }
-
-    //--- Check if outtake is currently active
-    public boolean isOuttakeActive()
-    {
-        return _outtakeActive;
-    }
-
-     */
-
     //--- Get detected ball colors
-    public BallColor getLeftBallColor() { return _leftBallColor; }
-    public BallColor getmiddleBallColor() { return _middleBallColor; }
-    public BallColor getRightBallColor() { return _rightBallColor; }
 
 
     //region --- Testing ---

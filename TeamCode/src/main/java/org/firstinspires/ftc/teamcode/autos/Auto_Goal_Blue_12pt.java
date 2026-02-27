@@ -102,20 +102,10 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
 
                 // move to shooting area
 
-//                .strafeTo(new Vector2d(-7, -7))
-//                .turn(Math.PI/4)
-//                .waitSeconds(3)
-
                 // move to shooting area
                 .strafeToSplineHeading(new Vector2d(-28, -30), -(2*Math.PI)/3, fastVelConstraint, fastAccelConstraint)
 
-
                 // shoots the preloaded artifacts
-                //.stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[0]))
-                //.waitSeconds(0.5)
-                //.stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[1]))
-                //.waitSeconds(0.5)
-                //.stopAndAdd(new AutoActions.KickerKick(_robot, initialKickingOrder[2]))
                 .stopAndAdd(new AutoActions.KickerTripleKick(_robot))
                 .waitSeconds(0.4)
 
