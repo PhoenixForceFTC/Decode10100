@@ -208,6 +208,22 @@ public class AutoActions {
             return false;
         }
     }
+
+    public static class IntakeRunFast implements Action{
+        private final RobotHardware robot;
+
+        public IntakeRunFast(RobotHardware robot){
+            this.robot = robot;
+            robot.intake._telemetry.addData("Intake running",1);
+
+        }
+
+        public boolean run(@NonNull TelemetryPacket telemetryPacket){
+            robot.intake.backwardFast(0.5);
+            return false;
+        }
+
+    }
     public static class SetShooterSpeed implements Action{
         private final RobotHardware robot;
         private final int speed;

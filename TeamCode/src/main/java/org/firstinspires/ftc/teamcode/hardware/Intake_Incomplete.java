@@ -128,11 +128,13 @@ public class Intake_Incomplete
     //region --- Movement ---
     public void forward(){
         _intake.setPower(intakePower);
-    } //--- Inward movement of artifacts
+    } //--- Outward movement of artifacts
+
+    public void backwardFast(double speed) {_intake.setPower(-speed);}
 
     public void backward(){
         _intake.setPower(-intakePower);
-    } //--- Outward movement
+    } //--- Inward movement
 
     public void backward_slow(){_intake.setPower(-intakePower);}
 
