@@ -22,6 +22,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.hardware.Drive;
+import org.firstinspires.ftc.teamcode.hardware.Kickers;
 import org.firstinspires.ftc.teamcode.hardware.LimelightHardware2Axis;
 import org.firstinspires.ftc.teamcode.roadrunner.Drawing;
 import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
@@ -39,10 +40,13 @@ public class DriveUtilsAdvanced {
 
     private double x2 = 60;
     private double x3 = 66;
+    private double x4 = 72;
     private double dxdt = 0;
     private double y = 0;
     private double y2 = 60;
     private double y3 = 60;
+
+    private double y4 = 72;
     private double dydt = 0;
     private double heading = 0;
     private double yaw = 0;
@@ -68,14 +72,17 @@ public class DriveUtilsAdvanced {
         this.x = x;
         this.x2 = 60+x;//60 bc centered around the april tag not corner
         this.x3 = 60+x+cos(heading)*11;
+        this.x4= 72+x;
         this.dxdt = dxdt;
         this.y = y;
         if(isBlue){
             this.y2 = 60+y;
             this.y3 = 60+y+sin(heading)*11;
+            this.y4 = 72+y;
         }else{
             this.y2 = 60-y;
             this.y3 = 60-y-sin(heading)*11;
+            this.y4 = 72-y;
         }
 
         this.dydt = dydt;
@@ -105,7 +112,8 @@ public class DriveUtilsAdvanced {
         setVars(x,lateral*sin(heading)+axial*cos(heading),y,axial*sin(heading)-lateral*cos(heading),heading,yaw);
 
     };
-    public void driveMecanum(Gamepad gamepad){
+    public boolean driveMecanum(Gamepad gamepad, Kickers kickers){
+        boolean returnn = false;
 
         driveClass.localizer.update();
         setVarsAdvanced(
@@ -161,9 +169,9 @@ public class DriveUtilsAdvanced {
 
 
 
-        double targetHeading = Math.atan2(-y2,-x2);
+        double targetHeading = Math.atan2(-y4,-x4);
         if (!isBlue){
-            targetHeading = Math.atan2(y2,-x2);
+            targetHeading = Math.atan2(y4,-x4);
         }
         double calcDif = calcDifference(targetHeading);
 
@@ -177,16 +185,27 @@ public class DriveUtilsAdvanced {
                         drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + ((calcDif / 4) * ((Math.PI / 2) - Math.abs(calcDif))));
                     }else{
                         double[] distBreakdown = limelightHardware2Axis.getDistanceBreakdown();
-                        double dist =0;
+                        double dist = 0;
                         if(distBreakdown == null ){
                             dist =0;
                         }else{
                             dist = Math.atan2(distBreakdown[2],distBreakdown[1]);//we want to change to point towards the back corner not the aprilt ag
-
-
+                            if(isBlue){
+                                //dist = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) - 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
+                            }
+                            else {
+                                //dist = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) + 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
+                            }
+                            dist -= heading;
+                            telemetry.addData("dist", dist);
+                            //chnge to do atan using trig and subtracting the heading from the loclizer
+                            if(Math.abs(dist)<Math.PI/16){
+                                returnn =true;
+                                //fix so it doesnt shoot with the wrong speeds and shoots using the three ball speeds or something
+                            }
+                            drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, -dist);//-dist bc posotive turn makes it turn clockwise in the method
                         }
 
-                        drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, dist);
                     }
 
                 }else{
@@ -194,15 +213,16 @@ public class DriveUtilsAdvanced {
                 }
             }
         }
+        return returnn;
 
 
     }
     public void autoAlign(){
         isAligning=true;
 
-        double targetHeading = Math.atan2(-y2,-x2);
+        double targetHeading = Math.atan2(-y4,-x4);
         if (!isBlue){
-            targetHeading = Math.atan2(y2,-x2);
+            targetHeading = Math.atan2(y4,-x4);
         }
         double calcDif = calcDifference(targetHeading);
         drive.arcadeDriveSpeedControl2(0, 0, 0, calcDif/2);
@@ -258,6 +278,7 @@ public class DriveUtilsAdvanced {
 
         TelemetryPacket packet = new TelemetryPacket();
             Canvas c = packet.fieldOverlay();
+
         Pose2D botPose = limelightHardware2Axis.getPos(c);
         if(runningActions.isEmpty()){
 
@@ -267,12 +288,12 @@ public class DriveUtilsAdvanced {
                         driveClass.localizer.setPose(new Pose2d(new Vector2d(botPose.getX(DistanceUnit.INCH),botPose.getY(DistanceUnit.INCH)), driveClass.localizer.getPose().heading.toDouble()));
 
                     }
-
                 }else{
                     driveClass.localizer.setPose(new Pose2d(new Vector2d(botPose.getX(DistanceUnit.INCH),botPose.getY(DistanceUnit.INCH)), botPose.getHeading(AngleUnit.RADIANS)));
                 }
             }
         }
+        Drawing.drawRobot(c, driveClass.localizer.getPose());
         dashboard.sendTelemetryPacket(packet);
     }
 

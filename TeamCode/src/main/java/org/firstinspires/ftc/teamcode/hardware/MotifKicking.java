@@ -116,12 +116,12 @@ public class MotifKicking {
 
         ElapsedTime timer = new ElapsedTime();
 
-        hardware.kickers.fireKicker(shootingSequence[0]);
+        hardware.kickers.fireKickerAuto(shootingSequence[0]);
         while(timer.seconds() < 0.4){}
-        hardware.kickers.fireKicker(shootingSequence[1]);
+        hardware.kickers.fireKickerAuto(shootingSequence[1]);
         while(timer.seconds() < 0.8){}
-        hardware.kickers.fireKicker(shootingSequence[2]);
-
+        hardware.kickers.fireKickerAuto(shootingSequence[2]);
+        while(timer.seconds() < 1.2){}
         hardware.kickers.retractKickerAuto(0);
         hardware.kickers.retractKickerAuto(1);
         hardware.kickers.retractKickerAuto(2);

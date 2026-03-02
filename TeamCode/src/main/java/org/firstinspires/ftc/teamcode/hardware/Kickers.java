@@ -102,22 +102,22 @@ public class Kickers
         return kicked;
     }
 
-    public boolean runFinal(double targetSpeed, double speed, boolean run,double targetSpeed3Ball){
+    public boolean runFinal(double targetSpeed, double speed, boolean run,double targetSpeed3Ball, int fireKickerNumber){
         boolean kicked =false;
         if(speed/targetSpeed>0.9 && run) {
-            if (_gamepad.dpad_left) {
+            if (_gamepad.dpad_left|| fireKickerNumber==0) {
                 fireKicker(0);
             }
-            if (_gamepad.dpad_up) {
+            if (_gamepad.dpad_up|| fireKickerNumber==1) {
                 fireKicker(1);
             }
-            if (_gamepad.dpad_right) {
+            if (_gamepad.dpad_right|| fireKickerNumber==2) {
                 fireKicker(2);
             }
 
         }
         if(speed/targetSpeed3Ball>0.9 && run){
-            if (_gamepad.dpad_down){
+            if (_gamepad.dpad_down || fireKickerNumber==3){
                 fireKicker(3);
             }
         }
@@ -217,33 +217,6 @@ public class Kickers
     }
 
     // 0 = leftmost kicker, 1 = middle kicker, 2 = rightmost kicker, 3 = all kickers
-    public void fireKicker(int kickerPos)
-    {
-
-            if (kickerPos == 0 && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
-                timerL.reset();
-                timerGlobal.reset();
-            }
-
-            else if (kickerPos==1 && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
-                timerM.reset();
-                timerGlobal.reset();
-            }
-
-            else if (kickerPos==2 && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
-                timerR.reset();
-                timerGlobal.reset();
-            }
-
-            else if (kickerPos==3 && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
-                timerL.reset();
-                timerM.reset();
-                timerR.reset();
-                timerGlobal.reset();
-            }
-
-    }
-
     public void fireKickerAuto(int kickerPos)
     {
 
@@ -263,6 +236,58 @@ public class Kickers
         }
     }
 
+    public void fireKicker(int kickerPos)
+    {
+
+        if (kickerPos == 0 && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
+            timerL.reset();
+            timerGlobal.reset();
+        }
+
+        else if (kickerPos==1 && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
+            timerM.reset();
+            timerGlobal.reset();
+        }
+
+        else if (kickerPos==2 && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
+            timerR.reset();
+            timerGlobal.reset();
+        }
+
+        else if (kickerPos==3 && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
+            timerL.reset();
+            timerM.reset();
+            timerR.reset();
+            timerGlobal.reset();
+        }
+
+    }
+    public void fireKickerBypass(int kickerPos)
+    {
+
+        if (kickerPos == 0) {
+            timerL.reset();
+            timerGlobal.reset();
+        }
+
+        else if (kickerPos==1) {
+            timerM.reset();
+            timerGlobal.reset();
+        }
+
+        else if (kickerPos==2 && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
+            timerR.reset();
+            timerGlobal.reset();
+        }
+
+        else if (kickerPos==3 && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
+            timerL.reset();
+            timerM.reset();
+            timerR.reset();
+            timerGlobal.reset();
+        }
+
+    }
     public void retractKickerAuto(int kickerPos)
     {
 
