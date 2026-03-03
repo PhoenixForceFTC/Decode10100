@@ -211,18 +211,34 @@ public class AutoActions {
 
     public static class IntakeRunFast implements Action{
         private final RobotHardware robot;
+        double speed;
 
-        public IntakeRunFast(RobotHardware robot){
+        public IntakeRunFast(RobotHardware robot, double s){
             this.robot = robot;
+            this.speed = s;
             robot.intake._telemetry.addData("Intake running",1);
 
         }
 
         public boolean run(@NonNull TelemetryPacket telemetryPacket){
-            robot.intake.backwardFast(0.5);
+            robot.intake.backwardFast(speed);
             return false;
         }
 
+    }
+
+    public static class waitForShooter implements Action {
+        private RobotHardware robot;
+        private int speed;
+        public waitForShooter(RobotHardware r, int s){
+            robot = r;
+            speed = s;
+        }
+
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            while ((robot.shooter.getSpeed() / speed) < 0.5){}
+            return true;
+        }
     }
     public static class SetShooterSpeed implements Action{
         private final RobotHardware robot;
