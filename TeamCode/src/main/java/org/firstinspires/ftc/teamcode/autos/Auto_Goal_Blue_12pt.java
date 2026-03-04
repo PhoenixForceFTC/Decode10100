@@ -37,10 +37,10 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
     //slow down bot temporarily
     VelConstraint fastVelConstraint = new MinVelConstraint(Arrays.asList(
             new TranslationalVelConstraint(100),
-            new AngularVelConstraint(2*Math.PI)
+            new AngularVelConstraint(3*Math.PI)
     ));
 
-    ProfileAccelConstraint fastAccelConstraint = new ProfileAccelConstraint(-70, 100);
+    ProfileAccelConstraint fastAccelConstraint = new ProfileAccelConstraint(-90, 120);
     VelConstraint slowVelConstraint = new MinVelConstraint(Arrays.asList(
             new TranslationalVelConstraint(25.0),
             new AngularVelConstraint(Math.PI / 2)
@@ -113,21 +113,21 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
                 .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2200))
 
                 //go to first spike
-                .strafeToSplineHeading(new Vector2d(-12, -20), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
-                .strafeToSplineHeading(new Vector2d(-12, -60), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(0, -20), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(0, -60), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
                 //.turn((3*Math.PI)/4)
                 //.strafeToSplineHeading(new Vector2d(-6, -58), -Math.PI/6, fastVelConstraint)
                 //.strafeToSplineHeading(new Vector2d(-4, -60), Math.PI/6, fastVelConstraint)
 
                 //clear gate
-                .strafeToSplineHeading(new Vector2d(0, -40), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(0, -45), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
                 .strafeToSplineHeading(new Vector2d(3, -60), -Math.PI/2,fastVelConstraint, fastAccelConstraint)
                 //.turn(Math.PI/3)
                 //.strafeToSplineHeading(new Vector2d(0, -68), 0, fastVelConstraint)
 
                 //back to shooting zone
-                .waitSeconds(1)
-                .strafeToSplineHeading(new Vector2d(-30, -32), -(5*Math.PI)/6, fastVelConstraint, fastAccelConstraint)
+                .waitSeconds(0.5)
+                .strafeToSplineHeading(new Vector2d(-43, -32), -(3*Math.PI)/4, fastVelConstraint, fastAccelConstraint)
 
                 // shoots the first spike
                 .stopAndAdd(new AutoActions.shootKickingColor(_robot, 80, _TargetMotifAction))
@@ -136,30 +136,27 @@ public class Auto_Goal_Blue_12pt extends LinearOpMode{
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot))
 
                 //second spike
-                .strafeToSplineHeading(new Vector2d(18, -20), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
-                .strafeToSplineHeading(new Vector2d(18, -72), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(30, -20), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(30, -72), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
 
                 //back to shooting
-                .strafeToSplineHeading(new Vector2d(18, -40), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
-                .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4,fastVelConstraint, fastAccelConstraint)
-
-
+                .strafeToSplineHeading(new Vector2d(30, -40), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(-54, -30), -(15*Math.PI)/16,fastVelConstraint, fastAccelConstraint)
 
                 // shoots the second spike
                 .stopAndAdd(new AutoActions.shootKickingColor(_robot, 80, _TargetMotifAction))
-                .waitSeconds(0.2)
                 .waitSeconds(0.2)
 
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot))
 
                 //third spike
-                .strafeToSplineHeading(new Vector2d(44, -20), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
-                .strafeToSplineHeading(new Vector2d(44, -72), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(55, -20), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(55, -72), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
 
                 //back to shooting
-                .waitSeconds(2)
-                .strafeToSplineHeading(new Vector2d(36, -40), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
-                .strafeToSplineHeading(new Vector2d(-30, -30), -(3*Math.PI)/4, fastVelConstraint, fastAccelConstraint)
+                .waitSeconds(0.5)
+                .strafeToSplineHeading(new Vector2d(36, -30), -Math.PI/2, fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(-54, -30), -(15*Math.PI)/16, fastVelConstraint, fastAccelConstraint)
 
                 // shoots the third spike
                 .stopAndAdd(new AutoActions.shootKickingColor(_robot, 80, _TargetMotifAction))

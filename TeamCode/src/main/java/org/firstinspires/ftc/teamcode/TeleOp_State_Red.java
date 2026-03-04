@@ -61,8 +61,8 @@ import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //----------------------------------------------------------------------
 //endregion
 
-@TeleOp(name="Red_TeleOp_State", group="1")
-public class TeleOp_State_Red extends LinearOpMode
+@TeleOp(name="TeleOpFinal", group="1")
+public class TeleOp_Mecanum_OLDRRVERSION extends LinearOpMode
 {
     //------------------------------------------------------------------------------------------
     // Variables
@@ -94,8 +94,6 @@ public class TeleOp_State_Red extends LinearOpMode
         int shooterSpeedRpm = 0;
         int shooterSpeedRpm3Ball = 0;
         boolean isThreeBallMode = false;
-        boolean isAutoSpeed = true;
-        boolean alreadyShot = false;
         position robotPosition = position.None;
 
         _robot.init(robotVersion);
@@ -128,33 +126,8 @@ public class TeleOp_State_Red extends LinearOpMode
             //--- Hardware Run (updates lights, etc.)
             //------------------------------------------------------------------------------------------
             _robot.run();
-            if(_robot.kickers.runFinal((double) shooterSpeedRpm*  Shooter.ticksPerRotation/60,_robot.shooter.getSpeed(),true,(double) shooterSpeedRpm3Ball* Shooter.ticksPerRotation/60,-1)){
-                _driveUtilsAdvanced.endAutoAlign();
-                alreadyShot = false;
-            }
-
-
-            if(gamepad1.right_trigger>0.2){
-                _driveUtilsAdvanced.autoAlign();
-            }
-            if(_driveUtilsAdvanced.driveMecanum(gamepad1,_robot.kickers)){
-                if(!alreadyShot) {
-                    if (isThreeBallMode) {
-                        if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60, _robot.shooter.getSpeed(), true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60, 3)) {
-                            _driveUtilsAdvanced.endAutoAlign();
-                            alreadyShot = false;
-                        }
-                    } else {
-                        _kickMotif.kickForMotifTeleOp();
-                        _driveUtilsAdvanced.endAutoAlign();
-                        alreadyShot = false;
-                    }
-                }
-            }
-
-            if(gamepad1.aWasPressed()){
+            if(gamepad1.a){
                 _kickMotif.kickForMotifTeleOp();
-                _driveUtilsAdvanced.endAutoAlign();
             }
 
             //------------------------------------------------------------------------------------------
@@ -166,11 +139,14 @@ public class TeleOp_State_Red extends LinearOpMode
             //--- Drive
             //------------------------------------------------------------------------------------------
             //_robot.drive.driveControl(0.5); //--- Both D-pad for directional movement and Joysticks for mecanum movement
+            _driveUtilsAdvanced.driveMecanum(gamepad1);
             _driveUtilsAdvanced.updateCamera();
             if(true){
                 _driveUtilsAdvanced.reset(true);
             }
-
+            if(gamepad2.right_stick_button){
+                _driveUtilsAdvanced.autoAlign();
+            }
             if(gamepad2.left_bumper&&(shooterSpeedRpm>0)){
                 if(shooterSpeedRpm>10){
                     shooterSpeedRpm -=10;
@@ -194,11 +170,9 @@ public class TeleOp_State_Red extends LinearOpMode
             }
             //y close x mid a far and b toggle between 3 and 1
 
-            if(!isThreeBallMode&&isAutoSpeed){
+            if(!isThreeBallMode){
                 shooterSpeedRpm=Math.round((float) ((_driveUtilsAdvanced.getDist()*10.1)+1630) );
-            }
-            if(gamepad1.xWasPressed()){
-                isAutoSpeed=!isAutoSpeed;
+
             }
             if(gamepad2.y){
                 robotPosition= position.Close;
@@ -227,11 +201,12 @@ public class TeleOp_State_Red extends LinearOpMode
             }
             _robot.intake.run();
 
-
+            if(_robot.kickers.runFinal((double) shooterSpeedRpm*  Shooter.ticksPerRotation/60,_robot.shooter.getSpeed(),true,(double) shooterSpeedRpm3Ball* Shooter.ticksPerRotation/60)){
+                _driveUtilsAdvanced.endAutoAlign();
+            }
             telemetry.addData("target speed one ball in rpm", shooterSpeedRpm);
             telemetry.addData("target speed 3 ball in rpm", shooterSpeedRpm3Ball);
             telemetry.addData("three ball mode", isThreeBallMode);
-            telemetry.addData("auto speed mode", isAutoSpeed);
             telemetry.addData("robot shooting position", robotPosition.toString());
             telemetry.addData("speed reading from the motor in ticks per second",_robot.shooter.getSpeed());
             _robot.shooter.getTelemetry();
