@@ -182,19 +182,20 @@ public class DriveUtilsAdvanced {
                 //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,thetadt());
                 if(isAligning) {
                     if(Math.abs(calcDif)>Math.PI/8) {
-                        drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + ((calcDif / 4) * ((Math.PI / 2) - Math.abs(calcDif))));
+                        drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
                     }else{
                         double[] distBreakdown = limelightHardware2Axis.getDistanceBreakdown();
                         double dist = 0;
                         if(distBreakdown == null ){
                             dist =0;
+                            drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
                         }else{
-                            dist = Math.atan2(distBreakdown[2],distBreakdown[1]);//we want to change to point towards the back corner not the aprilt ag
+                            //dist = Math.atan2(distBreakdown[2],distBreakdown[1]);//we want to change to point towards the back corner not the aprilt ag
                             if(isBlue){
-                                //dist = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) - 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
+                                dist = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) - 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
                             }
                             else {
-                                //dist = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) + 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
+                                dist = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) + 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
                             }
                             dist -= heading;
                             telemetry.addData("dist", dist);
@@ -203,7 +204,8 @@ public class DriveUtilsAdvanced {
                                 returnn =true;
                                 //fix so it doesnt shoot with the wrong speeds and shoots using the three ball speeds or something
                             }
-                            drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, -dist);//-dist bc posotive turn makes it turn clockwise in the method
+                            //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, -dist);//-dist bc posotive turn makes it turn clockwise in the method
+                            drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
                         }
 
                     }
@@ -227,11 +229,13 @@ public class DriveUtilsAdvanced {
         double calcDif = calcDifference(targetHeading);
         drive.arcadeDriveSpeedControl2(0, 0, 0, calcDif/2);
         driveClass.updatePoseEstimate();
-        runningActions.add(driveClass.actionBuilder(driveClass.localizer.getPose())
-                .turn(Math.toRadians(calcDif))
-                .build()
+        if(runningActions.isEmpty()) {
+            runningActions.add(driveClass.actionBuilder(driveClass.localizer.getPose())
+//                    .turn(-calcDif)
+                    .build()
 
-        );
+            );
+        }
     }
     public double getDist(){
         return Math.sqrt(x2*x2+y2*y2);

@@ -152,7 +152,7 @@ public class Intake_Incomplete
             intakePower = Math.max(0, intakePower - 0.005);
         }
 
-        detectBalls();
+        //detectBalls();
 //        _telemetry.addData("I detected the left ball", _leftBallColor);
 //        _telemetry.addData("I detected the middle ball", _middleBallColor);
 //        _telemetry.addData("I detected the right ball", _rightBallColor);
@@ -161,7 +161,7 @@ public class Intake_Incomplete
         updateLights();
 
         loopCount++;
-        _telemetry.addData("Loop count:", "%d", loopCount);
+        //_telemetry.addData("Loop count:", "%d", loopCount);
         _telemetry.addData("Intake Power: ", intakePower);
         //--- Only detect balls and update lights while intaking or outtaking
     }

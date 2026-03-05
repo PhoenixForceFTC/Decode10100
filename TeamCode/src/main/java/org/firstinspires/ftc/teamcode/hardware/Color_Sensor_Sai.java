@@ -138,7 +138,7 @@ public class Color_Sensor_Sai
         updateLights();
 
         loopCount++;
-        _telemetry.addData("Loop count:", "%d", loopCount);
+        //_telemetry.addData("Loop count:", "%d", loopCount);
         //--- Only detect balls and update lights while intaking or outtaking
        /*
         if (isIntakeOn() || isOuttakeActive())
