@@ -7,13 +7,8 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.PoseVelocity2d;
-import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -173,7 +168,7 @@ public class DriveUtilsAdvanced {
         if (!isBlue){
             targetHeading = Math.atan2(y4,-x4);
         }
-        double calcDif = calcDifference(targetHeading);
+        double calcDif = calcDifference(targetHeading);//calc diff uses road
 
         if(!skipDrive){
             if (calcDif > Math.PI / 2 || calcDif < -Math.PI / 2) {
@@ -181,31 +176,37 @@ public class DriveUtilsAdvanced {
             } else {
                 //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,thetadt());
                 if(isAligning) {
-                    if(Math.abs(calcDif)>Math.PI/8) {
+                    if(Math.abs(calcDif)>Math.PI/8) {//this is
                         drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
+                        // todo: fix calcdif auto align first then comment out calcdiff auto align for the smaller angles and use camera
+                        //auto aligns using roadrunner position do first
                     }else{
                         double[] distBreakdown = limelightHardware2Axis.getDistanceBreakdown();
-                        double dist = 0;
+                        double angleToTurnFromCamera = 0;
                         if(distBreakdown == null ){
-                            dist =0;
+                            angleToTurnFromCamera =0;
                             drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
                         }else{
-                            //dist = Math.atan2(distBreakdown[2],distBreakdown[1]);//we want to change to point towards the back corner not the aprilt ag
+                            //angleToTurnFromCamera = Math.atan2(distBreakdown[2],distBreakdown[1]);//we want to change to point towards the back corner not the aprilt ag
                             if(isBlue){
-                                dist = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) - 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
+                                angleToTurnFromCamera = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) - 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
                             }
                             else {
-                                dist = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) + 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
+                                angleToTurnFromCamera = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) + 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
                             }
-                            dist -= heading;
-                            telemetry.addData("dist", dist);
+                            angleToTurnFromCamera -= heading;//non roadrunner from camera
+                            //todo: fix the camera auto aligning
+                            telemetry.addData("angleToTurnFromCamera", angleToTurnFromCamera);
                             //chnge to do atan using trig and subtracting the heading from the loclizer
-                            if(Math.abs(dist)<Math.PI/16){
+                            if(Math.abs(angleToTurnFromCamera)<Math.PI/16){
                                 returnn =true;
                                 //fix so it doesnt shoot with the wrong speeds and shoots using the three ball speeds or something
                             }
-                            //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, -dist);//-dist bc posotive turn makes it turn clockwise in the method
+                            //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, -angleToTurnFromCamera);//-angleToTurnFromCamera bc posotive turn makes it turn clockwise in the method
                             drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
+                            // todo: temp uncomment line above and enable camera
+                            //auto aligns using roadrunner position do first disable once camera works
+
                         }
 
                     }

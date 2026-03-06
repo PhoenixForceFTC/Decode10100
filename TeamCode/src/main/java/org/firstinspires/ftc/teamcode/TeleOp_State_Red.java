@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.hardware.MotifKicking;
 
 import org.firstinspires.ftc.teamcode.hardware.Shooter;
 import org.firstinspires.ftc.teamcode.utils.DriveUtilsAdvanced;
+import org.firstinspires.ftc.teamcode.utils.Location;
 import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //endregion
 
@@ -100,7 +101,7 @@ public class TeleOp_State_Red extends LinearOpMode
         position robotPosition = position.None;
 
         _robot.init(robotVersion);
-        _driveUtilsAdvanced = new DriveUtilsAdvanced(hardwareMap,new Pose2d(0,0,-3*Math.PI/4),_robot.drive,_robot.limelightHardware2Axis,this.telemetry,false);
+        _driveUtilsAdvanced = new DriveUtilsAdvanced(hardwareMap, Location.pose,_robot.drive,_robot.limelightHardware2Axis,this.telemetry,false);
 
         RisingEdge g1RE = new RisingEdge();
 
