@@ -169,15 +169,20 @@ public class DriveUtilsAdvanced {
             targetHeading = Math.atan2(y4,-x4);
         }
         double calcDif = calcDifference(targetHeading);//calc diff uses road
-
+//if raodrunners drive class is not running then we will run our code and if we are within the correct range of the target heading
+// we will power our motors with speed that is currently proportionaly with the heading angle we have to change*//
+        //we will calculate the heading angle we have to change at first by using all data collected by deadwheels in our localizer
+        //and then we will use only heading data in combination with camera data to calculate the difference
         if(!skipDrive){
             if (calcDif > Math.PI / 2 || calcDif < -Math.PI / 2) {
+                // this is the default drive signal
+                // yawImportant = 0 means no additional turn power
+                // ya important is added after the speed multiplier
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
             } else {
-                //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,thetadt());
-                if(isAligning) {
+                if(isAligning) {  //right trigger sets this and reset after shooting
                     if(Math.abs(calcDif)>Math.PI/8) {//this is
-                        drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
+                        drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));
                         // todo: fix calcdif auto align first then comment out calcdiff auto align for the smaller angles and use camera
                         //auto aligns using roadrunner position do first
                     }else{
@@ -233,6 +238,7 @@ public class DriveUtilsAdvanced {
         if(runningActions.isEmpty()) {
             runningActions.add(driveClass.actionBuilder(driveClass.localizer.getPose())
 //                    .turn(-calcDif)
+                    //todo: uncomment out once you get both calcdif and camera alignign working because those are always aligning and are more accurate
                     .build()
 
             );
@@ -279,12 +285,16 @@ public class DriveUtilsAdvanced {
         }
         return difference;
     };
+
+    // Resets position of localizer based on camera
+    // currently this is called in the loop of the opmode
+    // todo: think when this might be needed
     public void reset(boolean reset){
 
         TelemetryPacket packet = new TelemetryPacket();
             Canvas c = packet.fieldOverlay();
 
-        Pose2D botPose = limelightHardware2Axis.getPos(c);
+        Pose2D botPose = limelightHardware2Axis.getPos(c); // is null when camera cannot tell position
         if(runningActions.isEmpty()){
 
             if(botPose!=null&&reset){
