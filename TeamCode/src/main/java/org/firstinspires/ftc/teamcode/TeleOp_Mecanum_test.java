@@ -3,10 +3,13 @@ package org.firstinspires.ftc.teamcode;
 //region -- Imports ---
 
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.utils.DriveUtilsAdvanced;
 import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //endregion
 
@@ -64,6 +67,8 @@ public class TeleOp_Mecanum_test extends LinearOpMode
     // Variables
     //------------------------------------------------------------------------------------------
     RobotHardware _robot = new RobotHardware(this);
+    DriveUtilsAdvanced _driveUtilsAdvanced;
+
     public ElapsedTime _runtime = new ElapsedTime();
 
 
@@ -110,6 +115,9 @@ public class TeleOp_Mecanum_test extends LinearOpMode
         _robot.shooter.initialize();
        // _robot.intake.initialize();
         _robot.lights.initialize();
+        _robot.limelightHardware2Axis.servos();
+        _robot.kickers.initialize();
+       // _robot.intake.initialize();
 
         //------------------------------------------------------------------------------------------
         //--- Run until the end of the match (driver presses STOP)
@@ -129,8 +137,27 @@ public class TeleOp_Mecanum_test extends LinearOpMode
             //--- Drive
             //------------------------------------------------------------------------------------------
            // _robot.drive.driveControl(0.5); //--- Both D-pad for directional movement and Joysticks for mecanum movement
-            _robot.driveRR.driveControl(1);
+
             _robot.limelightHardware2Axis.loop();
+            if (gamepad1.a) { // hold 'A' to auto-align
+                if (_robot.limelightHardware2Axis.hasValidTarget()) {
+                    double tx = _robot.limelightHardware2Axis.getTx();
+                    double turnPower = 0.02 * tx;
+                    if (Math.abs(tx) < 0.1) turnPower = 0;
+
+                    // Rotate only
+                    _robot.driveRR.mecanumDrive.setDrivePowers(new PoseVelocity2d(new Vector2d(0,0), -turnPower));
+
+                    telemetry.addData("Tx", tx);
+                    telemetry.addData("Turn Power", -turnPower);
+                } else {
+                    _robot.driveRR.mecanumDrive.setDrivePowers(new PoseVelocity2d(new Vector2d(0,0), 0));
+                    telemetry.addLine("No target detected");
+                }
+            } else {
+                // normal manual control
+                _robot.driveRR.driveControl(1.0);
+            }
 
             _robot.driveRR.mecanumDrive.updatePoseEstimate();
 
@@ -140,6 +167,33 @@ public class TeleOp_Mecanum_test extends LinearOpMode
             telemetry.addData("heading", pose.heading);
             telemetry.update();
 
+
+            if (gamepad2.b){
+                _robot.shooter.shoot(0);
+            }
+
+            if(gamepad2.left_trigger > 0.7) {
+                _robot.intake.forward();
+            }
+
+            if (gamepad2.right_trigger > 0.7){
+                _robot.intake.backward();
+            }
+            if (gamepad2.y){
+                shooterSpeedRpm = 2090;
+            }
+            if (gamepad2.x){
+                shooterSpeedRpm = 2430;
+            }
+            if (gamepad2.a){
+                shooterSpeedRpm = 3060;
+            }
+
+            //shooterSpeedRpm=Math.round((float) ((_driveUtilsAdvanced.getDist()*10.1)+1630) );
+
+            _robot.kickers.run(_robot.shooter.speed,_robot.shooter.getSpeed(),true);
+            _robot.intake.run();
+            _robot.shooter.shoot(shooterSpeedRpm);
 
 
             //------------------------------------------------------------------------------------------

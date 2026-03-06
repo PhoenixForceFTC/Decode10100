@@ -130,6 +130,8 @@ public class TeleOp_State_Red extends LinearOpMode
             //------------------------------------------------------------------------------------------
             //_robot.run();
             _robot.intake.run();
+            _robot.lights.run();
+
             if(_robot.kickers.runFinal((double) shooterSpeedRpm*  Shooter.ticksPerRotation/60,_robot.shooter.getSpeed(),true,(double) shooterSpeedRpm3Ball* Shooter.ticksPerRotation/60,-1)){
                 _driveUtilsAdvanced.endAutoAlign();
                 alreadyShot = false;
@@ -170,8 +172,16 @@ public class TeleOp_State_Red extends LinearOpMode
             //------------------------------------------------------------------------------------------
             //_robot.drive.driveControl(0.5); //--- Both D-pad for directional movement and Joysticks for mecanum movement
             _driveUtilsAdvanced.updateCamera();
-            if(true){
+            if((loop_count % 20) == 0){
                 _driveUtilsAdvanced.reset(true);
+            }
+
+            if(gamepad2.left_trigger > 0.7) {
+                _robot.intake.forward();
+            }
+
+            if (gamepad2.right_trigger > 0.7){
+                _robot.intake.backward();
             }
 
             if(gamepad2.left_bumper&&(shooterSpeedRpm>0)){
@@ -200,7 +210,7 @@ public class TeleOp_State_Red extends LinearOpMode
             if(!isThreeBallMode&&isAutoSpeed){
                 shooterSpeedRpm=Math.round((float) ((_driveUtilsAdvanced.getDist()*10.1)+1630) );
             }
-            if(gamepad1.xWasPressed()){
+            if(gamepad1.x){
                 isAutoSpeed=!isAutoSpeed;
             }
             if(gamepad2.y){
@@ -218,9 +228,14 @@ public class TeleOp_State_Red extends LinearOpMode
                     shooterSpeedRpm3Ball = 3330;
                     shooterSpeedRpm = 3060;
             }
-            if(g1RE.RisingEdgeButton(gamepad2, "b")){
+            if(gamepad2.b){
+                _robot.intake.stop();
+            }
+            //questionable
+            if(g1RE.RisingEdgeButton(gamepad1, "y")){
                 isThreeBallMode = !isThreeBallMode;
             }
+
             if(isThreeBallMode){
                 _robot.shooter.shoot(shooterSpeedRpm3Ball);
             }

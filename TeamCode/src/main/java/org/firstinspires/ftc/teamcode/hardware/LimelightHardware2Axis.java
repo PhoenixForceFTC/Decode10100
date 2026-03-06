@@ -383,10 +383,10 @@ public class LimelightHardware2Axis
                 _telemetry.addData("Camera Tilt", String.format("%.2f°", _cameraPitchAngle)+"°");
 
                 // Show raw angles too
-                double tx = _latestLLResult.getTx();
-                double ty = _latestLLResult.getTy();
-                _telemetry.addData("Tx (Horizontal)", String.format("%.2f°", tx));
-                _telemetry.addData("Ty (Vertical)", String.format("%.2f°", ty));
+//                double tx = _latestLLResult.getTx();
+//                double ty = _latestLLResult.getTy();
+//                _telemetry.addData("Tx (Horizontal)", String.format("%.2f°", tx));
+//                _telemetry.addData("Ty (Vertical)", String.format("%.2f°", ty));
             } else {
                 _telemetry.addLine("No AprilTags detected");
             }
@@ -410,6 +410,20 @@ public class LimelightHardware2Axis
     public Pose2D getPos(Canvas canvas){
         return getRobotPos(_latestLLResult,canvas);
 
+    }
+
+    /**
+     * Checks if a target is currently visible
+     */
+    public boolean hasValidTarget() {
+        return _latestLLResult.isValid();
+    }
+
+    /**
+     * Horizontal offset from crosshair to target (degrees)
+     */
+    public double getTx() {
+        return _latestLLResult.getTx();
     }
     public void setPipeline(int index){
         _limelight.pipelineSwitch(index);
