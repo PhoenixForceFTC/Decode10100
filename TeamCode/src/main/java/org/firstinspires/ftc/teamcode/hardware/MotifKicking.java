@@ -96,17 +96,17 @@ public class MotifKicking {
         Intake_Incomplete.BallColor leftColor =
                 hardware.intake.detectBallSticky(hardware.intake._colorSensorLeft,
                         hardware.intake._distanceSensorLeft, 85,
-                        hardware.intake._leftBallColor);
+                        hardware.intake._leftBallColor, "L");
 
         Intake_Incomplete.BallColor middleColor =
                 hardware.intake.detectBallSticky(hardware.intake._colorSensorMiddle,
                         hardware.intake._distanceSensorMiddle, 45,
-                        hardware.intake._middleBallColor);
+                        hardware.intake._middleBallColor, "M");
 
         Intake_Incomplete.BallColor rightColor =
                 hardware.intake.detectBallSticky(hardware.intake._colorSensorRight,
                         hardware.intake._distanceSensorRight, 85,
-                        hardware.intake._rightBallColor);
+                        hardware.intake._rightBallColor, "R");
 
         Intake_Incomplete.BallColor[] colors = {leftColor, middleColor, rightColor};
 

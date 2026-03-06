@@ -87,23 +87,27 @@ public class AutoActions {
         ColorSensor colorSensor;
         DistanceSensor distanceSensor;
         double distThreshold;
-
+        String sensorLocation;
         robot = hardware;
         distThreshold = distanceThreshold;
         if(sensor.equals("left")){
             colorSensor = robot.colorSensorLeft;
+            sensorLocation = "L";
         }else if(sensor.equals("middle")){
             colorSensor  = robot.colorSensorMiddle;
+            sensorLocation = "M";
         }else if(sensor.equals("right")){
             colorSensor = robot.colorSensorRight;
+            sensorLocation = "R";
         }else{
             colorSensor = robot.colorSensorLeft;
+            sensorLocation = "L";
         }
 
         distanceSensor = (DistanceSensor) colorSensor;
         
 
-        return robot.intake.detectBallSticky(colorSensor, distanceSensor, distanceThreshold, Intake_Incomplete.BallColor.PURPLE);
+        return robot.intake.detectBallSticky(colorSensor, distanceSensor, distanceThreshold, Intake_Incomplete.BallColor.PURPLE, sensorLocation);
     }
 
     public static class KickerKick implements Action{

@@ -102,23 +102,31 @@ public class Kickers
         return kicked;
     }
 
-    public boolean runFinal(double targetSpeed, double speed, boolean run,double targetSpeed3Ball, int fireKickerNumber){
+    // this is used by State_final teleop
+
+    public boolean runFinal(double targetSpeed, double speed, boolean run,double targetSpeed3Ball, int fireKickerNumber, Intake_Incomplete intake){
         boolean kicked =false;
         if(speed/targetSpeed>0.9 && run) {
             if (_gamepad.dpad_left|| fireKickerNumber==0) {
                 fireKicker(0);
+                intake.clearLeftSensorValues();
             }
             if (_gamepad.dpad_up|| fireKickerNumber==1) {
                 fireKicker(1);
+                intake.clearMiddleSensorValues();
             }
             if (_gamepad.dpad_right|| fireKickerNumber==2) {
                 fireKicker(2);
+                intake.clearRightSensorValues();
             }
 
         }
         if(speed/targetSpeed3Ball>0.9 && run){
             if (_gamepad.dpad_down || fireKickerNumber==3){
                 fireKicker(3);
+                intake.clearLeftSensorValues();
+                intake.clearMiddleSensorValues();
+                intake.clearRightSensorValues();
             }
         }
         if(timerL.seconds() < KICKER_ACTION_DELAY){
@@ -145,47 +153,49 @@ public class Kickers
         return kicked;
     }
 
-    public boolean runFinal(double targetSpeed, double speed, boolean run,double targetSpeed3Ball){
-        if(speed/targetSpeed>0.9 && run) {
-            if (_gamepad.dpad_left) {
-                fireKicker(0);
-            }
-            if (_gamepad.dpad_up) {
-                fireKicker(1);
-            }
-            if (_gamepad.dpad_right) {
-                fireKicker(2);
-            }
+//    public boolean runFinal(double targetSpeed, double speed, boolean run,double targetSpeed3Ball){
+//        if(speed/targetSpeed>0.9 && run) {
+//            if (_gamepad.dpad_left) {
+//                fireKicker(0);
+//            }
+//            if (_gamepad.dpad_up) {
+//                fireKicker(1);
+//            }
+//            if (_gamepad.dpad_right) {
+//                fireKicker(2);
+//            }
+//
+//        }
+//        if(targetSpeed3Ball/targetSpeed>0.9 && run){
+//            if (_gamepad.dpad_down){
+//                fireKicker(3);
+//            }
+//        }
+//        if(timerL.seconds() < KICKER_ACTION_DELAY){
+//            _kickerLeft.setPosition(kickedL);
+//            return true;
+//        }else{
+//            _kickerLeft.setPosition(zeroL);
+//
+//        }
+//
+//        if(timerM.seconds() < KICKER_ACTION_DELAY){
+//            _kickerMid.setPosition(kickedM);
+//            return true;
+//        }else{
+//            _kickerMid.setPosition(zeroM);
+//        }
+//
+//        if(timerR.seconds() < KICKER_ACTION_DELAY){
+//            _kickerRight.setPosition(kickedR);
+//            return true;
+//        }else{
+//            _kickerRight.setPosition(zeroR);
+//        }
+//        return false;
+//    }
 
-        }
-        if(targetSpeed3Ball/targetSpeed>0.9 && run){
-            if (_gamepad.dpad_down){
-                fireKicker(3);
-            }
-        }
-        if(timerL.seconds() < KICKER_ACTION_DELAY){
-            _kickerLeft.setPosition(kickedL);
-            return true;
-        }else{
-            _kickerLeft.setPosition(zeroL);
-
-        }
-
-        if(timerM.seconds() < KICKER_ACTION_DELAY){
-            _kickerMid.setPosition(kickedM);
-            return true;
-        }else{
-            _kickerMid.setPosition(zeroM);
-        }
-
-        if(timerR.seconds() < KICKER_ACTION_DELAY){
-            _kickerRight.setPosition(kickedR);
-            return true;
-        }else{
-            _kickerRight.setPosition(zeroR);
-        }
-        return false;
-    }
+    // THis is not used f
     public DataLog.Shooter run2(double targetSpeed, double speed, boolean run){
         DataLog.Shooter shooter = DataLog.Shooter.Unkown;
         if(speed/targetSpeed>0.9 && run) {

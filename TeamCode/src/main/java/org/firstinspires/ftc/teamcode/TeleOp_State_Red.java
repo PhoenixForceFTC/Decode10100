@@ -128,11 +128,14 @@ public class TeleOp_State_Red extends LinearOpMode
             //------------------------------------------------------------------------------------------
             //--- Hardware Run (updates lights, etc.)
             //------------------------------------------------------------------------------------------
-            //_robot.run();
+            // _robot.run();
+
             _robot.intake.run();
             _robot.lights.run();
 
-            if(_robot.kickers.runFinal((double) shooterSpeedRpm*  Shooter.ticksPerRotation/60,_robot.shooter.getSpeed(),true,(double) shooterSpeedRpm3Ball* Shooter.ticksPerRotation/60,-1)){
+            if(_robot.kickers.runFinal((double) shooterSpeedRpm*  Shooter.ticksPerRotation/60,
+                    _robot.shooter.getSpeed(),true,(double) shooterSpeedRpm3Ball* Shooter.ticksPerRotation/60,
+                    -1,_robot.intake)){
                 _driveUtilsAdvanced.endAutoAlign();
                 alreadyShot = false;
             }
@@ -144,7 +147,9 @@ public class TeleOp_State_Red extends LinearOpMode
             if(_driveUtilsAdvanced.driveMecanum(gamepad1,_robot.kickers)){
                 if(!alreadyShot) {
                     if (isThreeBallMode) {
-                        if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60, _robot.shooter.getSpeed(), true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60, 3)) {
+                        if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60, _robot.shooter.getSpeed(),
+                                true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
+                                3,_robot.intake)) {
                             _driveUtilsAdvanced.endAutoAlign();
                             alreadyShot = false;
                         }
