@@ -188,6 +188,9 @@ public class TeleOp_Mecanum_test extends LinearOpMode
             if (gamepad2.a){
                 shooterSpeedRpm = 3060;
             }
+            if (gamepad1.b){
+                _robot.kickers.kickMiddle();
+            }
 
             //shooterSpeedRpm=Math.round((float) ((_driveUtilsAdvanced.getDist()*10.1)+1630) );
 

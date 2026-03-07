@@ -26,13 +26,15 @@ public class Kickers
 
     private final double kickedL = 0.3;
     private final double zeroL = 0.6;
+    private final double middleL = 0.45;
 
     private final double kickedM = 0.3;
     private final double zeroM = 0.6;
+    private final double middleM = 0.45;
 
-    private final double kickedR = 0.7;
-    private final double zeroR = 0.4;
-
+    private final double kickedR = 0.65;
+    private final double zeroR = 0.35;
+    private final double middleR = 0.5;
     // delay before going to zero position
     private final double KICKER_ACTION_DELAY = 1.0;
     private final double GLOBAL_ACTION_DELAY = 0.1;
@@ -104,6 +106,11 @@ public class Kickers
 
     // this is used by State_final teleop
 
+    public void kickMiddle(){
+        _kickerLeft.setPosition(middleL);
+        _kickerMid.setPosition(middleM);
+        _kickerRight.setPosition(middleR);
+    }
     public boolean runFinal(double targetSpeed, double speed, boolean run,double targetSpeed3Ball, int fireKickerNumber, Intake_Incomplete intake){
         boolean kicked =false;
         if(speed/targetSpeed>0.9 && run) {
