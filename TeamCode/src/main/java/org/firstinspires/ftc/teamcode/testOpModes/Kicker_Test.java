@@ -26,13 +26,35 @@ public class Kicker_Test extends LinearOpMode
         middle = hardwareMap.get(Servo.class, "KM");
         right = hardwareMap.get(Servo.class, "KR");
 
+        left.setPosition(0.5);
+        middle.setPosition(0.5);
+        right.setPosition(0.5);
+        double position = 0.5;
+
         waitForStart();
 
         while (opModeIsActive()) {
-            left.setPosition(0.5);
-            middle.setPosition(0.5);
-            right.setPosition(0.5);
+            sleep(1000);
+            if (gamepad1.a){
+              position=position+0.1;
+            }
+            if (gamepad1.b){
+                position=position-0.1;
+            }
+            if (gamepad1.x){
+                position=position+0.01;
+            }
+            if (gamepad1.y){
+                position=position-0.01;
+            }
+            left.setPosition(position);
+            middle.setPosition(position);
+            right.setPosition(position);
+
         }
+        left.setPosition(0.5);
+        middle.setPosition(0.5);
+        right.setPosition(0.5);
         sleep(50);
     }
 }
