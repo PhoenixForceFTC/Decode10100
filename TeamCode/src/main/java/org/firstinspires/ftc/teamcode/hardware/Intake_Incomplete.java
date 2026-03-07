@@ -191,7 +191,7 @@ public class Intake_Incomplete
 
         loopCount++;
         //_telemetry.addData("Loop count:", "%d", loopCount);
-        _telemetry.addData("Intake Power: ", intakePower);
+        //_telemetry.addData("Intake Power: ", intakePower);
         //--- Only detect balls and update lights while intaking or outtaking
     }
 

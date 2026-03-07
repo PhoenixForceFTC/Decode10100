@@ -252,7 +252,7 @@ public class Lights {
     public void setMiddle(Color color)
     {
         setMiddle(color, Blink.NONE);
-        _telemetry.addData("Now I set the middle light color", color);
+        //_telemetry.addData("Now I set the middle light color", color);
     }
 
     public void setMiddle(Color color, Blink blink)
@@ -262,7 +262,7 @@ public class Lights {
         if (blink == Blink.NONE)
         {
             _servoLightMiddle.setPosition(color.getPosition());
-            _telemetry.addData("I set the middle light color light position", color.getPosition());
+            //_telemetry.addData("I set the middle light color light position", color.getPosition());
         }
     }
 
