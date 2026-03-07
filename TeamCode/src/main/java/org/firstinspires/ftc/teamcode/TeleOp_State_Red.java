@@ -100,7 +100,8 @@ public class TeleOp_State_Red extends LinearOpMode
         position robotPosition = position.None;
 
         _robot.init(robotVersion);
-        _driveUtilsAdvanced = new DriveUtilsAdvanced(hardwareMap, Location.pose,_robot.drive,_robot.limelightHardware2Axis,this.telemetry,false);
+        _driveUtilsAdvanced = new DriveUtilsAdvanced(hardwareMap, Location.pose,_robot.drive,
+                _robot.limelightHardware2Axis,this.telemetry,false, _robot);
 
         RisingEdge g1RE = new RisingEdge();
 
@@ -128,7 +129,8 @@ public class TeleOp_State_Red extends LinearOpMode
             //------------------------------------------------------------------------------------------
             //--- Hardware Run (updates lights, etc.)
             //------------------------------------------------------------------------------------------
-            // _robot.run();
+            loop_count++;
+            telemetry.addData("Run Time", " " + _runtime.toString() + " Loop Count:" + loop_count);
 
             _robot.intake.run();
             _robot.lights.run();
@@ -140,11 +142,9 @@ public class TeleOp_State_Red extends LinearOpMode
                 alreadyShot = false;
             }
 
-
             if(gamepad1.right_trigger>0.2){
                 _driveUtilsAdvanced.autoAlign();
             }
-
 
             //_robot.driveRR.driveControl(1);
 
@@ -153,10 +153,6 @@ public class TeleOp_State_Red extends LinearOpMode
                 _driveUtilsAdvanced.endAutoAlign();
             }
 
-            //------------------------------------------------------------------------------------------
-            //--- Start Telemetry Display
-            //------------------------------------------------------------------------------------------
-            telemetry.addData("Status", "Run Time: " + _runtime.toString());
 
             //------------------------------------------------------------------------------------------
             //--- Drive
@@ -167,6 +163,10 @@ public class TeleOp_State_Red extends LinearOpMode
             _robot.limelightHardware2Axis.servos();
             if((loop_count % 20) == 0){
                 _driveUtilsAdvanced.reset(true);
+            }
+            if(gamepad2.leftStickButtonWasPressed())
+            {
+                _driveUtilsAdvanced.endAutoAlign();
             }
             _driveUtilsAdvanced.printCalcDiff();
             // this tries to keep the robot pointing at the target
@@ -276,8 +276,7 @@ public class TeleOp_State_Red extends LinearOpMode
             //------------------------------------------------------------------------------------------
             //--- Update Telemetry Display
             //------------------------------------------------------------------------------------------
-            telemetry.addData("loop count", loop_count);
-            loop_count++;
+
             telemetry.update();
 
 
