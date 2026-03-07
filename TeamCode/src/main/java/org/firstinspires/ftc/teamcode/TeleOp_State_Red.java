@@ -222,6 +222,8 @@ public class TeleOp_State_Red extends LinearOpMode
 
             if(!isThreeBallMode&&isAutoSpeed){
                 shooterSpeedRpm=Math.round((float) ((_driveUtilsAdvanced.getDist()*10.1)+1630) );
+            } else if (isThreeBallMode&&isAutoSpeed){
+                shooterSpeedRpm3Ball=Math.round((float) ((_driveUtilsAdvanced.getDist()*11.1)+ 1887));
             }
             if(gamepad1.x){
                 isAutoSpeed=!isAutoSpeed;
