@@ -143,7 +143,7 @@ public class TeleOp_Mecanum_test extends LinearOpMode
                 if (_robot.limelightHardware2Axis.hasValidTarget()) {
                     double tx = _robot.limelightHardware2Axis.getTx();
                     double turnPower = 0.02 * tx;
-                    if (Math.abs(tx) < 0.1) turnPower = 0;
+                    if (Math.abs(tx) < 0.085) turnPower = 0;
 
                     // Rotate only
                     _robot.driveRR.mecanumDrive.setDrivePowers(new PoseVelocity2d(new Vector2d(0,0), -turnPower));

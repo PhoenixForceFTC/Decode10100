@@ -16,6 +16,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.RobotHardware;
 import org.firstinspires.ftc.teamcode.hardware.Drive;
 import org.firstinspires.ftc.teamcode.hardware.Kickers;
 import org.firstinspires.ftc.teamcode.hardware.LimelightHardware2Axis;
@@ -46,6 +47,8 @@ public class DriveUtilsAdvanced {
     private double heading = 0;
     private double yaw = 0;
 
+    private RobotHardware _robot;
+
     private Telemetry telemetry;
 
     public Drive drive;
@@ -53,13 +56,15 @@ public class DriveUtilsAdvanced {
     private MecanumDrive driveClass;
 
     private LimelightHardware2Axis limelightHardware2Axis;
-    public DriveUtilsAdvanced(HardwareMap hardwareMap, Pose2d pose, Drive drive,LimelightHardware2Axis limelightHardware2Axis, Telemetry telemetry,Boolean isBlue){
+    public DriveUtilsAdvanced(HardwareMap hardwareMap, Pose2d pose, Drive drive,LimelightHardware2Axis limelightHardware2Axis,
+                              Telemetry telemetry,Boolean isBlue, RobotHardware robotHardware){
         driveClass = new MecanumDrive(hardwareMap, pose);
         isAligning=false;
         this.drive = drive;
         this.isBlue=isBlue;
         this.telemetry = telemetry;
         this.limelightHardware2Axis = limelightHardware2Axis;
+        this._robot = robotHardware;
     }
 
 
@@ -67,7 +72,7 @@ public class DriveUtilsAdvanced {
         this.x = x;
         this.x2 = 60+x;//60 bc centered around the april tag not corner
         this.x3 = 60+x+cos(heading)*11;
-        this.x4= 72+x;
+        this.x4 = 72+x;
         this.dxdt = dxdt;
         this.y = y;
         if(isBlue){
@@ -142,11 +147,11 @@ public class DriveUtilsAdvanced {
         // update running actions
         List<Action> newActions = new ArrayList<>();
         if(runningActions.isEmpty()){
-            telemetry.addLine("RR is not running");
+            //telemetry.addLine("RR is not running");
             packet2.addLine("RR is not running");
         }
         for (Action action : runningActions) {
-            telemetry.addLine("RR is running");
+            //telemetry.addLine("RR is running");
             packet2.addLine("RR is running");
             action.preview(packet2.fieldOverlay());
             if (action.run(packet2)) {
@@ -160,7 +165,7 @@ public class DriveUtilsAdvanced {
         dashboard.sendTelemetryPacket(packet2);
 
 
-        double targetHeading = getTargetHeading(y4, x4);
+        double targetHeading = getTargetHeading(y2, x2);
         double calcDif = calcDifference(targetHeading);//calc diff uses road
 //if raodrunners drive class is not running then we will run our code and if we are within the correct range of the target heading
 // we will power our motors with speed that is currently proportionaly with the heading angle we have to change*//
@@ -170,10 +175,17 @@ public class DriveUtilsAdvanced {
             if (calcDif > Math.PI / 2 || calcDif < -Math.PI / 2) {
                 // this is the default drive signal
                 // yawImportant = 0 means no additional turn power
-                // ya important is added after the speed multiplier
+                // ya important is added after the speed
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
+
+                // todo: trying driveRR to see if that is faster
+
+                //_robot.driveRR.driveControl(1.0);
+
+
+
             } else {
-                if(isAligning) {  //right trigger sets this and reset after shooting
+//                if(isAligning) {  //right trigger sets this and reset after shooting
 //                    if(Math.abs(calcDif)>Math.PI/8) {//this is
 //                        drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));
 //                        // todo: fix calcdif auto align first then comment out calcdiff auto align for the smaller angles and use camera
@@ -207,11 +219,13 @@ public class DriveUtilsAdvanced {
 //
 //                        }
 //
-//                    }
+ //                   }
 
-                }else{
-                    drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
-                }
+//                }
+//                else{
+                    //_robot.driveRR.driveControl(1.0);
+                   drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
+ //               }
             }
         }
         return returnn;
@@ -220,7 +234,7 @@ public class DriveUtilsAdvanced {
     }
 //
     public void printCalcDiff(){
-        double targetHeading = getTargetHeading(y4, x4);
+        double targetHeading = getTargetHeading(y2, x2);
         double calcDif = calcDifference(targetHeading);
 
         telemetry.addData("Calc Turn Val:",Math.toDegrees(calcDif));
@@ -229,7 +243,7 @@ public class DriveUtilsAdvanced {
     public void autoAlign(){
         isAligning=true;
 
-        double targetHeading = getTargetHeading(y4, x4);
+        double targetHeading = getTargetHeading(y2, x2);
         double calcDif = calcDifference(targetHeading);
 
         //drive.arcadeDriveSpeedControl2(0, 0, 0, calcDif/2);
@@ -245,10 +259,10 @@ public class DriveUtilsAdvanced {
         }
     }
 
-    private double getTargetHeading(double y4, double x4) {
-        double targetHeading = Math.atan2(y4, x4);
+    private double getTargetHeading(double targetLocationY, double targetLocationX) {
+        double targetHeading = Math.atan2(targetLocationY, targetLocationX);
         if (!isBlue) {
-            targetHeading = Math.atan2(-y4, x4);
+            targetHeading = Math.atan2(-targetLocationY, targetLocationX);
         }
         return targetHeading;
     }
