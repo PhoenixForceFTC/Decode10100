@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 //region -- Imports ---
 
-import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -145,22 +144,8 @@ public class TeleOp_State_Red extends LinearOpMode
             if(gamepad1.right_trigger>0.2){
                 _driveUtilsAdvanced.autoAlign();
             }
-            if(_driveUtilsAdvanced.driveMecanum(gamepad1,_robot.kickers)){
-                if(!alreadyShot) {
-                    if (isThreeBallMode) {
-                        if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60, _robot.shooter.getSpeed(),
-                                true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
-                                3,_robot.intake)) {
-                            _driveUtilsAdvanced.endAutoAlign();
-                            alreadyShot = false;
-                        }
-                    } else {
-                        _kickMotif.kickForMotifTeleOp();
-                        _driveUtilsAdvanced.endAutoAlign();
-                        alreadyShot = false;
-                    }
-                }
-            }
+
+
             //_robot.driveRR.driveControl(1);
 
             if(gamepad1.aWasPressed()){
@@ -177,10 +162,32 @@ public class TeleOp_State_Red extends LinearOpMode
             //--- Drive
             //------------------------------------------------------------------------------------------
             //_robot.drive.driveControl(0.5); //--- Both D-pad for directional movement and Joysticks for mecanum movement
-            _driveUtilsAdvanced.updateCamera();
+            _driveUtilsAdvanced.updateCameraPitch();
+            _robot.limelightHardware2Axis.loop();
+            _robot.limelightHardware2Axis.servos();
             if((loop_count % 20) == 0){
                 _driveUtilsAdvanced.reset(true);
             }
+            _driveUtilsAdvanced.printCalcDiff();
+            // this tries to keep the robot pointing at the target
+            // todo: when does it return true? why is that important
+            if(_driveUtilsAdvanced.driveMecanum(gamepad1,_robot.kickers)){
+                if(!alreadyShot) {
+                    if (isThreeBallMode) {
+                        if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60, _robot.shooter.getSpeed(),
+                                true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
+                                3,_robot.intake)) {
+                            _driveUtilsAdvanced.endAutoAlign();
+                            alreadyShot = false;
+                        }
+                    } else {
+                        _kickMotif.kickForMotifTeleOp();
+                        _driveUtilsAdvanced.endAutoAlign();
+                        alreadyShot = false;
+                    }
+                }
+            }
+
 
             if(gamepad2.left_trigger > 0.7) {
                 _robot.intake.forward();
@@ -258,9 +265,7 @@ public class TeleOp_State_Red extends LinearOpMode
             telemetry.addData("robot shooting position", robotPosition.toString());
             telemetry.addData("speed reading from the motor in ticks per second",_robot.shooter.getSpeed());
             _robot.shooter.getTelemetry();
-            //_robot.limelightHardware.loop();
-            _robot.limelightHardware2Axis.loop();
-            _robot.limelightHardware2Axis.servos();
+
 
             //------------------------------------------------------------------------------------------
             //--- Intake

@@ -8,8 +8,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.utils.DriveUtilsAdvanced;
-import org.firstinspires.ftc.teamcode.utils.Location;
-import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //endregion
 
 //region --- Controls ---
@@ -120,7 +118,7 @@ public class TeleOp_Mecanum_RR extends LinearOpMode
             //------------------------------------------------------------------------------------------
             //_robot.run();
             _driveUtilsAdvanced.driveMecanum(gamepad1,null);
-            _driveUtilsAdvanced.updateCamera();
+            _driveUtilsAdvanced.updateCameraPitch();
 
 
             //------------------------------------------------------------------------------------------
