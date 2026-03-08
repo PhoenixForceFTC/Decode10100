@@ -182,18 +182,18 @@ public class DriveUtilsAdvanced {
         //we will calculate the heading angle we have to change at first by using all data collected by deadwheels in our localizer
         //and then we will use only heading data in combination with camera data to calculate the difference
         // skipDrive=true: robot still under RR control, got to wait
-       // if(!skipDrive){
-//            if (calcDif > Math.PI / 2 || calcDif < -Math.PI / 2) {
-//                // this is the default drive signal
-//                // yawImportant = 0 means no additional turn power
-//                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
-//
-//                // todo: trying driveRR to see if that is faster, tried driveRR but was messing up auto align
-//                //_robot.driveRR.driveControl(1.0);
-//
-//            }
-//            else
-//            {
+        if(!skipDrive){
+            if (calcDif > Math.PI / 2 || calcDif < -Math.PI / 2) {
+                // this is the default drive signal
+                // yawImportant = 0 means no additional turn power
+                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
+
+                // todo: trying driveRR to see if that is faster, tried driveRR but was messing up auto align
+                //_robot.driveRR.driveControl(1.0);
+
+            }
+            else
+            {
                 if(isAligning) {  //right trigger sets this and reset after shooting
                     telemetry.addData("Aligning:","Yes");
                     returnn = autoAlignViaLLandPower(gamepad,calcDif);  // return true if we are close enough and aligned.
@@ -203,8 +203,8 @@ public class DriveUtilsAdvanced {
                     // _robot.driveRR.driveControl(1.0);  // maybe faster but autoaligning not working
                    drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
                 }
-//            }
-      //  }
+            }
+        }
         return returnn;
 
 
@@ -222,11 +222,11 @@ public class DriveUtilsAdvanced {
             double[] distBreakdown = limelightHardware2Axis.getDistanceBreakdown();
             //distBreakdown = null; // temp todo: can we just use
             double angleToTurnFromCamera = limelightHardware2Axis.getTxDegreesForId(this.targetTagId);
-            if(Math.abs(angleToTurnFromCamera)< 1){ // within 2 degrees
+            if(Math.abs(angleToTurnFromCamera)< 0.5){ // within 2 degrees
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,0); // done turn off power
                 return true;
             }
-            if(/*distBreakdown == null */angleToTurnFromCamera == (double) 180.0){
+            if(/*distBreakdown == null */angleToTurnFromCamera > (double) 120.0){
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
             }
             else
@@ -248,6 +248,7 @@ public class DriveUtilsAdvanced {
         return false;
     }
 
+    // call from OpMode loop, to see what calcDiff is currently
     public void printCalcDiff(){
         double targetHeading = getTargetHeading(y4-14.55098425, x2-11.82122047);
         double calcDif = calcDifference(targetHeading);
@@ -272,10 +273,10 @@ public class DriveUtilsAdvanced {
         driveClass.updatePoseEstimate();  // only dashboard update
         if(runningActions.isEmpty()) {
             //todo: uncomment out once you get both calcdif and camera alignign working because those are always aligning and are more accurate
-            runningActions.add(driveClass.actionBuilder(driveClass.localizer.getPose())
-                    .turn(-calcDif)
-                    .build()
-            );
+//            runningActions.add(driveClass.actionBuilder(driveClass.localizer.getPose())
+//                    .turn(-calcDif)
+//                    .build()
+//            );
         }
     }
 
