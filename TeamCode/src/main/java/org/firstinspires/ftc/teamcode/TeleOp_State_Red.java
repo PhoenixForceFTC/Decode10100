@@ -142,9 +142,7 @@ public class TeleOp_State_Red extends LinearOpMode
                 alreadyShot = false;
             }
 
-            if(gamepad1.right_trigger>0.2){
-                _driveUtilsAdvanced.autoAlign();
-            }
+
 
             //_robot.driveRR.driveControl(1);
 
@@ -158,18 +156,28 @@ public class TeleOp_State_Red extends LinearOpMode
             //--- Drive
             //------------------------------------------------------------------------------------------
             //_robot.drive.driveControl(0.5); //--- Both D-pad for directional movement and Joysticks for mecanum movement
-            _driveUtilsAdvanced.updateCameraPitch();
-            _robot.limelightHardware2Axis.loop();
-            _robot.limelightHardware2Axis.servos();
+            _driveUtilsAdvanced.updateCameraPitch(); // so we can find the april tag
+            _robot.limelightHardware2Axis.loop();  // store off _latestLLResult, tag/robot pos telemetry
+            _robot.limelightHardware2Axis.servos();  // update servo positions based on pitch
             if((loop_count % 20) == 0){
-                _driveUtilsAdvanced.reset(true);
+                _driveUtilsAdvanced.reset(true);  // based on camera, update localizer position
             }
+
+            if(gamepad1.right_trigger>0.2){
+                _driveUtilsAdvanced.autoAlign();  // setup the
+            }
+
             if(gamepad2.leftStickButtonWasPressed())
             {
                 _driveUtilsAdvanced.endAutoAlign();
             }
+
             _driveUtilsAdvanced.printCalcDiff();
-            // this tries to keep the robot pointing at the target
+
+            // Does the following:
+            //   Updates localizer postion
+            //   Drives robot via controllers
+            //   If, auto aligning, uses RR and camera to move robot
             // todo: when does it return true? why is that important
             if(_driveUtilsAdvanced.driveMecanum(gamepad1,_robot.kickers)){
                 if(!alreadyShot) {
@@ -266,7 +274,7 @@ public class TeleOp_State_Red extends LinearOpMode
             telemetry.addData("auto speed mode", isAutoSpeed);
             telemetry.addData("robot shooting position", robotPosition.toString());
             telemetry.addData("speed reading from the motor in ticks per second",_robot.shooter.getSpeed());
-            _robot.shooter.getTelemetry();
+            _robot.shooter.getTelemetry();  // dashboard metrics
 
 
             //------------------------------------------------------------------------------------------

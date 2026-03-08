@@ -47,6 +47,8 @@ public class DriveUtilsAdvanced {
     private double heading = 0;
     private double yaw = 0;
 
+    private double tagXposition = 0.0;
+
     private RobotHardware _robot;
 
     private Telemetry telemetry;
@@ -68,7 +70,7 @@ public class DriveUtilsAdvanced {
     }
 
 
-    public void setVars(double x, double dxdt, double y, double dydt, double heading, double yaw){
+    private void setVars(double x, double dxdt, double y, double dydt, double heading, double yaw){
         this.x = x;
         this.x2 = 60+x;//60 bc centered around the april tag not corner
         this.x3 = 60+x+cos(heading)*11;
@@ -108,7 +110,7 @@ public class DriveUtilsAdvanced {
         packet.put("distance",Math.sqrt(x2*x2+y2*y2));
         dashboard.sendTelemetryPacket(packet);
     }
-    public void setVarsAdvanced(double x, double y, double heading,double axial, double lateral, double yaw){
+    private void setVarsAdvanced(double x, double y, double heading,double axial, double lateral, double yaw){
         setVars(x,lateral*sin(heading)+axial*cos(heading),y,axial*sin(heading)-lateral*cos(heading),heading,yaw);
 
     };
@@ -135,35 +137,33 @@ public class DriveUtilsAdvanced {
             packet.put("change in heading", thetadt());
         dashboard.sendTelemetryPacket(packet);
 
-
-
-
-        boolean skipDrive = false;
-
         TelemetryPacket packet2 = new TelemetryPacket();
 
         // updated based on gamepads
 
         // update running actions
         List<Action> newActions = new ArrayList<>();
+        boolean skipDrive = false;
         if(runningActions.isEmpty()){
             //telemetry.addLine("RR is not running");
             packet2.addLine("RR is not running");
         }
-        for (Action action : runningActions) {
-            //telemetry.addLine("RR is running");
-            packet2.addLine("RR is running");
-            action.preview(packet2.fieldOverlay());
-            if (action.run(packet2)) {
-                newActions.add(action);
-                skipDrive=true;
+        else
+        {
+            drive.arcadeDriveSpeedControl2(0, 0, 0, 0);  // no human control when roadrunner is going to move
+            for (Action action : runningActions) {
+                //telemetry.addLine("RR is running");
+                packet2.addLine("RR is running");
+                action.preview(packet2.fieldOverlay());
+                if (action.run(packet2)) {   // this is a blocking call but may not finish fully
+                    newActions.add(action);
+                    skipDrive=true;
+                }
             }
         }
         runningActions = newActions;
 
-
         dashboard.sendTelemetryPacket(packet2);
-
 
         double targetHeading = getTargetHeading(y2, x2);
         double calcDif = calcDifference(targetHeading);//calc diff uses road
@@ -171,61 +171,59 @@ public class DriveUtilsAdvanced {
 // we will power our motors with speed that is currently proportionaly with the heading angle we have to change*//
         //we will calculate the heading angle we have to change at first by using all data collected by deadwheels in our localizer
         //and then we will use only heading data in combination with camera data to calculate the difference
+        // skipDrive=true: robot still under RR control, got to wait
         if(!skipDrive){
             if (calcDif > Math.PI / 2 || calcDif < -Math.PI / 2) {
                 // this is the default drive signal
                 // yawImportant = 0 means no additional turn power
-                // ya important is added after the speed
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
 
-                // todo: trying driveRR to see if that is faster
-
+                // todo: trying driveRR to see if that is faster, tried driveRR but was messing up auto align
                 //_robot.driveRR.driveControl(1.0);
 
-
-
             } else {
-//                if(isAligning) {  //right trigger sets this and reset after shooting
-//                    if(Math.abs(calcDif)>Math.PI/8) {//this is
-//                        drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));
-//                        // todo: fix calcdif auto align first then comment out calcdiff auto align for the smaller angles and use camera
-//                        //auto aligns using roadrunner position do first
-//                    }else{
-//                        double[] distBreakdown = limelightHardware2Axis.getDistanceBreakdown();
-//                        double angleToTurnFromCamera = 0;
-//                        if(distBreakdown == null ){
-//                            angleToTurnFromCamera =0;
-//                            drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
-//                        }else{
-//                            //angleToTurnFromCamera = Math.atan2(distBreakdown[2],distBreakdown[1]);//we want to change to point towards the back corner not the aprilt ag
-//                            if(isBlue){
-//                                angleToTurnFromCamera = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) - 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
-//                            }
-//                            else {
-//                                angleToTurnFromCamera = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) + 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
-//                            }
-//                            angleToTurnFromCamera -= heading;//non roadrunner from camera
-//                            //todo: fix the camera auto aligning
-//                            telemetry.addData("angleToTurnFromCamera", angleToTurnFromCamera);
-//                            //chnge to do atan using trig and subtracting the heading from the loclizer
-//                            if(Math.abs(angleToTurnFromCamera)<Math.PI/16){
-//                                returnn =true;
-//                                //fix so it doesnt shoot with the wrong speeds and shoots using the three ball speeds or something
-//                            }
-//                            //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, -angleToTurnFromCamera);//-angleToTurnFromCamera bc posotive turn makes it turn clockwise in the method
-//                            drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
-//                            // todo: temp uncomment line above and enable camera
-//                            //auto aligns using roadrunner position do first disable once camera works
-//
-//                        }
-//
- //                   }
+                if(isAligning) {  //right trigger sets this and reset after shooting
 
-//                }
-//                else{
-                    //_robot.driveRR.driveControl(1.0);
+                    if(Math.abs(calcDif)>Math.PI/8) {//this is
+                        drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));
+                        // todo: fix calcdif auto align first then comment out calcdiff auto align for the smaller angles and use camera
+                        //auto aligns using roadrunner position do first
+                    }else{
+                        double[] distBreakdown = limelightHardware2Axis.getDistanceBreakdown();
+                        double angleToTurnFromCamera = 0;
+                        if(distBreakdown == null ){
+                            angleToTurnFromCamera =0;
+                            drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
+                        }else{
+                            //angleToTurnFromCamera = Math.atan2(distBreakdown[2],distBreakdown[1]);//we want to change to point towards the back corner not the aprilt ag
+                            if(isBlue){
+                                angleToTurnFromCamera = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) - 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
+                            }
+                            else {
+                                angleToTurnFromCamera = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) + 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
+                            }
+                            angleToTurnFromCamera -= heading;//non roadrunner from camera
+                            //todo: fix the camera auto aligning
+                            telemetry.addData("angleToTurnFromCamera", angleToTurnFromCamera);
+                            //chnge to do atan using trig and subtracting the heading from the loclizer
+                            if(Math.abs(angleToTurnFromCamera)<Math.PI/16){
+                                returnn =true;
+                                //fix so it doesnt shoot with the wrong speeds and shoots using the three ball speeds or something
+                            }
+                            //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, -angleToTurnFromCamera);//-angleToTurnFromCamera bc posotive turn makes it turn clockwise in the method
+                            drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
+                            // todo: temp uncomment line above and enable camera
+                            //auto aligns using roadrunner position do first disable once camera works
+
+                        }
+
+                    }
+
+                }
+                else{
+                    // _robot.driveRR.driveControl(1.0);  // maybe faster but autoaligning not working
                    drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
- //               }
+                }
             }
         }
         return returnn;
@@ -239,23 +237,23 @@ public class DriveUtilsAdvanced {
 
         telemetry.addData("Calc Turn Val:",Math.toDegrees(calcDif));
     }
-    //
-    public void autoAlign(){
+
+    //  Use road runner first to get it to be able to see april tag
+   public void autoAlign(){
         isAligning=true;
 
         double targetHeading = getTargetHeading(y2, x2);
         double calcDif = calcDifference(targetHeading);
 
         //drive.arcadeDriveSpeedControl2(0, 0, 0, calcDif/2);
-        drive.arcadeDriveSpeedControl2(0, 0, 0, 0);
-        driveClass.updatePoseEstimate();
+        //drive.arcadeDriveSpeedControl2(0, 0, 0, 0);  -> anyway done when skipDrive is setup
+        driveClass.updatePoseEstimate();  // only dashboard update
         if(runningActions.isEmpty()) {
-            runningActions.add(driveClass.actionBuilder(driveClass.localizer.getPose())
-                    .turn(-calcDif)
-                    //todo: uncomment out once you get both calcdif and camera alignign working because those are always aligning and are more accurate
-                    .build()
-
-            );
+            //todo: uncomment out once you get both calcdif and camera alignign working because those are always aligning and are more accurate
+//            runningActions.add(driveClass.actionBuilder(driveClass.localizer.getPose())
+//                    .turn(-calcDif)
+//                    .build()
+//            );
         }
     }
 
@@ -310,13 +308,14 @@ public class DriveUtilsAdvanced {
     };
 
     // Resets position of localizer based on camera
-    // currently this is called in the loop of the opmode
+    // currently this is called in the loop of the opmode every 20 times
     public void reset(boolean reset){
 
         TelemetryPacket packet = new TelemetryPacket();
             Canvas c = packet.fieldOverlay();
 
-        Pose2D botPose = limelightHardware2Axis.getPos(c); // is null when camera cannot tell position
+        //
+        Pose2D botPose = limelightHardware2Axis.getRobotPos(c); // is null when camera cannot tell position
         if(runningActions.isEmpty()){
 
             if(botPose!=null&&reset){

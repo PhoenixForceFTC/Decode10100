@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.hardware;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -21,7 +20,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.teamcode.roadrunner.Drawing;
 
 import com.acmerobotics.dashboard.config.Config;
 
@@ -351,33 +349,37 @@ public class LimelightHardware2Axis
     }
 
 
+// Not used anywhere
+//    private LLResultTypes.FiducialResult getFiducial(String targetTagIDs)
+//    {
+//        LLResult llResult = _limelight.getLatestResult();
+//        if (llResult != null && llResult.isValid()) {
+//            List<LLResultTypes.FiducialResult> fiducials = llResult.getFiducialResults();
+//            if (fiducials != null && !fiducials.isEmpty()) {
+//                // Get the first fiducial
+//                for (LLResultTypes.FiducialResult fiducial : fiducials) {
+//                    int tagId = fiducial.getFiducialId();
+//                    if (targetTagIDs.contains(Integer.toString(tagId))) {
+//                        return fiducial;
+//                    }
+//                }
+//            }
+//        }
+//
+//        return null;
+//
+//    }
 
-    private LLResultTypes.FiducialResult getFiducial(String targetTagIDs)
-    {
-        LLResult llResult = _limelight.getLatestResult();
-        if (llResult != null && llResult.isValid()) {
-            List<LLResultTypes.FiducialResult> fiducials = llResult.getFiducialResults();
-            if (fiducials != null && !fiducials.isEmpty()) {
-                // Get the first fiducial
-                for (LLResultTypes.FiducialResult fiducial : fiducials) {
-                    int tagId = fiducial.getFiducialId();
-                    if (targetTagIDs.contains(Integer.toString(tagId))) {
-                        return fiducial;
-                    }
-                }
-            }
-        }
 
-        return null;
-
-    }
     public void loop(){
         YawPitchRollAngles orientation = _IMU.getRobotYawPitchRollAngles();
         //TODO: what does this do
         _limelight.updateRobotOrientation(orientation.getYaw());
-        _latestLLResult = _limelight.getLatestResult();
 
-        if (_latestLLResult != null && _latestLLResult.isValid()) {
+        LLResult templlResult= _limelight.getLatestResult();
+
+        if (templlResult != null && templlResult.isValid()) {
+            _latestLLResult = templlResult;  // update reference only if valid
             List<LLResultTypes.FiducialResult> fiducials = _latestLLResult.getFiducialResults();
 
             if (fiducials != null && !fiducials.isEmpty()) {
@@ -405,34 +407,37 @@ public class LimelightHardware2Axis
                 _telemetry.addData("Camera Tilt", String.format("%.2f°", _cameraPitchAngle)+"°");
 
                 // Show raw angles too
-//                double tx = _latestLLResult.getTx();
+                double tx = _latestLLResult.getTx();
 //                double ty = _latestLLResult.getTy();
-//                _telemetry.addData("Tx (Horizontal)", String.format("%.2f°", tx));
+                _telemetry.addData("Tx (Horizontal)", String.format("%.2f°", tx));
 //                _telemetry.addData("Ty (Vertical)", String.format("%.2f°", ty));
             } else {
                 _telemetry.addLine("No AprilTags detected");
             }
 
             // Get robot pose if available
-            Pose3D botPose = _latestLLResult.getBotpose();//need algorithm that doesnt use the imu
             Pose2D botPose2d = getRobotPos(_latestLLResult,null);
-            if (botPose != null && botPose2d != null) {
+            if (botPose2d != null) {
                 double x = botPose2d.getX(DistanceUnit.INCH);//converting from meters to inches
                 double y = botPose2d.getY(DistanceUnit.INCH);
                 double yaw = botPose2d.getHeading(AngleUnit.DEGREES);
 
                 _telemetry.addLine("--- Robot Pose ---");
-                _telemetry.addData("Position", String.format("(%.2f, %.2f)", x, y));
-                _telemetry.addData("Yaw", String.format("%.2f°", yaw));
+                _telemetry.addData("Position:", String.format("(%.2f, %.2f)", x, y));
+                _telemetry.addData("Heading:", String.format("%.2f°", yaw));
             }
-        } else {
+        }
+        else {
+            _latestLLResult = null;
             _telemetry.addLine("No valid Limelight result");
         }
     }
-    public Pose2D getPos(Canvas canvas){
+    
+    // gets robot position based on last stored off LLResult
+    public Pose2D getRobotPos(Canvas canvas){
         return getRobotPos(_latestLLResult,canvas);
-
     }
+
 
     /**
      * Checks if a target is currently visible
@@ -445,6 +450,9 @@ public class LimelightHardware2Axis
      * Horizontal offset from crosshair to target (degrees)
      */
     public double getTx() {
+        if (_latestLLResult == null){
+            return 0.0;
+        }
         return _latestLLResult.getTx();
     }
     public void setPipeline(int index){
