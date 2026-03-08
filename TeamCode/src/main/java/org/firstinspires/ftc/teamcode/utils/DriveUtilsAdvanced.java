@@ -247,7 +247,7 @@ public class DriveUtilsAdvanced {
                 telemetry.addData("Turning Auto by",angleToTurnFromCamera*0.02);
 
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,
-                        -angleToTurnFromCamera*0.02);//-angleToTurnFromCamera bc posotive turn makes it turn clockwise in the method
+                        angleToTurnFromCamera*0.02);//-angleToTurnFromCamera bc posotive turn makes it turn clockwise in the method
                 //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
                 // todo: temp uncomment line above and enable camera
                 //auto aligns using roadrunner position do first disable once camera works
