@@ -296,6 +296,22 @@ public class LimelightHardware2Axis
         return new double[] {floorDistance, z, x, y};
     }
 
+    private LLResultTypes.FiducialResult getTagById(LLResult llResult, int targetId) {
+        List<LLResultTypes.FiducialResult> fiducials = llResult.getFiducialResults();
+
+        if (fiducials == null || fiducials.isEmpty()) {
+            return null;
+        }
+
+        for (LLResultTypes.FiducialResult tag : fiducials) {
+            if (tag.getFiducialId() == targetId) {
+                return tag;
+            }
+        }
+
+        return null; // Tag not found
+    }
+
     /**
      * Gets the calculated floor distance to the primary target from the last loop cycle.
      * @return The floor distance in meters, or null if no valid target was found.
@@ -443,7 +459,7 @@ public class LimelightHardware2Axis
      * Checks if a target is currently visible
      */
     public boolean hasValidTarget() {
-        return _latestLLResult.isValid();
+        return (_latestLLResult != null) &&_latestLLResult.isValid();
     }
 
     /**
@@ -455,6 +471,22 @@ public class LimelightHardware2Axis
         }
         return _latestLLResult.getTx();
     }
+
+    public double getTxDegreesForId(int tagId){
+        if (_latestLLResult == null) {
+            return 0.0;
+        }
+
+        LLResultTypes.FiducialResult tag = getTagById(_latestLLResult, tagId);
+
+        if (tag == null) {
+            return 0.0;
+        }
+
+        return tag.getTargetXDegrees();
+
+    }
+
     public void setPipeline(int index){
         _limelight.pipelineSwitch(index);
     }
