@@ -48,6 +48,7 @@ public class DriveUtilsAdvanced {
     private double yaw = 0;
 
     private double tagXposition = 0.0;
+    private int targetTagId = 0;
 
     private RobotHardware _robot;
 
@@ -67,6 +68,14 @@ public class DriveUtilsAdvanced {
         this.telemetry = telemetry;
         this.limelightHardware2Axis = limelightHardware2Axis;
         this._robot = robotHardware;
+        if (isBlue)
+        {
+            this.targetTagId = 20;
+        }
+        else
+        {
+            this.targetTagId = 24;
+        }
     }
 
 
@@ -114,6 +123,8 @@ public class DriveUtilsAdvanced {
         setVars(x,lateral*sin(heading)+axial*cos(heading),y,axial*sin(heading)-lateral*cos(heading),heading,yaw);
 
     };
+
+    // returns true if trying to auto align and the auto align is finished
     public boolean driveMecanum(Gamepad gamepad, Kickers kickers){
         boolean returnn = false;
 
@@ -181,46 +192,16 @@ public class DriveUtilsAdvanced {
                 // todo: trying driveRR to see if that is faster, tried driveRR but was messing up auto align
                 //_robot.driveRR.driveControl(1.0);
 
-            } else {
+            }
+            else
+            {
                 if(isAligning) {  //right trigger sets this and reset after shooting
 
-                    if(Math.abs(calcDif)>Math.PI/8) {//this is
-                        drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));
-                        // todo: fix calcdif auto align first then comment out calcdiff auto align for the smaller angles and use camera
-                        //auto aligns using roadrunner position do first
-                    }else{
-                        double[] distBreakdown = limelightHardware2Axis.getDistanceBreakdown();
-                        double angleToTurnFromCamera = 0;
-                        if(distBreakdown == null ){
-                            angleToTurnFromCamera =0;
-                            drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
-                        }else{
-                            //angleToTurnFromCamera = Math.atan2(distBreakdown[2],distBreakdown[1]);//we want to change to point towards the back corner not the aprilt ag
-                            if(isBlue){
-                                angleToTurnFromCamera = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) - 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
-                            }
-                            else {
-                                angleToTurnFromCamera = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) + 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
-                            }
-                            angleToTurnFromCamera -= heading;//non roadrunner from camera
-                            //todo: fix the camera auto aligning
-                            telemetry.addData("angleToTurnFromCamera", angleToTurnFromCamera);
-                            //chnge to do atan using trig and subtracting the heading from the loclizer
-                            if(Math.abs(angleToTurnFromCamera)<Math.PI/16){
-                                returnn =true;
-                                //fix so it doesnt shoot with the wrong speeds and shoots using the three ball speeds or something
-                            }
-                            //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, -angleToTurnFromCamera);//-angleToTurnFromCamera bc posotive turn makes it turn clockwise in the method
-                            drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
-                            // todo: temp uncomment line above and enable camera
-                            //auto aligns using roadrunner position do first disable once camera works
-
-                        }
-
-                    }
+                    returnn = autoAlignViaLLandPower(gamepad);  // return true if we are close enough and aligned.
 
                 }
-                else{
+                else
+                {
                     // _robot.driveRR.driveControl(1.0);  // maybe faster but autoaligning not working
                    drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
                 }
@@ -231,6 +212,52 @@ public class DriveUtilsAdvanced {
 
     }
 //
+    private boolean autoAlignViaLLandPower(Gamepad gamepad)
+    {
+//        if(Math.abs(calcDif)>Math.PI/8) {//this is
+//            drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));
+//            // todo: fix calcdif auto align first then comment out calcdiff auto align for the smaller angles and use camera
+//            //auto aligns using roadrunner position do first
+//        }
+//        else
+//        {
+            double[] distBreakdown = limelightHardware2Axis.getDistanceBreakdown();
+            distBreakdown = null; // temp todo: can we just use
+            double angleToTurnFromCamera = limelightHardware2Axis.getTxDegreesForId(this.targetTagId);
+            telemetry.addData("Target X Degrees:", angleToTurnFromCamera)
+            if(Math.abs(angleToTurnFromCamera)< 10){
+                return true;
+            }
+            if(distBreakdown == null ){
+                angleToTurnFromCamera =0;
+                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
+            }
+            else
+            {
+                //angleToTurnFromCamera = Math.atan2(distBreakdown[2],distBreakdown[1]);//we want to change to point towards the back corner not the aprilt ag
+//                if(isBlue){
+//                    angleToTurnFromCamera = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) - 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
+//                }
+//                else
+//                {
+//                    angleToTurnFromCamera = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) + 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
+//                }
+//                angleToTurnFromCamera -= heading;//non roadrunner from camera
+                //todo: fix the camera auto aligning
+                //chnge to do atan using trig and subtracting the heading from the loclizer
+
+                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, -angleToTurnFromCamera);//-angleToTurnFromCamera bc posotive turn makes it turn clockwise in the method
+                //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
+                // todo: temp uncomment line above and enable camera
+                //auto aligns using roadrunner position do first disable once camera works
+
+            }
+
+//        }
+
+        return false;
+    }
+
     public void printCalcDiff(){
         double targetHeading = getTargetHeading(y2, x2);
         double calcDif = calcDifference(targetHeading);
@@ -269,10 +296,12 @@ public class DriveUtilsAdvanced {
         return Math.sqrt(x2*x2+y2*y2);
         //1.01x+1630 for single shooter
     }
+
+    // Must be called else robot control will be off
     public void endAutoAlign(){
         isAligning=false;
-
     }
+
     public void updateCameraPitch(){
         limelightHardware2Axis.setServoAngles(0, Math.toDegrees(Math.atan(18/Math.sqrt(x3*x3+y3*y3))) );//22 should be hight difference of the camera and the april tags on the goals
         //can change to be x only and not pythagors theorem if camera is supposed to look at both april tags
