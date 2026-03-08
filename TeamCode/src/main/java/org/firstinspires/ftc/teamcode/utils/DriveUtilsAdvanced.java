@@ -161,7 +161,6 @@ public class DriveUtilsAdvanced {
         }
         else
         {
-            drive.arcadeDriveSpeedControl2(0, 0, 0, 0);  // no human control when roadrunner is going to move
             for (Action action : runningActions) {
                 telemetry.addLine("RR is running");
                 packet2.addLine("RR is running");
@@ -176,7 +175,7 @@ public class DriveUtilsAdvanced {
 
         dashboard.sendTelemetryPacket(packet2);
 
-        double targetHeading = getTargetHeading(y2, x2);
+        double targetHeading = getTargetHeading(y4-14.55098425, x2-11.82122047);
         double calcDif = calcDifference(targetHeading);//calc diff uses road
 //if raodrunners drive class is not running then we will run our code and if we are within the correct range of the target heading
 // we will power our motors with speed that is currently proportionaly with the heading angle we have to change*//
@@ -223,25 +222,15 @@ public class DriveUtilsAdvanced {
             double[] distBreakdown = limelightHardware2Axis.getDistanceBreakdown();
             //distBreakdown = null; // temp todo: can we just use
             double angleToTurnFromCamera = limelightHardware2Axis.getTxDegreesForId(this.targetTagId);
-            if(Math.abs(angleToTurnFromCamera)< 2){ // within 2 degrees
-                drive.arcadeDriveSpeedControl2(0, 0, 0,0); // done turn off power
+            if(Math.abs(angleToTurnFromCamera)< 1){ // within 2 degrees
+                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,0); // done turn off power
                 return true;
             }
-            if(distBreakdown == null ){
-                angleToTurnFromCamera =0;
-                //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
+            if(/*distBreakdown == null */angleToTurnFromCamera == (double) 180.0){
+                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
             }
             else
             {
-                //angleToTurnFromCamera = Math.atan2(distBreakdown[2],distBreakdown[1]);//we want to change to point towards the back corner not the aprilt ag
-//                if(isBlue){
-//                    angleToTurnFromCamera = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) - 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
-//                }
-//                else
-//                {
-//                    angleToTurnFromCamera = Math.atan2(distBreakdown[1] * Math.sin(heading) - distBreakdown[2] * Math.cos(heading) + 14.55098425, distBreakdown[2] * Math.cos(heading) + distBreakdown[1] * Math.sin(heading) + 11.82122047);
-//                }
-//                angleToTurnFromCamera -= heading;//non roadrunner from camera
                 //todo: fix the camera auto aligning
                 //chnge to do atan using trig and subtracting the heading from the loclizer
                 telemetry.addData("Turning Auto by",angleToTurnFromCamera*0.02);
@@ -260,7 +249,7 @@ public class DriveUtilsAdvanced {
     }
 
     public void printCalcDiff(){
-        double targetHeading = getTargetHeading(y2, x2);
+        double targetHeading = getTargetHeading(y4-14.55098425, x2-11.82122047);
         double calcDif = calcDifference(targetHeading);
 
         telemetry.addData("Calc Turn Val:",Math.toDegrees(calcDif));
@@ -275,7 +264,7 @@ public class DriveUtilsAdvanced {
    public void autoAlign(){
         isAligning=true;
 
-        double targetHeading = getTargetHeading(y2, x2);
+        double targetHeading = getTargetHeading(y4-14.55098425, x2-11.82122047);
         double calcDif = calcDifference(targetHeading);
 
         //drive.arcadeDriveSpeedControl2(0, 0, 0, calcDif/2);
@@ -283,10 +272,10 @@ public class DriveUtilsAdvanced {
         driveClass.updatePoseEstimate();  // only dashboard update
         if(runningActions.isEmpty()) {
             //todo: uncomment out once you get both calcdif and camera alignign working because those are always aligning and are more accurate
-//            runningActions.add(driveClass.actionBuilder(driveClass.localizer.getPose())
-//                    .turn(-calcDif)
-//                    .build()
-//            );
+            runningActions.add(driveClass.actionBuilder(driveClass.localizer.getPose())
+                    .turn(-calcDif)
+                    .build()
+            );
         }
     }
 
