@@ -237,7 +237,16 @@ public class Intake_Incomplete
     }
 
     public BallColor detectBallSticky(
-            ColorSensor colorSensor, DistanceSensor distanceSensor, double distanceThreshold, BallColor previousColor, String sensorLocation){
+            ColorSensor colorSensor, DistanceSensor distanceSensor, double distanceThreshold,
+            BallColor previousColor, String sensorLocation) {
+        return detectBallSticky(
+                 colorSensor,  distanceSensor,  distanceThreshold,
+         previousColor,  sensorLocation, false);
+
+    }
+    public BallColor detectBallSticky(
+            ColorSensor colorSensor, DistanceSensor distanceSensor, double distanceThreshold,
+            BallColor previousColor, String sensorLocation, boolean OverrideDistanceCheck){
 
         int AveragingSamples = 10;
         RollingAverage avgRed = new RollingAverage(), avgGreen = new RollingAverage(), avgBlue = new RollingAverage(), avgDist = new RollingAverage();
@@ -277,9 +286,10 @@ public class Intake_Incomplete
         double greenToRed = (avgRedValue != 0 ? avgGreenValue/avgRedValue : 0);
         double blueToGreen = (avgGreenValue != 0 ? avgBlueValue/avgGreenValue : 0);
 
-        if (avgDistValue > distanceThreshold)
-        {
-            return BallColor.NONE;
+        if(!OverrideDistanceCheck) {
+            if (avgDistValue > distanceThreshold) {
+                return BallColor.NONE;
+            }
         }
 
         if (blueToGreen > PURPLE_BG_THRESHOLD && greenToRed < PURPLE_GR_MAX)
