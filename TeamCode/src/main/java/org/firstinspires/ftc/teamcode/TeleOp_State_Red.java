@@ -173,6 +173,7 @@ public class TeleOp_State_Red extends LinearOpMode
             }
 
             _driveUtilsAdvanced.printCalcDiff();
+            _driveUtilsAdvanced.printXDegrees();
 
             // Does the following:
             //   Updates localizer postion

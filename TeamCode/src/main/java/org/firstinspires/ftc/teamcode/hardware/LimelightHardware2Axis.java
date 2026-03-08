@@ -250,8 +250,8 @@ public class LimelightHardware2Axis
                 llYaw
         );
             //c.strokeLine(pivotPose.getX(DistanceUnit.INCH),pivotPose.getY(DistanceUnit.INCH),botPose.getX(DistanceUnit.INCH),botPose.getY(DistanceUnit.INCH));
-            c.strokeLine(pivotPose.getX(DistanceUnit.INCH),pivotPose.getY(DistanceUnit.INCH),pivotPose.getX(DistanceUnit.INCH)-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack,pivotPose.getY(DistanceUnit.INCH)-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack);
-            c.strokeLine(pivotPose.getX(DistanceUnit.INCH)-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack,pivotPose.getY(DistanceUnit.INCH)-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack,botPose.getX(DistanceUnit.INCH),botPose.getY(DistanceUnit.INCH));
+        c.strokeLine(pivotPose.getX(DistanceUnit.INCH),pivotPose.getY(DistanceUnit.INCH),pivotPose.getX(DistanceUnit.INCH)-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack,pivotPose.getY(DistanceUnit.INCH)-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack);
+        c.strokeLine(pivotPose.getX(DistanceUnit.INCH)-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack,pivotPose.getY(DistanceUnit.INCH)-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack,botPose.getX(DistanceUnit.INCH),botPose.getY(DistanceUnit.INCH));
         dashboard.sendTelemetryPacket(packet);
 
         double tiltRad = Math.toRadians(_cameraPitchAngle);
@@ -474,13 +474,13 @@ public class LimelightHardware2Axis
 
     public double getTxDegreesForId(int tagId){
         if (_latestLLResult == null) {
-            return 0.0;
+            return 180.0;
         }
 
         LLResultTypes.FiducialResult tag = getTagById(_latestLLResult, tagId);
 
         if (tag == null) {
-            return 0.0;
+            return 180.0;
         }
 
         return tag.getTargetXDegrees();
