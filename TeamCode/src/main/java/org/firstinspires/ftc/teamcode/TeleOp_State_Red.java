@@ -62,13 +62,12 @@ import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //endregion
 
 @TeleOp(name="\uD83D\uDFE5Red_TeleOp_State", group = "!State")
-public class TeleOp_State_Red extends LinearOpMode
-{
+public class TeleOp_State_Red extends LinearOpMode {
     //------------------------------------------------------------------------------------------
     // Variables
     //------------------------------------------------------------------------------------------
     RobotHardware _robot = new RobotHardware(this);
-    Boolean isBlue=false;
+    Boolean isBlue = false;
     DriveUtilsAdvanced _driveUtilsAdvanced;
 
     public ElapsedTime _runtime = new ElapsedTime();
@@ -79,22 +78,22 @@ public class TeleOp_State_Red extends LinearOpMode
     public ElapsedTime overrideTimer = new ElapsedTime(3);
 
 
-    enum position{
+    enum position {
         Close,
         Medium,
         Far,
         None
     }
+
     //------------------------------------------------------------------------------------------
     //--- OpMode
     //------------------------------------------------------------------------------------------
     @Override
-    public void runOpMode()
-    {
+    public void runOpMode() {
         //------------------------------------------------------------------------------------------
         //--- Robot Initialize
         //------------------------------------------------------------------------------------------
-        int loop_count =0;
+        int loop_count = 0;
         int robotVersion = 1; //--- 1 for CRAB-IER and 2 for ARIEL
         int shooterSpeedRpm = 0;
         int shooterSpeedRpm3Ball = 0;
@@ -106,8 +105,8 @@ public class TeleOp_State_Red extends LinearOpMode
         position robotPosition = position.None;
 
         _robot.init(robotVersion);
-        _driveUtilsAdvanced = new DriveUtilsAdvanced(hardwareMap, Location.pose,_robot.drive,
-                _robot.limelightHardware2Axis,this.telemetry,isBlue, _robot);
+        _driveUtilsAdvanced = new DriveUtilsAdvanced(hardwareMap, Location.pose, _robot.drive,
+                _robot.limelightHardware2Axis, this.telemetry, isBlue, _robot);
 
         RisingEdge g1RE = new RisingEdge();
 
@@ -124,7 +123,7 @@ public class TeleOp_State_Red extends LinearOpMode
         //--- Hardware Initialize
         //------------------------------------------------------------------------------------------
         _robot.shooter.initialize();
-       // _robot.intake.initialize();
+        // _robot.intake.initialize();
         _robot.lights.initialize();
 
         //------------------------------------------------------------------------------------------
@@ -141,22 +140,22 @@ public class TeleOp_State_Red extends LinearOpMode
             _robot.intake.run();
             _robot.lights.run();
 
-            if(_robot.kickers.runFinal((double) shooterSpeedRpm*  Shooter.ticksPerRotation/60,
-                    _robot.shooter.getSpeed(),true,(double) shooterSpeedRpm3Ball* Shooter.ticksPerRotation/60,
-                    -1,_robot.intake)){
+            if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60,
+                    _robot.shooter.getSpeed(), true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
+                    -1, _robot.intake)) {
                 _driveUtilsAdvanced.endAutoAlign();
                 alreadyShot = false;
             }
 
             _robot.run();
-            if(gamepad1.a){
+            if (gamepad1.a) {
                 _kickMotif.setKick();
             }
             _kickMotif.checkKick();
 
             //_robot.driveRR.driveControl(1);
 
-            if(gamepad1.aWasPressed()){
+            if (gamepad1.aWasPressed()) {
                 _kickMotif.kickForMotifTeleOp();
                 _driveUtilsAdvanced.endAutoAlign();
             }
@@ -169,19 +168,18 @@ public class TeleOp_State_Red extends LinearOpMode
             _driveUtilsAdvanced.updateCameraPitch(); // so we can find the april tag
             _robot.limelightHardware2Axis.loop();  // store off _latestLLResult, tag/robot pos telemetry
             _robot.limelightHardware2Axis.servos();  // update servo positions based on pitch
-            if((loop_count % 20) == 0){
+            if ((loop_count % 20) == 0) {
                 _driveUtilsAdvanced.reset(true);  // based on camera, update localizer position
             }
 
-            if(gamepad1.right_trigger>0.2){
+            if (gamepad1.right_trigger > 0.2) {
                 _driveUtilsAdvanced.autoAlign();  // setup the
             }
-            if(gamepad2.left_stick_button){
+            if (gamepad2.left_stick_button) {
                 _driveUtilsAdvanced.endAutoAlign();  // setup the
             }
 
-            if(gamepad2.leftStickButtonWasPressed())
-            {
+            if (gamepad2.leftStickButtonWasPressed()) {
                 _driveUtilsAdvanced.endAutoAlign();
             }
 
@@ -193,12 +191,12 @@ public class TeleOp_State_Red extends LinearOpMode
             //   Drives robot via controllers
             //   If, auto aligning, uses RR and camera to move robot
             // todo: when does it return true? why is that important
-            if(_driveUtilsAdvanced.driveMecanum(gamepad1,_robot.kickers)){
-                if(!alreadyShot) {
+            if (_driveUtilsAdvanced.driveMecanum(gamepad1, _robot.kickers)) {
+                if (!alreadyShot) {
                     if (isThreeBallMode) {
                         if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60, _robot.shooter.getSpeed(),
                                 true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
-                                3,_robot.intake)) {
+                                3, _robot.intake)) {
                             _driveUtilsAdvanced.endAutoAlign();
                             alreadyShot = false;
                         }
@@ -211,91 +209,73 @@ public class TeleOp_State_Red extends LinearOpMode
             }
 
 
-            if(gamepad2.left_bumper&&(shooterSpeedRpm>0)){
-                if(shooterSpeedRpm>10){
-                    shooterSpeedRpm -=10;
-                    shooterSpeedRpm3Ball -=10;
-                }
-                else{
+            if (gamepad2.left_bumper && (shooterSpeedRpm > 0)) {
+                if (shooterSpeedRpm > 10) {
+                    shooterSpeedRpm -= 10;
+                    shooterSpeedRpm3Ball -= 10;
+                } else {
                     shooterSpeedRpm = 0;
                     shooterSpeedRpm3Ball = 0;
                 }
             }
-            if(gamepad2.right_bumper&&(shooterSpeedRpm<6000)){
-                if(shooterSpeedRpm<5990){
-                    shooterSpeedRpm +=10;
-                    shooterSpeedRpm3Ball +=10;
-                }
-                else{
+            if (gamepad2.right_bumper && (shooterSpeedRpm < 6000)) {
+                if (shooterSpeedRpm < 5990) {
+                    shooterSpeedRpm += 10;
+                    shooterSpeedRpm3Ball += 10;
+                } else {
                     shooterSpeedRpm = 6000;
                     shooterSpeedRpm3Ball = 6000;
                 }
             }
             //y close x mid a far and b toggle between 3 and 1
 
-            if(!isThreeBallMode&&isAutoSpeed){
-                shooterSpeedRpm=Math.round((float) ((_driveUtilsAdvanced.getDist()*10.1)+1630) );
-            } else if (isThreeBallMode&&isAutoSpeed){
-                shooterSpeedRpm3Ball=Math.round((float) ((_driveUtilsAdvanced.getDist()*11.1)+ 1887));
+            if (!isThreeBallMode && isAutoSpeed) {
+                shooterSpeedRpm = Math.round((float) ((_driveUtilsAdvanced.getDist() * 10.1) + 1630));
+            } else {
+                shooterSpeedRpm3Ball = Math.round((float) ((_driveUtilsAdvanced.getDist() * 11.1) + 1887));
             }
-            if(gamepad1.xWasPressed()){
-                isAutoSpeed=!isAutoSpeed;
+
+            if (gamepad1.xWasPressed()) {
+                isAutoSpeed = !isAutoSpeed;
             }
-            if(gamepad2.y){
-                robotPosition= position.Close;
-                    shooterSpeedRpm3Ball = 2280;
-                    shooterSpeedRpm = 2090;
+            if (gamepad2.y) {
+                robotPosition = position.Close;
+                shooterSpeedRpm3Ball = 2280;
+                shooterSpeedRpm = 2090;
             }
-            if(gamepad2.x){
-                robotPosition= position.Medium;
-                    shooterSpeedRpm3Ball = 2650;
-                    shooterSpeedRpm = 2430;
+            if (gamepad2.x) {
+                robotPosition = position.Medium;
+                shooterSpeedRpm3Ball = 2650;
+                shooterSpeedRpm = 2430;
             }
-            if(gamepad2.a){
-                robotPosition= position.Far;
-                    shooterSpeedRpm3Ball = 3330;
-                    shooterSpeedRpm = 3060;
+            if (gamepad2.a) {
+                robotPosition = position.Far;
+                shooterSpeedRpm3Ball = 3330;
+                shooterSpeedRpm = 3060;
             }
-            if(gamepad2.b){
+            if (gamepad2.b) {
                 _robot.intake.stop();
             }
             //questionable
-            if(g1RE.RisingEdgeButton(gamepad1, "y")){
+            if (g1RE.RisingEdgeButton(gamepad1, "y")) {
                 isThreeBallMode = !isThreeBallMode;
             }
 
-            flyWheelsSpeed =_robot.shooter.getSpeedRPM();
-            if(isThreeBallMode || _driveUtilsAdvanced.isAligning){
-                if(flyWheelsSpeed<shooterSpeedRpm3Ball-88.8){
-                    _robot.shooter.shoot(shooterSpeedRpm3Ball);
 
-                }else if(_driveUtilsAdvanced.isAligning || (flyWheelsSpeed-shooterSpeedRpm3Ball>111)){
-                    if(flyWheelsSpeed-shooterSpeedRpm3Ball<200) {
-                        _robot.shooter.shoot(shooterSpeedRpm3Ball);
-                    }else{
-                        _robot.shooter.shoot(Math.round((float) flyWheelsSpeed) - 200);
-                    }
-                }
+            if (isThreeBallMode) {
+                _robot.shooter.shoot(shooterSpeedRpm3Ball);
+            } else {
+                _robot.shooter.shoot(shooterSpeedRpm);
             }
-            else{
-                if(_robot.shooter.getSpeedRPM()<shooterSpeedRpm-80.8 || _driveUtilsAdvanced.isAligning){
-                    _robot.shooter.shoot(shooterSpeedRpm);
-                }else if(_driveUtilsAdvanced.isAligning || (flyWheelsSpeed-shooterSpeedRpm>101)){
-                    if(flyWheelsSpeed-shooterSpeedRpm<200) {
-                        _robot.shooter.shoot(shooterSpeedRpm);
-                    }else{
-                        _robot.shooter.shoot(Math.round((float) flyWheelsSpeed) - 200);
-                    }
-                }
 
-            }
+
             _robot.intake.run(override);
-            if (gamepad1.b){
+            if (gamepad1.b) {
                 _robot.kickers.kickMiddle();
                 override = true;
                 overrideTimer.reset();
             }
-            if (overrideTimer.seconds() > 2 && override){
+            if (overrideTimer.seconds() > 2 && override) {
                 override = false;
             }
 
@@ -305,14 +285,14 @@ public class TeleOp_State_Red extends LinearOpMode
             telemetry.addData("three ball mode", isThreeBallMode);
             telemetry.addData("auto speed mode", isAutoSpeed);
             telemetry.addData("robot shooting position", robotPosition.toString());
-            telemetry.addData("speed reading from the motor in ticks per second",_robot.shooter.getSpeed());
+            telemetry.addData("speed reading from the motor in ticks per second", _robot.shooter.getSpeed());
             _robot.shooter.getTelemetry();  // dashboard metrics
 
 
             //------------------------------------------------------------------------------------------
             //--- Intake
             //------------------------------------------------------------------------------------------
-           // _robot.intake.testColorSensors();  //--- Show color sensor values for tuning
+            // _robot.intake.testColorSensors();  //--- Show color sensor values for tuning
 
 
             //------------------------------------------------------------------------------------------
