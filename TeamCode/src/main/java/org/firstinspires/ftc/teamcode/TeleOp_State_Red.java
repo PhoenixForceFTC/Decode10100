@@ -61,13 +61,14 @@ import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //----------------------------------------------------------------------
 //endregion
 
-@TeleOp(name="Red_TeleOp_State", group="1")
+@TeleOp(name="\uD83D\uDFE5Red_TeleOp_State", group = "!State")
 public class TeleOp_State_Red extends LinearOpMode
 {
     //------------------------------------------------------------------------------------------
     // Variables
     //------------------------------------------------------------------------------------------
     RobotHardware _robot = new RobotHardware(this);
+    Boolean isBlue=false;
     DriveUtilsAdvanced _driveUtilsAdvanced;
 
     public ElapsedTime _runtime = new ElapsedTime();
@@ -97,11 +98,13 @@ public class TeleOp_State_Red extends LinearOpMode
         boolean isThreeBallMode = false;
         boolean isAutoSpeed = true;
         boolean alreadyShot = false;
+        double flyWheelsSpeed = 0;
+
         position robotPosition = position.None;
 
         _robot.init(robotVersion);
         _driveUtilsAdvanced = new DriveUtilsAdvanced(hardwareMap, Location.pose,_robot.drive,
-                _robot.limelightHardware2Axis,this.telemetry,false, _robot);
+                _robot.limelightHardware2Axis,this.telemetry,isBlue, _robot);
 
         RisingEdge g1RE = new RisingEdge();
 
@@ -165,6 +168,9 @@ public class TeleOp_State_Red extends LinearOpMode
 
             if(gamepad1.right_trigger>0.2){
                 _driveUtilsAdvanced.autoAlign();  // setup the
+            }
+            if(gamepad2.left_stick_button){
+                _driveUtilsAdvanced.endAutoAlign();  // setup the
             }
 
             if(gamepad2.leftStickButtonWasPressed())
@@ -234,7 +240,7 @@ public class TeleOp_State_Red extends LinearOpMode
             } else if (isThreeBallMode&&isAutoSpeed){
                 shooterSpeedRpm3Ball=Math.round((float) ((_driveUtilsAdvanced.getDist()*11.1)+ 1887));
             }
-            if(gamepad1.x){
+            if(gamepad1.xWasPressed()){
                 isAutoSpeed=!isAutoSpeed;
             }
             if(gamepad2.y){
@@ -260,11 +266,29 @@ public class TeleOp_State_Red extends LinearOpMode
                 isThreeBallMode = !isThreeBallMode;
             }
 
+            flyWheelsSpeed =_robot.shooter.getSpeedRPM();
             if(isThreeBallMode){
-                _robot.shooter.shoot(shooterSpeedRpm3Ball);
+                if(flyWheelsSpeed<shooterSpeedRpm3Ball-88.8){
+                    _robot.shooter.shoot(shooterSpeedRpm3Ball);
+
+                }else if(_driveUtilsAdvanced.isAligning || (flyWheelsSpeed-shooterSpeedRpm3Ball>111)){
+                    if(flyWheelsSpeed-shooterSpeedRpm3Ball<200) {
+                        _robot.shooter.shoot(shooterSpeedRpm3Ball);
+                    }else{
+                        _robot.shooter.shoot(Math.round((float) flyWheelsSpeed) - 200);
+                    }
+                }
             }
             else{
-                _robot.shooter.shoot(shooterSpeedRpm);
+                if(_robot.shooter.getSpeedRPM()<shooterSpeedRpm-80.8){
+                    _robot.shooter.shoot(shooterSpeedRpm);
+                }else if(_driveUtilsAdvanced.isAligning || (flyWheelsSpeed-shooterSpeedRpm>101)){
+                    if(flyWheelsSpeed-shooterSpeedRpm<200) {
+                        _robot.shooter.shoot(shooterSpeedRpm);
+                    }else{
+                        _robot.shooter.shoot(Math.round((float) flyWheelsSpeed) - 200);
+                    }
+                }
 
             }
 
@@ -293,4 +317,6 @@ public class TeleOp_State_Red extends LinearOpMode
 
         }
     }
+
+
 }

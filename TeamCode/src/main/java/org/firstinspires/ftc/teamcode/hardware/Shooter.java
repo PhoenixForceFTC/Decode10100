@@ -105,6 +105,9 @@ public class Shooter
     public double getSpeed(){
         return(_motorShooterLeft.getVelocity());
     }
+    public double getSpeedRPM(){
+        return(_motorShooterLeft.getVelocity()*60/ticksPerRotation);
+    }
 
 
 

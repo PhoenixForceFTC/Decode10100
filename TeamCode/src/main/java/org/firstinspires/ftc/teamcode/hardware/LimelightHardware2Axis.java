@@ -230,25 +230,25 @@ public class LimelightHardware2Axis
         );
 
         //CHATGPT CODE
-        double llYaw = botPose.getHeading(AngleUnit.RADIANS);
-        double imuYaw = _IMU.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-
-// normalize angle difference
-        double diff = Math.atan2(Math.sin(llYaw - imuYaw), Math.cos(llYaw - imuYaw));
-
-// if Limelight picked the 180° flipped solution, correct it
-        if (Math.abs(diff) > Math.PI / 2) {
-            llYaw += Math.PI;
-        }
+//        double llYaw = botPose.getHeading(AngleUnit.RADIANS);
+//        double imuYaw = _IMU.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+//
+//// normalize angle difference
+//        double diff = Math.atan2(Math.sin(llYaw - imuYaw), Math.cos(llYaw - imuYaw));
+//
+//// if Limelight picked the 180° flipped solution, correct it
+//        if (Math.abs(diff) > Math.PI / 2) {
+//            llYaw += Math.PI;
+//        }
 
 // rebuild pose with corrected heading
-        botPose = new Pose2D(
-                DistanceUnit.INCH,
-                botPose.getX(DistanceUnit.INCH),
-                botPose.getY(DistanceUnit.INCH),
-                AngleUnit.RADIANS,
-                llYaw
-        );
+//        botPose = new Pose2D(
+//                DistanceUnit.INCH,
+//                botPose.getX(DistanceUnit.INCH),
+//                botPose.getY(DistanceUnit.INCH),
+//                AngleUnit.RADIANS,
+//                llYaw
+//        );
             //c.strokeLine(pivotPose.getX(DistanceUnit.INCH),pivotPose.getY(DistanceUnit.INCH),botPose.getX(DistanceUnit.INCH),botPose.getY(DistanceUnit.INCH));
         c.strokeLine(pivotPose.getX(DistanceUnit.INCH),pivotPose.getY(DistanceUnit.INCH),pivotPose.getX(DistanceUnit.INCH)-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack,pivotPose.getY(DistanceUnit.INCH)-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack);
         c.strokeLine(pivotPose.getX(DistanceUnit.INCH)-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack,pivotPose.getY(DistanceUnit.INCH)-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack,botPose.getX(DistanceUnit.INCH),botPose.getY(DistanceUnit.INCH));

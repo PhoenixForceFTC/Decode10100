@@ -11,7 +11,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class DriveUtils
 {
     // public static double FrontMultiplier = 1.2;
-    public static double FrontMultiplier = 1;
+    public static double FrontMultiplier = 1.2;
 
     //--- Arcade Drive Method
     public static void arcadeDrive(DcMotor frontLeft, DcMotor frontRight, DcMotor rearLeft, DcMotor rearRight,
@@ -69,7 +69,7 @@ public class DriveUtils
         double _axial = axial;  //--- Note, pushing stick forward gives negative value
         double _lateral = lateral;
 
-        double _yaw = ((yaw)*Math.abs(yaw) * speedMultiplierRotate)+yawImportant; //--- Scale yaw separately
+        double _yaw = ((yaw) * speedMultiplierRotate)+yawImportant; //--- Scale yaw separately
 
         //--- Combine the joystick requests for each axis-motion to determine each wheel's power.
         double leftFrontPower = (_axial + _lateral + _yaw) * speedMultiplier* FrontMultiplier;
