@@ -142,69 +142,71 @@ public class DriveUtilsAdvanced {
         telemetry.addData("change in heading", thetadt());
 
 
-        TelemetryPacket packet = new TelemetryPacket();
-            Canvas c = packet.fieldOverlay();
-            Drawing.drawRobot(c, driveClass.localizer.getPose());
-            packet.put("change in heading", thetadt());
-        dashboard.sendTelemetryPacket(packet);
+//        /*
+//        TelemetryPacket packet = new TelemetryPacket();
+//            Canvas c = packet.fieldOverlay();
+//            Drawing.drawRobot(c, driveClass.localizer.getPose());
+//            packet.put("change in heading", thetadt());
+//        dashboard.sendTelemetryPacket(packet);
+//
+//        TelemetryPacket packet2 = new TelemetryPacket();
+//
+//        // updated based on gamepads
+//
+//        // update running actions
+//        List<Action> newActions = new ArrayList<>();
+//        boolean skipDrive = false;
+//        if(runningActions.isEmpty()){
+//            telemetry.addLine("RR is not running");
+//            packet2.addLine("RR is not running");
+//        }
+//        else
+//        {
+//            for (Action action : runningActions) {
+//                telemetry.addLine("RR is running");
+//                packet2.addLine("RR is running");
+//                action.preview(packet2.fieldOverlay());
+//                if (action.run(packet2)) {   // this is a blocking call but may not finish fully
+//                    newActions.add(action);
+//                    skipDrive=true;
+//                }
+//            }
+//        }
+//        runningActions = newActions;
+//
+//        dashboard.sendTelemetryPacket(packet2);
+//
+//        double targetHeading = getTargetHeading(y4-14.55098425, x2-11.82122047);
+//        double calcDif = calcDifference(targetHeading);//calc diff uses road
+////if raodrunners drive class is not running then we will run our code and if we are within the correct range of the target heading
+//// we will power our motors with speed that is currently proportionaly with the heading angle we have to change*//
+//        //we will calculate the heading angle we have to change at first by using all data collected by deadwheels in our localizer
+//        //and then we will use only heading data in combination with camera data to calculate the difference
+//        // skipDrive=true: robot still under RR control, got to wait
+//        if(!skipDrive){
+//            if (calcDif > Math.PI / 2 || calcDif < -Math.PI / 2) {
+//                // this is the default drive signal
+//                // yawImportant = 0 means no additional turn power
+//                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
+//
+//                // todo: trying driveRR to see if that is faster, tried driveRR but was messing up auto align
+//                //_robot.driveRR.driveControl(1.0);
+//
+//            }
+//            else
+//            {
+//                if(isAligning) {  //right trigger sets this and reset after shooting
+//                    telemetry.addData("Aligning:","Yes");
+//                    returnn = autoAlignViaLLandPower(gamepad,calcDif);  // return true if we are close enough and aligned.
+//                }
+//                else
+//                {
+//                    // _robot.driveRR.driveControl(1.0);  // maybe faster but autoaligning not working
+//                   drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
+//                }
+//            }
+//        }
 
-        TelemetryPacket packet2 = new TelemetryPacket();
-
-        // updated based on gamepads
-
-        // update running actions
-        List<Action> newActions = new ArrayList<>();
-        boolean skipDrive = false;
-        if(runningActions.isEmpty()){
-            telemetry.addLine("RR is not running");
-            packet2.addLine("RR is not running");
-        }
-        else
-        {
-            for (Action action : runningActions) {
-                telemetry.addLine("RR is running");
-                packet2.addLine("RR is running");
-                action.preview(packet2.fieldOverlay());
-                if (action.run(packet2)) {   // this is a blocking call but may not finish fully
-                    newActions.add(action);
-                    skipDrive=true;
-                }
-            }
-        }
-        runningActions = newActions;
-
-        dashboard.sendTelemetryPacket(packet2);
-
-        double targetHeading = getTargetHeading(y4-14.55098425, x2-11.82122047);
-        double calcDif = calcDifference(targetHeading);//calc diff uses road
-//if raodrunners drive class is not running then we will run our code and if we are within the correct range of the target heading
-// we will power our motors with speed that is currently proportionaly with the heading angle we have to change*//
-        //we will calculate the heading angle we have to change at first by using all data collected by deadwheels in our localizer
-        //and then we will use only heading data in combination with camera data to calculate the difference
-        // skipDrive=true: robot still under RR control, got to wait
-        if(!skipDrive){
-            if (calcDif > Math.PI / 2 || calcDif < -Math.PI / 2) {
-                // this is the default drive signal
-                // yawImportant = 0 means no additional turn power
-                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
-
-                // todo: trying driveRR to see if that is faster, tried driveRR but was messing up auto align
-                //_robot.driveRR.driveControl(1.0);
-
-            }
-            else
-            {
-                if(isAligning) {  //right trigger sets this and reset after shooting
-                    telemetry.addData("Aligning:","Yes");
-                    returnn = autoAlignViaLLandPower(gamepad,calcDif);  // return true if we are close enough and aligned.
-                }
-                else
-                {
-                    // _robot.driveRR.driveControl(1.0);  // maybe faster but autoaligning not working
-                   drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
-                }
-            }
-        }
         return returnn;
 
 
@@ -226,7 +228,7 @@ public class DriveUtilsAdvanced {
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,0); // done turn off power
                 return true;
             }
-            if(/*distBreakdown == null */angleToTurnFromCamera > (double) 120.0){
+            if(/*distBreakdown == null */angleToTurnFromCamera > (double)120.0){
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
             }
             else
@@ -300,6 +302,7 @@ public class DriveUtilsAdvanced {
 
     public void updateCameraPitch(){
         limelightHardware2Axis.setServoAngles(0, Math.toDegrees(Math.atan(18/Math.sqrt(x3*x3+y3*y3))) );//22 should be hight difference of the camera and the april tags on the goals
+        telemetry.addData("pitch angle", Math.toDegrees(Math.atan(18/Math.sqrt(x3*x3+y3*y3))));
         //can change to be x only and not pythagors theorem if camera is supposed to look at both april tags
     };
 
