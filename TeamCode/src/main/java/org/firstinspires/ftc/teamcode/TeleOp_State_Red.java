@@ -75,6 +75,9 @@ public class TeleOp_State_Red extends LinearOpMode
 
     MotifKicking _kickMotif = new MotifKicking(_robot);
 
+    public boolean override = false;
+    public ElapsedTime overrideTimer = new ElapsedTime(3);
+
 
     enum position{
         Close,
@@ -120,9 +123,9 @@ public class TeleOp_State_Red extends LinearOpMode
         //------------------------------------------------------------------------------------------
         //--- Hardware Initialize
         //------------------------------------------------------------------------------------------
-//        _robot.shooter.initialize();
-//        // _robot.intake.initialize();
-//        _robot.lights.initialize();
+        _robot.shooter.initialize();
+       // _robot.intake.initialize();
+        _robot.lights.initialize();
 
         //------------------------------------------------------------------------------------------
         //--- Run until the end of the match (driver presses STOP)
@@ -145,7 +148,11 @@ public class TeleOp_State_Red extends LinearOpMode
                 alreadyShot = false;
             }
 
-
+            _robot.run();
+            if(gamepad1.a){
+                _kickMotif.setKick();
+            }
+            _kickMotif.checkKick();
 
             //_robot.driveRR.driveControl(1);
 
@@ -204,14 +211,6 @@ public class TeleOp_State_Red extends LinearOpMode
             }
 
 
-            if(gamepad2.left_trigger > 0.7) {
-                _robot.intake.forward();
-            }
-
-            if (gamepad2.right_trigger > 0.7){
-                _robot.intake.backward();
-            }
-
             if(gamepad2.left_bumper&&(shooterSpeedRpm>0)){
                 if(shooterSpeedRpm>10){
                     shooterSpeedRpm -=10;
@@ -226,7 +225,6 @@ public class TeleOp_State_Red extends LinearOpMode
                 if(shooterSpeedRpm<5990){
                     shooterSpeedRpm +=10;
                     shooterSpeedRpm3Ball +=10;
-
                 }
                 else{
                     shooterSpeedRpm = 6000;
@@ -291,6 +289,15 @@ public class TeleOp_State_Red extends LinearOpMode
                 }
 
             }
+            _robot.intake.run(override);
+            if (gamepad1.b){
+                _robot.kickers.kickMiddle();
+                override = true;
+                overrideTimer.reset();
+            }
+            if (overrideTimer.seconds() > 2 && override){
+                override = false;
+            }
 
 
             telemetry.addData("target speed one ball in rpm", shooterSpeedRpm);
@@ -311,12 +318,9 @@ public class TeleOp_State_Red extends LinearOpMode
             //------------------------------------------------------------------------------------------
             //--- Update Telemetry Display
             //------------------------------------------------------------------------------------------
-
             telemetry.update();
 
 
         }
     }
-
-
 }

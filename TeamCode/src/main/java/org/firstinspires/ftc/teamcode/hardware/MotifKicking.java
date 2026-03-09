@@ -16,6 +16,10 @@ public class MotifKicking {
     public static Motif GameMotif = Motif.PPG;
     private RobotHardware hardware;
 
+    private ElapsedTime myTimer = new ElapsedTime(2);
+
+    private int[] shootingSequence;
+
     public MotifKicking(RobotHardware hardware){
         this.hardware = hardware;
     }
@@ -112,7 +116,7 @@ public class MotifKicking {
 
         Motif intakeMotif = colorsToMotif(colors);
 
-        int[] shootingSequence = fireAutoKickerSeq(GameMotif, intakeMotif);
+        shootingSequence = fireAutoKickerSeq(GameMotif, intakeMotif);
 
         ElapsedTime timer = new ElapsedTime();
 
@@ -126,5 +130,48 @@ public class MotifKicking {
         hardware.kickers.retractKickerAuto(1);
         hardware.kickers.retractKickerAuto(2);
 
+    }
+
+    public void setKick(){
+
+        Intake_Incomplete.BallColor leftColor =
+                hardware.intake.detectBallSticky(hardware.intake._colorSensorLeft,
+                        hardware.intake._distanceSensorLeft, 85,
+                        hardware.intake._leftBallColor, "L");
+
+        Intake_Incomplete.BallColor middleColor =
+                hardware.intake.detectBallSticky(hardware.intake._colorSensorMiddle,
+                        hardware.intake._distanceSensorMiddle, 45,
+                        hardware.intake._middleBallColor, "M");
+
+        Intake_Incomplete.BallColor rightColor =
+                hardware.intake.detectBallSticky(hardware.intake._colorSensorRight,
+                        hardware.intake._distanceSensorRight, 85,
+                        hardware.intake._rightBallColor, "R");
+
+        Intake_Incomplete.BallColor[] colors = {leftColor, middleColor, rightColor};
+
+        Motif intakeMotif = colorsToMotif(colors);
+
+        shootingSequence = fireAutoKickerSeq(GameMotif, intakeMotif);
+
+        if(myTimer == null){
+            myTimer = new ElapsedTime();
+        }
+        myTimer.reset();
+    }
+
+    public void checkKick(){
+        if(myTimer.time() < 0.4){
+            hardware.kickers.fireKickerAuto(shootingSequence[0]);
+        }else if (myTimer.time() < 0.8){
+            hardware.kickers.fireKickerAuto(shootingSequence[1]);
+        }else if (myTimer.time() < 1.2){
+            hardware.kickers.fireKickerAuto(shootingSequence[2]);
+        }else if(myTimer.time() < 1.4){
+            hardware.kickers.retractKickerAuto(0);
+            hardware.kickers.retractKickerAuto(1);
+            hardware.kickers.retractKickerAuto(2);
+        }
     }
 }

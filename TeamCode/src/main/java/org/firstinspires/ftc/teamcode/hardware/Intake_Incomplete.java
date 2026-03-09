@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 //region --- Imports ---
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -10,7 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -103,6 +101,7 @@ public class Intake_Incomplete
     private boolean _leftIsSticky = false;
     private boolean _middleIsSticky = false;
     private boolean _rightIsSticky = false;
+    private boolean is3Found = false;
     //endregion
 
     //region --- Constructor
@@ -161,8 +160,12 @@ public class Intake_Incomplete
         _rightBallColor = BallColor.NONE;
     }
 
-    //--- Uses controls to control intake, outtake, and stop
     public void run(){
+        run(false);
+    }
+
+    //--- Uses controls to control intake, outtake, and stop
+    public void run(boolean overrideDistanceCheck){
         // change controls later
         if (_gamepad2.left_trigger>0.2){
             forward();
@@ -175,13 +178,21 @@ public class Intake_Incomplete
             stop();
             restoreLights();
         }
+        if (_leftBallColor != BallColor.NONE &&_leftBallColor != BallColor.UNKNOWN &&
+                _middleBallColor != BallColor.NONE &&_middleBallColor != BallColor.UNKNOWN &&
+                _rightBallColor != BallColor.NONE && _rightBallColor != BallColor.UNKNOWN &&
+                !is3Found){
+            backward();
+            is3Found = true;
+        }else{
+            is3Found = false;}
 //        if (_gamepad2.y && _gamepad2.left_stick_y > 0.5){
 //            intakePower = Math.min(1, intakePower + 0.005);
 //        } else if (_gamepad2.y && _gamepad2.left_stick_y < -0.5){
 //            intakePower = Math.max(0, intakePower - 0.005);
 //        }
 
-        detectBalls();
+        detectBalls(overrideDistanceCheck);
 //        _telemetry.addData("I detected the left ball", _leftBallColor);
 //        _telemetry.addData("I detected the middle ball", _middleBallColor);
 //        _telemetry.addData("I detected the right ball", _rightBallColor);
@@ -215,24 +226,27 @@ public class Intake_Incomplete
 
 
     //region --- Ball Detection ---
+    private void detectBalls(){
+        detectBalls(false);
+    }
 
-    private void detectBalls()
+    private void detectBalls(boolean overrideDistanceCheck)
     {
         //--- Update sensor buffers and detect balls using averaged values
         //--- Apply "sticky" color logic: only upgrade from UNKNOWN to a color, never downgrade
         _leftBallColor = detectBallSticky(
                 _colorSensorLeft, _distanceSensorLeft, LEFT_DISTANCE_THRESHOLD_MM,
-                _leftBallColor, "L");
+                _leftBallColor, "L", overrideDistanceCheck);
         //_leftBufferIndex = (_leftBufferIndex + 1) % AVERAGING_SAMPLES;
 
         _middleBallColor = detectBallSticky(
                 _colorSensorMiddle, _distanceSensorMiddle, MIDDLE_DISTANCE_THRESHOLD_MM,
-                _middleBallColor, "M");
+                _middleBallColor, "M", overrideDistanceCheck);
         //_middleBufferIndex = (_middleBufferIndex + 1) % AVERAGING_SAMPLES;
 
         _rightBallColor = detectBallSticky(
                 _colorSensorRight, _distanceSensorRight, RIGHT_DISTANCE_THRESHOLD_MM,
-                _rightBallColor, "R");
+                _rightBallColor, "R", overrideDistanceCheck);
         //_rightBufferIndex = (_rightBufferIndex + 1) % AVERAGING_SAMPLES;
     }
 
