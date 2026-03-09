@@ -392,10 +392,12 @@ public class LimelightHardware2Axis
         //TODO: what does this do
         _limelight.updateRobotOrientation(orientation.getYaw());
 
-        LLResult templlResult= _limelight.getLatestResult();
+        //LLResult templlResult= _limelight.getLatestResult();
+        _latestLLResult = _limelight.getLatestResult();
+        //LLResult templlResult = _limelight.getLatestResult();
 
-        if (templlResult != null && templlResult.isValid()) {
-            _latestLLResult = templlResult;  // update reference only if valid
+        if (_latestLLResult != null && _latestLLResult.isValid()) {
+            //_latestLLResult = templlResult;  // update reference only if valid
             List<LLResultTypes.FiducialResult> fiducials = _latestLLResult.getFiducialResults();
 
             if (fiducials != null && !fiducials.isEmpty()) {
@@ -425,7 +427,7 @@ public class LimelightHardware2Axis
                 // Show raw angles too
                 double tx = _latestLLResult.getTx();
 //                double ty = _latestLLResult.getTy();
-                _telemetry.addData("Tx (Horizontal)", String.format("%.2f°", tx));
+                //_telemetry.addData("Tx (Horizontal)", String.format("%.2f°", tx));
 //                _telemetry.addData("Ty (Vertical)", String.format("%.2f°", ty));
             } else {
                 _telemetry.addLine("No AprilTags detected");
@@ -433,20 +435,8 @@ public class LimelightHardware2Axis
 
             // Get robot pose if available
             Pose2D botPose2d = getRobotPos(_latestLLResult,null);
-            if (botPose2d != null) {
-                double x = botPose2d.getX(DistanceUnit.INCH);//converting from meters to inches
-                double y = botPose2d.getY(DistanceUnit.INCH);
-                double yaw = botPose2d.getHeading(AngleUnit.DEGREES);
+        }
 
-                _telemetry.addLine("--- Robot Pose ---");
-                _telemetry.addData("Position:", String.format("(%.2f, %.2f)", x, y));
-                _telemetry.addData("Heading:", String.format("%.2f°", yaw));
-            }
-        }
-        else {
-            _latestLLResult = null;
-            _telemetry.addLine("No valid Limelight result");
-        }
     }
     
     // gets robot position based on last stored off LLResult
@@ -466,14 +456,14 @@ public class LimelightHardware2Axis
      * Horizontal offset from crosshair to target (degrees)
      */
     public double getTx() {
-        if (_latestLLResult == null){
+        if (_latestLLResult == null || !_latestLLResult.isValid()){
             return 0.0;
         }
         return _latestLLResult.getTx();
     }
 
     public double getTxDegreesForId(int tagId){
-        if (_latestLLResult == null) {
+        if (_latestLLResult == null || !_latestLLResult.isValid()) {
             return 180.0;
         }
 
