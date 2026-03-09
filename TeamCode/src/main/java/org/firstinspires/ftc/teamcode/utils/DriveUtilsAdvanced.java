@@ -176,7 +176,7 @@ public class DriveUtilsAdvanced {
 //
 //        dashboard.sendTelemetryPacket(packet2);
 //
-//        double targetHeading = getTargetHeading(y4-14.55098425, x2-11.82122047);
+//        double targetHeading = getTargetHeading(y4-14.55098425, x4-11.82122047);
 //        double calcDif = calcDifference(targetHeading);//calc diff uses road
 ////if raodrunners drive class is not running then we will run our code and if we are within the correct range of the target heading
 //// we will power our motors with speed that is currently proportionaly with the heading angle we have to change*//
