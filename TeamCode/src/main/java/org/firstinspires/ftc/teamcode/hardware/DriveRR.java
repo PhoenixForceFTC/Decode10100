@@ -32,8 +32,8 @@ public class DriveRR
     //endregion
 
     //region --- Variables ---
-    private boolean _isSpeedFast = true; //--- Default movement speed mode
-    private boolean _isRotateFast = false; //--- Default rotation speed mode
+    private final boolean _isSpeedFast = true; //--- Default movement speed mode
+    private final boolean _isRotateFast = true; //--- Default rotation speed mode
     private boolean _wasLeftStickButtonPressed = false;
     private boolean _wasRightStickButtonPressed = false;
     //endregion
@@ -72,13 +72,13 @@ public class DriveRR
     {
         if (_gamepad.left_stick_button && !_wasLeftStickButtonPressed)
         {
-            _isSpeedFast = !_isSpeedFast; //--- Toggle movement speed
+            //_isSpeedFast = !_isSpeedFast; //--- Toggle movement speed
         }
         _wasLeftStickButtonPressed = _gamepad.left_stick_button;
 
         if (_gamepad.right_stick_button && !_wasRightStickButtonPressed)
         {
-            _isRotateFast = !_isRotateFast; //--- Toggle rotation speed
+           // _isRotateFast = !_isRotateFast; //--- Toggle rotation speed
         }
         _wasRightStickButtonPressed = _gamepad.right_stick_button;
 

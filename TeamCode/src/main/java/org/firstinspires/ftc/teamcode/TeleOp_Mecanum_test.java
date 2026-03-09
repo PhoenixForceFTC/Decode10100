@@ -9,7 +9,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.hardware.Shooter;
 import org.firstinspires.ftc.teamcode.utils.DriveUtilsAdvanced;
+import org.firstinspires.ftc.teamcode.utils.Location;
 import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //endregion
 
@@ -94,10 +96,13 @@ public class TeleOp_Mecanum_test extends LinearOpMode
         //------------------------------------------------------------------------------------------
         int robotVersion = 1; //--- 1 for CRAB-IER and 2 for ARIEL
         int shooterSpeedRpm = 0;
+        int shooterSpeedRpm3Ball = 0;
         boolean isThreeBallMode = false;
         position robotPosition = position.None;
 
         _robot.init(robotVersion);
+        _driveUtilsAdvanced = new DriveUtilsAdvanced(hardwareMap, Location.pose,_robot.drive,
+                _robot.limelightHardware2Axis,this.telemetry,false, _robot);
         RisingEdge g1RE = new RisingEdge();
 
         //------------------------------------------------------------------------------------------
@@ -138,12 +143,12 @@ public class TeleOp_Mecanum_test extends LinearOpMode
             //------------------------------------------------------------------------------------------
            // _robot.drive.driveControl(0.5); //--- Both D-pad for directional movement and Joysticks for mecanum movement
 
-            _robot.limelightHardware2Axis.loop();
+            //_robot.limelightHardware2Axis.loop();
             if (gamepad1.a) { // hold 'A' to auto-align
                 if (_robot.limelightHardware2Axis.hasValidTarget()) {
                     double tx = _robot.limelightHardware2Axis.getTx();
-                    double turnPower = 0.02 * tx;
-                    if (Math.abs(tx) < 0.085) turnPower = 0;
+                    double turnPower = 0.025 * tx;
+                    if (Math.abs(tx) < 0.05) turnPower = 0;
 
                     // Rotate only
                     _robot.driveRR.mecanumDrive.setDrivePowers(new PoseVelocity2d(new Vector2d(0,0), -turnPower));
@@ -159,13 +164,30 @@ public class TeleOp_Mecanum_test extends LinearOpMode
                 _robot.driveRR.driveControl(1.0);
             }
 
-            _robot.driveRR.mecanumDrive.updatePoseEstimate();
+            _driveUtilsAdvanced.updateCameraPitch(); // so we can find the april tag
+            _robot.limelightHardware2Axis.loop();  // store off _latestLLResult, tag/robot pos telemetry
+            _robot.limelightHardware2Axis.servos();  // update servo positions based on pitch
+            _driveUtilsAdvanced.reset(true);
+           // _driveUtilsAdvanced.reset(true);  // based on camera, update localizer position
 
-            Pose2d pose = _robot.driveRR.getPosition();
-            telemetry.addData("x", pose.position.x);
-            telemetry.addData("y", pose.position.y);
-            telemetry.addData("heading", pose.heading);
-            telemetry.update();
+
+            if(_driveUtilsAdvanced.driveMecanum(gamepad1,_robot.kickers)){
+                boolean alreadyShot = true;
+                if(!alreadyShot) {
+                    if (isThreeBallMode) {
+                        if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60, _robot.shooter.getSpeed(),
+                                true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
+                                3,_robot.intake)) {
+                            _driveUtilsAdvanced.endAutoAlign();
+                            alreadyShot = false;
+                        }
+                    } else {
+                       // _kickMotif.kickForMotifTeleOp();
+                        _driveUtilsAdvanced.endAutoAlign();
+                        alreadyShot = false;
+                    }
+                }
+            }
 
 
             if (gamepad2.b){
@@ -192,11 +214,22 @@ public class TeleOp_Mecanum_test extends LinearOpMode
                 _robot.kickers.kickMiddle();
             }
 
-            //shooterSpeedRpm=Math.round((float) ((_driveUtilsAdvanced.getDist()*10.1)+1630) );
+            shooterSpeedRpm=Math.round((float) ((_driveUtilsAdvanced.getDist()*10.1)+1630) );
+
+            if(isThreeBallMode){
+                _robot.shooter.shoot(shooterSpeedRpm3Ball);
+            }
+            else{
+                _robot.shooter.shoot(shooterSpeedRpm);
+
+            }
 
             _robot.kickers.run(_robot.shooter.speed,_robot.shooter.getSpeed(),true);
             _robot.intake.run();
-            _robot.shooter.shoot(shooterSpeedRpm);
+            //_robot.shooter.shoot(shooterSpeedRpm);
+            telemetry.addData("dist", _driveUtilsAdvanced.getDist());
+            telemetry.addData("shooter speed", shooterSpeedRpm);
+
 
 
             //------------------------------------------------------------------------------------------

@@ -49,9 +49,6 @@ public class Auto_Blue_Far extends LinearOpMode{
         _robot.limelightHardware2Axis.servos();
         _TargetMotif = _robot.limelightHardware2Axis.getObliskTagId();
 
-
-        // _TargetMotif = _robot.limelightHardware2Axis.getObliskTagId();
-
         while (!isStarted()) {
             _robot.limelightHardware2Axis.loop();
             if(_robot.limelightHardware2Axis.fiducialResultsContain(21)){
@@ -88,7 +85,7 @@ public class Auto_Blue_Far extends LinearOpMode{
         int[] thirdSpikeKickingOrder = fireAutoKickerSeq(_TargetMotif, LimelightHardware2Axis.Motif.GPP);
 
         //Action trajectoryActionBuilder = _robot.driveRR.mecanumDrive.actionBuilder(_beginPos);
-        int fastSpeed = 3020;
+        int fastSpeed = 3015;
 
         TrajectoryActionBuilder trajectoryActionBuilder = drive.actionBuilder(_beginPos)
                 // starts intake and shooter
@@ -97,7 +94,7 @@ public class Auto_Blue_Far extends LinearOpMode{
                 // move to shooting area
 
 
-                .strafeToSplineHeading(new Vector2d(-56, 12), Math.toRadians(40))
+                .strafeToSplineHeading(new Vector2d(-56, 12), Math.toRadians(34))
                 .waitSeconds(1.6)
                 //.stopAndAdd(new AutoActions.waitForShooter(_robot, fastSpeed))
                 .stopAndAdd(new AutoActions.shootKickingColor(_robot, 80, _TargetMotifAction))
@@ -107,7 +104,7 @@ public class Auto_Blue_Far extends LinearOpMode{
 
                 //intakes first spike
                 .stopAndAdd(new AutoActions.IntakeRunFast(_robot, 0.6))
-                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2330))
+                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2335))
                 .strafeToSplineHeading(new Vector2d(-25, 23), Math.toRadians(47), fastVelConstraint, fastAccelConstraint)
                 .strafeToSplineHeading(new Vector2d(-5, 55), Math.toRadians(45), fastVelConstraint, fastAccelConstraint)
                 .waitSeconds(0.1)
@@ -149,7 +146,7 @@ public class Auto_Blue_Far extends LinearOpMode{
                 .waitSeconds(0.25)
 
                 //shoots third spike
-                .strafeToSplineHeading(new Vector2d(-56, 12), Math.toRadians(17))
+                .strafeToSplineHeading(new Vector2d(-56, 12), Math.toRadians(15))
                 .stopAndAdd(new AutoActions.shootKickingColor(_robot, 80, _TargetMotifAction))
                 .waitSeconds(0.5)
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot))
