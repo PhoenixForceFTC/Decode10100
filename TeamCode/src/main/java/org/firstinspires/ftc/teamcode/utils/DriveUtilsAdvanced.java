@@ -30,6 +30,7 @@ import java.util.List;
 //TODO: important things to do
 //TODO: make it only auto shoot the balls after align if in the shooting zone
 //TODO: fix the camera
+//TODO: try to use the dcmotorex on shooters to detect current
 //auto reverse intake
 //lights flash red when shoot
 //shooting while moving

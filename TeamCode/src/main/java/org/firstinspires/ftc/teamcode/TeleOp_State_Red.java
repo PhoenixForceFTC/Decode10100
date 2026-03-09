@@ -267,7 +267,7 @@ public class TeleOp_State_Red extends LinearOpMode
             }
 
             flyWheelsSpeed =_robot.shooter.getSpeedRPM();
-            if(isThreeBallMode){
+            if(isThreeBallMode || _driveUtilsAdvanced.isAligning){
                 if(flyWheelsSpeed<shooterSpeedRpm3Ball-88.8){
                     _robot.shooter.shoot(shooterSpeedRpm3Ball);
 
@@ -280,7 +280,7 @@ public class TeleOp_State_Red extends LinearOpMode
                 }
             }
             else{
-                if(_robot.shooter.getSpeedRPM()<shooterSpeedRpm-80.8){
+                if(_robot.shooter.getSpeedRPM()<shooterSpeedRpm-80.8 || _driveUtilsAdvanced.isAligning){
                     _robot.shooter.shoot(shooterSpeedRpm);
                 }else if(_driveUtilsAdvanced.isAligning || (flyWheelsSpeed-shooterSpeedRpm>101)){
                     if(flyWheelsSpeed-shooterSpeedRpm<200) {
