@@ -222,7 +222,7 @@ public class DriveUtilsAdvanced {
             double[] distBreakdown = limelightHardware2Axis.getDistanceBreakdown();
             //distBreakdown = null; // temp todo: can we just use
             double angleToTurnFromCamera = limelightHardware2Axis.getTxDegreesForId(this.targetTagId);
-            if(Math.abs(angleToTurnFromCamera)< 0.5){ // within 2 degrees
+            if(Math.abs(angleToTurnFromCamera)< 1){ // within 2 degrees
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,0); // done turn off power
                 return true;
             }
@@ -233,10 +233,10 @@ public class DriveUtilsAdvanced {
             {
                 //todo: fix the camera auto aligning
                 //chnge to do atan using trig and subtracting the heading from the loclizer
-                telemetry.addData("Turning Auto by",angleToTurnFromCamera*0.02);
+
 
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,
-                        angleToTurnFromCamera*0.02);//-angleToTurnFromCamera bc posotive turn makes it turn clockwise in the method
+                        Math.toRadians(angleToTurnFromCamera));//-angleToTurnFromCamera bc posotive turn makes it turn clockwise in the method
                 //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
                 // todo: temp uncomment line above and enable camera
                 //auto aligns using roadrunner position do first disable once camera works
@@ -250,7 +250,7 @@ public class DriveUtilsAdvanced {
 
     // call from OpMode loop, to see what calcDiff is currently
     public void printCalcDiff(){
-        double targetHeading = getTargetHeading(y4-14.55098425, x2-11.82122047);
+        double targetHeading = getTargetHeading(y4-14.55098425, x4-11.82122047);
         double calcDif = calcDifference(targetHeading);
 
         telemetry.addData("Calc Turn Val:",Math.toDegrees(calcDif));
@@ -265,7 +265,7 @@ public class DriveUtilsAdvanced {
    public void autoAlign(){
         isAligning=true;
 
-        double targetHeading = getTargetHeading(y4-14.55098425, x2-11.82122047);
+        double targetHeading = getTargetHeading(y4-14.55098425, x4-11.82122047);
         double calcDif = calcDifference(targetHeading);
 
         //drive.arcadeDriveSpeedControl2(0, 0, 0, calcDif/2);
@@ -273,17 +273,17 @@ public class DriveUtilsAdvanced {
         driveClass.updatePoseEstimate();  // only dashboard update
         if(runningActions.isEmpty()) {
             //todo: uncomment out once you get both calcdif and camera alignign working because those are always aligning and are more accurate
-//            runningActions.add(driveClass.actionBuilder(driveClass.localizer.getPose())
-//                    .turn(-calcDif)
-//                    .build()
-//            );
+            runningActions.add(driveClass.actionBuilder(driveClass.localizer.getPose())
+                    .turn(-calcDif)
+                    .build()
+            );
         }
     }
 
     private double getTargetHeading(double targetLocationY, double targetLocationX) {
-        double targetHeading = Math.atan2(targetLocationY, targetLocationX);
+        double targetHeading = Math.atan2(-targetLocationY, -targetLocationX);
         if (!isBlue) {
-            targetHeading = Math.atan2(-targetLocationY, targetLocationX);
+            targetHeading = Math.atan2(targetLocationY, -targetLocationX);
         }
         return targetHeading;
     }
@@ -338,11 +338,9 @@ public class DriveUtilsAdvanced {
 
         TelemetryPacket packet = new TelemetryPacket();
             Canvas c = packet.fieldOverlay();
-
-        //
         Pose2D botPose = limelightHardware2Axis.getRobotPos(c); // is null when camera cannot tell position
-        if(runningActions.isEmpty()){
 
+        if(runningActions.isEmpty()){
             if(botPose!=null&&reset){
                 if( Math.abs(botPose.getHeading(AngleUnit.RADIANS)-driveClass.localizer.getPose().heading.toDouble()) < Math.PI/16){
                     // TODO: why does it only reset if the error is above 4 inches
@@ -358,8 +356,4 @@ public class DriveUtilsAdvanced {
         Drawing.drawRobot(c, driveClass.localizer.getPose());
         dashboard.sendTelemetryPacket(packet);
     }
-
-
-
-
 }
