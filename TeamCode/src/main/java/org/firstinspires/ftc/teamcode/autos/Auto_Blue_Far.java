@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.RobotHardware;
 import org.firstinspires.ftc.teamcode.hardware.LimelightHardware2Axis;
 import org.firstinspires.ftc.teamcode.hardware.MotifKicking;
 import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
+import org.firstinspires.ftc.teamcode.utils.Location;
 
 import java.util.Arrays;
 
@@ -70,10 +71,14 @@ public class Auto_Blue_Far extends LinearOpMode{
 
             }
             telemetry.addData("target motif", _TargetMotif.toString());
+            telemetry.addData("location string in teleopState", Location.pose.toString());
+            telemetry.addData("Class Hash in teleopState", Location.class.hashCode());
             telemetry.update();
             MotifKicking.updateMotif(_TargetMotifAction);
         }
        telemetry.addData("target motif", _TargetMotif.toString());
+        telemetry.addData("location string in teleopState", Location.pose.toString());
+        telemetry.addData("Class Hash in teleopState", Location.class.hashCode());
         telemetry.update();
         _robot.limelightHardware2Axis.servos();
         int[] initialKickingOrder = fireAutoKickerSeq(_TargetMotif, LimelightHardware2Axis.Motif.PPG);

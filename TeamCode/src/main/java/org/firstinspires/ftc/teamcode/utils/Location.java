@@ -2,9 +2,9 @@ package org.firstinspires.ftc.teamcode.utils;
 import com.acmerobotics.roadrunner.Pose2d;
 
 public class Location {
-    public static double x = 0;
-    public static double y = 0;
-    public static double heading = 0;
+    public static double x = -1;
+    public static double y = -1;
+    public static double heading = -1;
     public static Pose2d pose = new Pose2d(x,y,heading);
 
     public Location(){

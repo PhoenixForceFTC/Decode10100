@@ -97,7 +97,7 @@ public class TeleOp_State_Red extends LinearOpMode {
         int robotVersion = 1; //--- 1 for CRAB-IER and 2 for ARIEL
         int shooterSpeedRpm = 0;
         int shooterSpeedRpm3Ball = 0;
-        boolean isThreeBallMode = false;
+        boolean isThreeBallMode = true;
         boolean isAutoSpeed = true;
         boolean alreadyShot = false;
         double flyWheelsSpeed = 0;
@@ -105,6 +105,8 @@ public class TeleOp_State_Red extends LinearOpMode {
         position robotPosition = position.None;
 
         _robot.init(robotVersion);
+        telemetry.addData("location string in teleopState", Location.pose.toString());
+        telemetry.addData("Class Hash in teleopState", Location.class.hashCode());
         _driveUtilsAdvanced = new DriveUtilsAdvanced(hardwareMap, Location.pose, _robot.drive,
                 _robot.limelightHardware2Axis, this.telemetry, isBlue, _robot);
 

@@ -31,6 +31,7 @@ import java.util.List;
 //TODO: make it only auto shoot the balls after align if in the shooting zone
 //TODO: fix the camera
 //TODO: try to use the dcmotorex on shooters to detect current
+//TODO: only reset position if auto was the last thing run
 //auto reverse intake
 //lights flash red when shoot
 //shooting while moving
@@ -68,10 +69,13 @@ public class DriveUtilsAdvanced {
     private MecanumDrive driveClass;
 
     private LimelightHardware2Axis limelightHardware2Axis;
-    static double adjustDegrees = 6;
-    double adjustmentDegrees(){//higher value will turn it more counterclockwise on blue and more clockwise on red
-        //should be less strong in the back
-        return adjustDegrees;
+
+    double adjustmentDegrees(){//higher value will turn it more clockwise
+        if(isBlue){
+            return -8;
+        }else{
+            return -2;
+        }
      };
     public DriveUtilsAdvanced(HardwareMap hardwareMap, Pose2d pose, Drive drive,LimelightHardware2Axis limelightHardware2Axis,
                               Telemetry telemetry,Boolean isBlue, RobotHardware robotHardware){
@@ -197,11 +201,9 @@ public class DriveUtilsAdvanced {
         double targetHeading = getTargetHeading(y4-14.55098425, x4-11.82122047);
         double calcDif = calcDifference(targetHeading);//calc diff uses road
 
-        if(isBlue){
-            calcDif-=Math.toRadians(adjustmentDegrees());
-        }else{
-            calcDif+=Math.toRadians(adjustmentDegrees());
-        }
+
+        calcDif+=Math.toRadians(adjustmentDegrees());
+
 
 
 
@@ -251,14 +253,14 @@ public class DriveUtilsAdvanced {
             double[] distBreakdown = limelightHardware2Axis.getDistanceBreakdown();
             //distBreakdown = null; // temp todo: can we just use
             double angleToTurnFromCamera = limelightHardware2Axis.getTxDegreesForId(this.targetTagId);
-            if(isBlue){
-                calcDif-= adjustmentDegrees();
-            }else{
-               calcDif+= adjustmentDegrees();
-            }
+
+            calcDif += Math.toRadians(adjustmentDegrees());
+            angleToTurnFromCamera+= adjustmentDegrees();
             if(Math.abs(angleToTurnFromCamera)< 1){ // within 2 degrees
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,0); // done turn off power
-                return true;
+                if(dxdt<0.1&&dydt<0.1&&yaw<0.1) {
+                    return true;
+                }
             }
             if(/*distBreakdown == null */angleToTurnFromCamera > (double)120.0){
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
@@ -271,7 +273,7 @@ public class DriveUtilsAdvanced {
                 //posibilty not usiing camera is better
                 //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,
-                        Math.toRadians(angleToTurnFromCamera));//-angleToTurnFromCamera bc posotive turn makes it turn clockwise in the method
+                        Math.toRadians(angleToTurnFromCamera)*0.8);//-angleToTurnFromCamera bc posotive turn makes it turn clockwise in the method
                 //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
                 // todo: temp uncomment line above and enable camera
                 //auto aligns using roadrunner position do first disable once camera works
@@ -302,11 +304,9 @@ public class DriveUtilsAdvanced {
 
         double targetHeading = getTargetHeading(y4-14.55098425, x4-11.82122047);
         double calcDif = calcDifference(targetHeading);
-        if(isBlue){
-            calcDif-=Math.toRadians(adjustmentDegrees());
-        }else{
-            calcDif+=Math.toRadians(adjustmentDegrees());
-        }
+
+        calcDif+=Math.toRadians(adjustmentDegrees());
+
 
         //drive.arcadeDriveSpeedControl2(0, 0, 0, calcDif/2);
         //drive.arcadeDriveSpeedControl2(0, 0, 0, 0);  -> anyway done when skipDrive is setup
