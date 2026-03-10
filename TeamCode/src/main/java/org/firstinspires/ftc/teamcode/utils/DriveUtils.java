@@ -10,8 +10,8 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 @Config
 public class DriveUtils
 {
-    // public static double FrontMultiplier = 1.2;
     public static double FrontMultiplier = 1.2;
+    //public static double FrontMultiplier = 1;
 
     //--- Arcade Drive Method
     public static void arcadeDrive(DcMotor frontLeft, DcMotor frontRight, DcMotor rearLeft, DcMotor rearRight,

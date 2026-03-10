@@ -228,9 +228,12 @@ public class TeleOp_State_Red extends LinearOpMode {
                 }
             }
             //y close x mid a far and b toggle between 3 and 1
+            double dist = _driveUtilsAdvanced.getDist();
 
             if (!isThreeBallMode && isAutoSpeed) {
-                shooterSpeedRpm = Math.round((float) ((_driveUtilsAdvanced.getDist() * 10.1) + 1630));
+                // shooterSpeedRpm = Math.round((float) ((_driveUtilsAdvanced.getDist() * 10.1) + 1630));
+                shooterSpeedRpm = Math.round((float) (2667 + (dist * -31.6) + (0.597 * (dist * dist)) -
+                        (0.00375 * dist * dist * dist) + (0.00000895 * dist * dist * dist * dist)));
             } else {
                 shooterSpeedRpm3Ball = Math.round((float) ((_driveUtilsAdvanced.getDist() * 11.1) + 1887));
             }

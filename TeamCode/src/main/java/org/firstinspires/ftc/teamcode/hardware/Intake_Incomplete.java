@@ -182,10 +182,11 @@ public class Intake_Incomplete
                 _middleBallColor != BallColor.NONE &&_middleBallColor != BallColor.UNKNOWN &&
                 _rightBallColor != BallColor.NONE && _rightBallColor != BallColor.UNKNOWN &&
                 !is3Found){
-            forward();
+            //forward(); //commented this out for now
             is3Found = true;
         }else{
-            is3Found = false;}
+            is3Found = false;
+        }
 //        if (_gamepad2.y && _gamepad2.left_stick_y > 0.5){
 //            intakePower = Math.min(1, intakePower + 0.005);
 //        } else if (_gamepad2.y && _gamepad2.left_stick_y < -0.5){
@@ -205,6 +206,8 @@ public class Intake_Incomplete
         //_telemetry.addData("Intake Power: ", intakePower);
         //--- Only detect balls and update lights while intaking or outtaking
     }
+
+
 
     public void setColorSensors(ColorSensor left, ColorSensor middle, ColorSensor right)
     {

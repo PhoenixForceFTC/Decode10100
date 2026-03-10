@@ -32,9 +32,9 @@ public class Kickers
     private final double zeroM = 0.6;
     private final double middleM = 0.45;
 
-    private final double kickedR = 0.65;
-    private final double zeroR = 0.35;
-    private final double middleR = 0.5;
+    private final double kickedR = 0.6;
+    private final double zeroR = 0.3;
+    private final double middleR = 0.45;
     // delay before going to zero position
     private final double KICKER_ACTION_DELAY = 1.0;
     private final double GLOBAL_ACTION_DELAY = 0.1;

@@ -20,7 +20,7 @@ public class Drive
 
     //region --- Variables ---
     private boolean _isSpeedFast = true; //--- Default movement speed mode
-    private boolean _isRotateFast = false; //--- Default rotation speed mode
+    private boolean _isRotateFast = true; //--- Default rotation speed mode
     private boolean _wasLeftStickButtonPressed = false;
     private boolean _wasRightStickButtonPressed = false;
     //endregion
