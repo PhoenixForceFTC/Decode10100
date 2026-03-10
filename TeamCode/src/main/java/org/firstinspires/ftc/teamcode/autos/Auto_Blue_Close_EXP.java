@@ -20,8 +20,8 @@ import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 import java.util.Arrays;
 
 
-@Autonomous(name="Blue_Close_State", group="!State")
-public class Auto_Blue_Close extends LinearOpMode{
+@Autonomous(name="Blue_Close_State_Candidate")
+public class Auto_Blue_Close_EXP extends LinearOpMode{
     RobotHardware _robot = new RobotHardware(this);
     private LimelightHardware2Axis.Motif _TargetMotif;
     private AutoActions.Motif _TargetMotifAction;
@@ -111,14 +111,14 @@ public class Auto_Blue_Close extends LinearOpMode{
                 .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2200))
 
                 //go to first spike
-                .strafeToSplineHeading(new Vector2d(6, 20), Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
-                .strafeToSplineHeading(new Vector2d(6, 60), Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(30, 32), Math.toRadians(179), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(6, 30), Math.toRadians(179), fastVelConstraint, fastAccelConstraint)
                 //.turn((3*Math.PI)/4)
                 //.strafeToSplineHeading(new Vector2d(-6, -58), -Math.PI/6, fastVelConstraint)
                 //.strafeToSplineHeading(new Vector2d(-4, -60), Math.PI/6, fastVelConstraint)
 
 //                //clear gate
-                .strafeToSplineHeading(new Vector2d(0, 35), Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
+                //.strafeToSplineHeading(new Vector2d(0, 35), Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
                 .strafeToSplineHeading(new Vector2d(0, 57), Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
 //                //.turn(Math.PI/3)
 //                //.strafeToSplineHeading(new Vector2d(0, -68), 0, fastVelConstraint)
@@ -138,11 +138,11 @@ public class Auto_Blue_Close extends LinearOpMode{
 //
 //                //second spike
                 //.strafeToSplineHeading(new Vector2d(-34, 15), Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
-                .strafeToSplineHeading(new Vector2d(-60, 28), Math.toRadians(33), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(-34, 30), Math.toRadians(179), fastVelConstraint, fastAccelConstraint)
 //
                 //back to shooting zone
                 .waitSeconds(0.5)
-                .strafeToSplineHeading(new Vector2d(-20, 32), Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
+                //.strafeToSplineHeading(new Vector2d(-20, 32), Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
                 .strafeToSplineHeading(new Vector2d(54, 34), Math.toRadians(40), fastVelConstraint, fastAccelConstraint)
                 .strafeToSplineHeading(new Vector2d(56, 32), Math.toRadians(40), fastVelConstraint, fastAccelConstraint)
 //
@@ -153,13 +153,13 @@ public class Auto_Blue_Close extends LinearOpMode{
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot))
 
                 //third spike
-                .strafeToSplineHeading(new Vector2d(-60, 10), Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
-                .strafeToSplineHeading(new Vector2d(-50, 67), Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
+                //.strafeToSplineHeading(new Vector2d(-60, 10), Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(-50, 67), Math.toRadians(135), fastVelConstraint, fastAccelConstraint)
 
                 //back to shooting zone
                 .waitSeconds(0.5)
                 //.strafeToSplineHeading(new Vector2d(-20, 32), Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
-                .strafeToSplineHeading(new Vector2d(-60, 28), Math.toRadians(33), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(-20, 32), Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
 
                 // shoots the third spike
                 .stopAndAdd(new AutoActions.shootKickingColor(_robot, 80, _TargetMotifAction))

@@ -16,13 +16,12 @@ import org.firstinspires.ftc.teamcode.RobotHardware;
 import org.firstinspires.ftc.teamcode.hardware.LimelightHardware2Axis;
 import org.firstinspires.ftc.teamcode.hardware.MotifKicking;
 import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
-import org.firstinspires.ftc.teamcode.utils.Location;
 
 import java.util.Arrays;
 
 
-@Autonomous(name="Blue Far State", group="!State")
-public class Auto_Blue_Far extends LinearOpMode{
+@Autonomous(name="Red Far State", group="!State")
+public class Auton_Red_Far extends LinearOpMode{
     RobotHardware _robot = new RobotHardware(this);
     private LimelightHardware2Axis.Motif _TargetMotif;
 
@@ -41,7 +40,7 @@ public class Auto_Blue_Far extends LinearOpMode{
         _robot.init(1); // Initialize robot parts
         //_TargetMotif = _robot.limelightHardware2Axis.getObliskTagId();
 
-        Pose2d _beginPos = new Pose2d(-63, 16, 0);
+        Pose2d _beginPos = new Pose2d(-63, -16, 0);
         MecanumDrive drive = new MecanumDrive(hardwareMap,_beginPos);
 
         //waitForStart();
@@ -71,14 +70,10 @@ public class Auto_Blue_Far extends LinearOpMode{
 
             }
             telemetry.addData("target motif", _TargetMotif.toString());
-            telemetry.addData("location string in teleopState", Location.pose.toString());
-            telemetry.addData("Class Hash in teleopState", Location.class.hashCode());
             telemetry.update();
             MotifKicking.updateMotif(_TargetMotifAction);
         }
        telemetry.addData("target motif", _TargetMotif.toString());
-        telemetry.addData("location string in teleopState", Location.pose.toString());
-        telemetry.addData("Class Hash in teleopState", Location.class.hashCode());
         telemetry.update();
         _robot.limelightHardware2Axis.servos();
         int[] initialKickingOrder = fireAutoKickerSeq(_TargetMotif, LimelightHardware2Axis.Motif.PPG);
@@ -94,12 +89,12 @@ public class Auto_Blue_Far extends LinearOpMode{
 
         TrajectoryActionBuilder trajectoryActionBuilder = drive.actionBuilder(_beginPos)
                 // starts intake and shooter
-                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2980)) // speed is placeholder
+                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2970)) // speed is placeholder
 
                 // move to shooting area
 
 
-                .strafeToSplineHeading(new Vector2d(-56, 12), Math.toRadians(32))
+                .strafeToSplineHeading(new Vector2d(-56, -12), -Math.toRadians(34))
                 .waitSeconds(1.6)
                 //.stopAndAdd(new AutoActions.waitForShooter(_robot, fastSpeed))
                 .stopAndAdd(new AutoActions.shootKickingColor(_robot, 80, _TargetMotifAction))
@@ -109,36 +104,34 @@ public class Auto_Blue_Far extends LinearOpMode{
 
                 //intakes first spike
                 .stopAndAdd(new AutoActions.IntakeRunFast(_robot, 0.6))
-                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2395))
-                .strafeToSplineHeading(new Vector2d(-23, 21), Math.toRadians(47), fastVelConstraint, fastAccelConstraint)
-                .strafeToSplineHeading(new Vector2d(-3, 53), Math.toRadians(45), fastVelConstraint, fastAccelConstraint)
+                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2335))
+                .strafeToSplineHeading(new Vector2d(-25, -23), -Math.toRadians(47), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(-5, -55), -Math.toRadians(45), fastVelConstraint, fastAccelConstraint)
                 .waitSeconds(0.1)
 
                 //opens gate
-                .strafeToSplineHeading(new Vector2d(-3, 54), Math.toRadians(93), fastVelConstraint, fastAccelConstraint)
-                .strafeToSplineHeading(new Vector2d(-2, 57), Math.toRadians(93), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(-3, -58), -Math.toRadians(93), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(-2, -61), -Math.toRadians(93), fastVelConstraint, fastAccelConstraint)
 
                 .stopAndAdd(new AutoActions.IntakeRunFast(_robot, 0.6))
 
                 //shoots first spike
                 .waitSeconds(0.3)
-                .strafeToSplineHeading(new Vector2d(-2, 20), Math.toRadians(39), fastVelConstraint, fastAccelConstraint)
-                .strafeToSplineHeading(new Vector2d(16, 11), Math.toRadians(39), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(-2, -20), -Math.toRadians(37), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(16, -11), -Math.toRadians(37), fastVelConstraint, fastAccelConstraint)
                 .waitSeconds(0.1)
                 .stopAndAdd(new AutoActions.shootKickingColor(_robot, 80, _TargetMotifAction))
                 .waitSeconds(0.6)
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot))
                 .waitSeconds(0.1)
-                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2365))
 
                 // intakes second spike
-                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2365))
-                .strafeToSplineHeading(new Vector2d(12, 32), Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
-                .strafeToSplineHeading(new Vector2d(12, 58), Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(12, -32), -Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(12, -58), -Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
                 .waitSeconds(0.1)
 
                 //shoots second spike
-                .strafeToSplineHeading(new Vector2d(16, 11), Math.toRadians(38), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(16, -11), -Math.toRadians(38 ), fastVelConstraint, fastAccelConstraint)
                 .waitSeconds(0.1)
                 .stopAndAdd(new AutoActions.shootKickingColor(_robot, 80, _TargetMotifAction))
                 .waitSeconds(0.5)
@@ -146,20 +139,20 @@ public class Auto_Blue_Far extends LinearOpMode{
                 .waitSeconds(0.1)
 
                 //intakes third spike
-                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 3005))
-                .strafeToSplineHeading(new Vector2d(-46, 10), Math.toRadians(94), fastVelConstraint, fastAccelConstraint)
+                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2985))
+                .strafeToSplineHeading(new Vector2d(-46, -10), -Math.toRadians(94), fastVelConstraint, fastAccelConstraint)
                 .waitSeconds(0.2)
-                .strafeToSplineHeading(new Vector2d(-46, 62), Math.toRadians(92), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(-46, -62), -Math.toRadians(92), fastVelConstraint, fastAccelConstraint)
                 .waitSeconds(0.25)
 
                 //shoots third spike
-                .strafeToSplineHeading(new Vector2d(-56, 12), Math.toRadians(15))
+                .strafeToSplineHeading(new Vector2d(-56, -12), -Math.toRadians(15))
                 .stopAndAdd(new AutoActions.shootKickingColor(_robot, 80, _TargetMotifAction))
                 .waitSeconds(0.5)
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot))
                 .waitSeconds(0.1)
 
-                .strafeToSplineHeading(new Vector2d(-56, 48), Math.toRadians(0));
+                .strafeToSplineHeading(new Vector2d(-56, -48), -Math.toRadians(0));
 
               /*  .strafeToSplineHeading(new Vector2d(-33, 32), Math.toRadians(90))
                 .waitSeconds(0.1)

@@ -182,7 +182,7 @@ public class Intake_Incomplete
                 _middleBallColor != BallColor.NONE &&_middleBallColor != BallColor.UNKNOWN &&
                 _rightBallColor != BallColor.NONE && _rightBallColor != BallColor.UNKNOWN &&
                 !is3Found){
-            //forward(); //commented this out for now
+            forward();
             is3Found = true;
         }else{
             is3Found = false;
