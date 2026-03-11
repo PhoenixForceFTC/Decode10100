@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.RobotHardware;
 import org.firstinspires.ftc.teamcode.hardware.LimelightHardware2Axis;
 import org.firstinspires.ftc.teamcode.hardware.MotifKicking;
 import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
+import org.firstinspires.ftc.teamcode.utils.Location;
 
 import java.util.Arrays;
 
@@ -42,6 +43,7 @@ public class Auton_Red_Far extends LinearOpMode{
 
         Pose2d _beginPos = new Pose2d(-63, -16, 0);
         MecanumDrive drive = new MecanumDrive(hardwareMap,_beginPos);
+        Location.SetPose(_beginPos);
 
         //waitForStart();
         _robot.limelightHardware2Axis.setPipeline(1);

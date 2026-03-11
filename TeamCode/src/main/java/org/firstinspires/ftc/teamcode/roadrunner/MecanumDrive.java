@@ -454,7 +454,7 @@ MecanumDrive {
     public PoseVelocity2d updatePoseEstimate() {
         PoseVelocity2d vel = localizer.update();
         poseHistory.add(localizer.getPose());
-        Location.pose = localizer.getPose();
+        Location.SetPose(localizer.getPose());
         
         while (poseHistory.size() > 100) {
             poseHistory.removeFirst();

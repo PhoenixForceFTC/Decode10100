@@ -16,11 +16,14 @@ public class Location {
         this.heading = heading;
         this.pose = new Pose2d(x,y,heading);
     }
-    public void setPose(Pose2d pose){
-        this.pose = pose;
-        this.x = pose.position.x;
-        this.y = pose.position.y;
-        this.heading = pose.heading.toDouble();
+    public static void SetPose(Pose2d pose){
+        Location.pose = pose;
+        Location.x = pose.position.x;
+        Location.y = pose.position.y;
+        Location.heading = pose.heading.toDouble();
+    }
+    public static Pose2d GetPose(){
+        return new Pose2d(x,y,heading);
     }
 
 

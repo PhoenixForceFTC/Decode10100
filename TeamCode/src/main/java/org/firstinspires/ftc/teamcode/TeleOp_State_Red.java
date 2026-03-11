@@ -105,7 +105,7 @@ public class TeleOp_State_Red extends LinearOpMode {
         position robotPosition = position.None;
 
         _robot.init(robotVersion);
-        telemetry.addData("location string in teleopState", Location.pose.toString());
+        telemetry.addData("location string in teleopState", Location.GetPose());
         telemetry.addData("Class Hash in teleopState", Location.class.hashCode());
         _driveUtilsAdvanced = new DriveUtilsAdvanced(hardwareMap, Location.pose, _robot.drive,
                 _robot.limelightHardware2Axis, this.telemetry, isBlue, _robot);
