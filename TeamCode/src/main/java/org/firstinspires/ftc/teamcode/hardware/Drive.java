@@ -94,7 +94,12 @@ public class Drive
 
         double speedMultiplier = _isSpeedFast ? SPEED_FAST : SPEED_SLOW;
         double speedMultiplierRotate = _isRotateFast ? SPEED_ROTATE_FAST : SPEED_ROTATE_SLOW;
-
+        if(_gamepad.dpad_left){
+            yaw= -0.3;
+        }
+        if(_gamepad.dpad_right){
+            yaw= 0.3;
+        }
         DriveUtils.arcadeDrive2(_frontLeft, _frontRight, _rearLeft, _rearRight, x , y, yaw, yawImportant, _telemetry, _showInfo, speedMultiplier, speedMultiplierRotate);
 
         if (_showInfo)
