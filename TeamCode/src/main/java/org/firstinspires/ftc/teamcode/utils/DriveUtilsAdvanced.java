@@ -72,7 +72,7 @@ public class DriveUtilsAdvanced {
 
     double adjustmentDegrees(){//higher value will turn it more clockwise
         if(isBlue){
-            return -8;
+            return 0;
         }else{
             return -2;
         }
@@ -258,12 +258,12 @@ public class DriveUtilsAdvanced {
             //distBreakdown = null; // temp todo: can we just use
             double angleToTurnFromCamera = limelightHardware2Axis.getTxDegreesForId(this.targetTagId);
 
-            //calcDif += Math.toRadians(adjustmentDegrees());
-            //angleToTurnFromCamera+= adjustmentDegrees();
-            if(Math.abs(angleToTurnFromCamera)< 1){ // within 2 degrees
+            calcDif += Math.toRadians(adjustmentDegrees());
+            angleToTurnFromCamera+= adjustmentDegrees();
+            if(Math.abs(angleToTurnFromCamera)< 2){ // within 2 degrees
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,0); // done turn off power
                 if(dxdt<0.1&&dydt<0.1&&yaw<0.1) {
-                    return false;
+                    return true;
                 }
                 else{
                     return false;
@@ -279,15 +279,15 @@ public class DriveUtilsAdvanced {
 
                 //posibilty not usiing camera is better
                 //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
-                double speed = Math.toRadians(angleToTurnFromCamera)*0.8;
-                if(Math.abs(angleToTurnFromCamera)<20){
-                    speed = speed * ((48+Math.abs(angleToTurnFromCamera))/68);
+                double speed = Math.toRadians(angleToTurnFromCamera)*0.7;
+//                if(Math.abs(angleToTurnFromCamera)<20){
+//                    speed = speed * ((48+Math.abs(angleToTurnFromCamera))/68);
+//                }
+                if(speed<0.15 && speed>=0){
+                    speed=0.15;
                 }
-                if(speed<0.05 && speed>=0){
-                    speed=0.05;
-                }
-                if(speed>-0.05 && speed<=0){
-                    speed=-0.05;
+                if(speed>-0.15 && speed<=0){
+                    speed=-0.15;
                 }
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,
                         speed);//-angleToTurnFromCamera bc posotive turn makes it turn clockwise in the method
@@ -323,7 +323,7 @@ public class DriveUtilsAdvanced {
         double calcDif = calcDifference(targetHeading);
         double angleToTurnFromCamera = limelightHardware2Axis.getTxDegreesForId(this.targetTagId);
 
-        //calcDif+=Math.toRadians(adjustmentDegrees());
+        calcDif+=Math.toRadians(adjustmentDegrees());
 
        if (Math.abs(angleToTurnFromCamera)<45){
            calcDif= Math.toRadians(angleToTurnFromCamera);

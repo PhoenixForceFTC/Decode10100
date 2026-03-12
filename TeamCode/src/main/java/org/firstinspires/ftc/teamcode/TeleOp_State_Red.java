@@ -139,15 +139,25 @@ public class TeleOp_State_Red extends LinearOpMode {
             loop_count++;
             telemetry.addData("Run Time", " " + _runtime.toString() + " Loop Count:" + loop_count);
 
+
             _robot.intake.run();
             _robot.lights.run();
-
-            if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60,
-                    _robot.shooter.getSpeed(), true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
-                    -1, _robot.intake)) {
-                _driveUtilsAdvanced.endAutoAlign();
-                alreadyShot = false;
+            if(!gamepad1.left_bumper){
+                if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60,
+                        _robot.shooter.getSpeed(), true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
+                        -1, _robot.intake)) {
+                    _driveUtilsAdvanced.endAutoAlign();
+                    alreadyShot = false;
+                }
+            }else{
+                if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60,
+                        _robot.shooter.getSpeed(), true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
+                        3, _robot.intake)) {
+                    _driveUtilsAdvanced.endAutoAlign();
+                    alreadyShot = false;
+                }
             }
+
 
             _robot.run();
             if (gamepad1.a) {
