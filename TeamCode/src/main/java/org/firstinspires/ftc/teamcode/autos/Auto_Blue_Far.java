@@ -115,8 +115,8 @@ public class Auto_Blue_Far extends LinearOpMode{
                 .waitSeconds(0.1)
 
                 //opens gate
-                .strafeToSplineHeading(new Vector2d(-3, 54), Math.toRadians(93), fastVelConstraint, fastAccelConstraint)
-                .strafeToSplineHeading(new Vector2d(-2, 57), Math.toRadians(93), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(-3, 58), Math.toRadians(93), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(-2, 61), Math.toRadians(93), fastVelConstraint, fastAccelConstraint)
 
                 .stopAndAdd(new AutoActions.IntakeRunFast(_robot, 0.6))
 
@@ -149,7 +149,7 @@ public class Auto_Blue_Far extends LinearOpMode{
                 .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 3005))
                 .strafeToSplineHeading(new Vector2d(-46, 10), Math.toRadians(94), fastVelConstraint, fastAccelConstraint)
                 .waitSeconds(0.2)
-                .strafeToSplineHeading(new Vector2d(-46, 62), Math.toRadians(92), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(-46, 68), Math.toRadians(92), fastVelConstraint, fastAccelConstraint)
                 .waitSeconds(0.25)
 
                 //shoots third spike

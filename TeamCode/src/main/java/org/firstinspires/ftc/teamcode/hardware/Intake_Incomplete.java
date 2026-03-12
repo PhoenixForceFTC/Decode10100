@@ -102,6 +102,7 @@ public class Intake_Incomplete
     private boolean _middleIsSticky = false;
     private boolean _rightIsSticky = false;
     private boolean is3Found = false;
+    private boolean isNunFound = false;
     //endregion
 
     //region --- Constructor
@@ -186,6 +187,15 @@ public class Intake_Incomplete
             is3Found = true;
         }else{
             is3Found = false;
+        }
+        if ((_leftBallColor == BallColor.NONE || _leftBallColor == BallColor.UNKNOWN) &&
+                (_middleBallColor == BallColor.NONE || _middleBallColor == BallColor.UNKNOWN) &&
+                (_rightBallColor == BallColor.NONE || _rightBallColor == BallColor.UNKNOWN) &&
+                !is3Found){
+            backward();
+            isNunFound = true;
+        }else{
+            isNunFound = false;
         }
 //        if (_gamepad2.y && _gamepad2.left_stick_y > 0.5){
 //            intakePower = Math.min(1, intakePower + 0.005);

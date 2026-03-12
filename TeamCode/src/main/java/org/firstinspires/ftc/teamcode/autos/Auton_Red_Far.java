@@ -94,7 +94,7 @@ public class Auton_Red_Far extends LinearOpMode{
                 // move to shooting area
 
 
-                .strafeToSplineHeading(new Vector2d(-56, -12), -Math.toRadians(34))
+                .strafeToSplineHeading(new Vector2d(-56, -12), -Math.toRadians(32))
                 .waitSeconds(1.6)
                 //.stopAndAdd(new AutoActions.waitForShooter(_robot, fastSpeed))
                 .stopAndAdd(new AutoActions.shootKickingColor(_robot, 80, _TargetMotifAction))
@@ -104,7 +104,7 @@ public class Auton_Red_Far extends LinearOpMode{
 
                 //intakes first spike
                 .stopAndAdd(new AutoActions.IntakeRunFast(_robot, 0.6))
-                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2335))
+                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2365))
                 .strafeToSplineHeading(new Vector2d(-25, -23), -Math.toRadians(47), fastVelConstraint, fastAccelConstraint)
                 .strafeToSplineHeading(new Vector2d(-5, -55), -Math.toRadians(45), fastVelConstraint, fastAccelConstraint)
                 .waitSeconds(0.1)
@@ -121,20 +121,25 @@ public class Auton_Red_Far extends LinearOpMode{
                 .strafeToSplineHeading(new Vector2d(16, -11), -Math.toRadians(37), fastVelConstraint, fastAccelConstraint)
                 .waitSeconds(0.1)
                 .stopAndAdd(new AutoActions.shootKickingColor(_robot, 80, _TargetMotifAction))
-                .waitSeconds(0.6)
+                .waitSeconds(0.3)
+                .stopAndAdd(new AutoActions.KickerTripleKick(_robot))
+                .waitSeconds(0.3)
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot))
                 .waitSeconds(0.1)
 
                 // intakes second spike
+                .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2335))
                 .strafeToSplineHeading(new Vector2d(12, -32), -Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
                 .strafeToSplineHeading(new Vector2d(12, -58), -Math.toRadians(90), fastVelConstraint, fastAccelConstraint)
                 .waitSeconds(0.1)
 
                 //shoots second spike
-                .strafeToSplineHeading(new Vector2d(16, -11), -Math.toRadians(38 ), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(16, -11), -Math.toRadians(38), fastVelConstraint, fastAccelConstraint)
                 .waitSeconds(0.1)
                 .stopAndAdd(new AutoActions.shootKickingColor(_robot, 80, _TargetMotifAction))
-                .waitSeconds(0.5)
+                .waitSeconds(0.2)
+                .stopAndAdd(new AutoActions.KickerTripleKick(_robot))
+                .waitSeconds(0.3)
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot))
                 .waitSeconds(0.1)
 
@@ -142,13 +147,15 @@ public class Auton_Red_Far extends LinearOpMode{
                 .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2985))
                 .strafeToSplineHeading(new Vector2d(-46, -10), -Math.toRadians(94), fastVelConstraint, fastAccelConstraint)
                 .waitSeconds(0.2)
-                .strafeToSplineHeading(new Vector2d(-46, -62), -Math.toRadians(92), fastVelConstraint, fastAccelConstraint)
+                .strafeToSplineHeading(new Vector2d(-46, -68), -Math.toRadians(92), fastVelConstraint, fastAccelConstraint)
                 .waitSeconds(0.25)
 
                 //shoots third spike
-                .strafeToSplineHeading(new Vector2d(-56, -12), -Math.toRadians(15))
+                .strafeToSplineHeading(new Vector2d(-56, -12), -Math.toRadians(17))
                 .stopAndAdd(new AutoActions.shootKickingColor(_robot, 80, _TargetMotifAction))
-                .waitSeconds(0.5)
+                .waitSeconds(0.2)
+                .stopAndAdd(new AutoActions.KickerTripleKick(_robot))
+                .waitSeconds(0.3)
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot))
                 .waitSeconds(0.1)
 
