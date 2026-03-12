@@ -74,7 +74,7 @@ public class TeleOp_State_Red extends LinearOpMode {
 
     MotifKicking _kickMotif = new MotifKicking(_robot);
 
-    public boolean override = false;
+    public boolean overrideBallDistanceDetection = false;
     public ElapsedTime overrideTimer = new ElapsedTime(3);
 
 
@@ -140,7 +140,7 @@ public class TeleOp_State_Red extends LinearOpMode {
             telemetry.addData("Run Time", " " + _runtime.toString() + " Loop Count:" + loop_count);
 
 
-            _robot.intake.run();
+            //_robot.intake.run();
             _robot.lights.run();
             if(!gamepad1.left_bumper){
                 if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60,
@@ -285,14 +285,14 @@ public class TeleOp_State_Red extends LinearOpMode {
             }
 
 
-            _robot.intake.run(override);
+            _robot.intake.run(overrideBallDistanceDetection);
             if (gamepad1.b) {
                 _robot.kickers.kickMiddle();
-                override = true;
+                overrideBallDistanceDetection = true;
                 overrideTimer.reset();
             }
-            if (overrideTimer.seconds() > 2 && override) {
-                override = false;
+            if (overrideTimer.seconds() > 2 && overrideBallDistanceDetection) {
+                overrideBallDistanceDetection = false;
             }
 
 

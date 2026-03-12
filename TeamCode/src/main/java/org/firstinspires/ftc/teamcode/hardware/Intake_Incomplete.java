@@ -119,12 +119,14 @@ public class Intake_Incomplete
     //endregion
 
     //region --- Movement ---
+    // outtake
     public void forward(){
         _intake.setPower(intakePower);
     } //--- Outward movement of artifacts
 
     public void backwardFast(double speed) {_intake.setPower(-speed);}
 
+    // intake
     public void backward(){
         _intake.setPower(-intakePower);
     } //--- Inward movement
@@ -183,7 +185,9 @@ public class Intake_Incomplete
                 _middleBallColor != BallColor.NONE &&_middleBallColor != BallColor.UNKNOWN &&
                 _rightBallColor != BallColor.NONE && _rightBallColor != BallColor.UNKNOWN &&
                 !is3Found){
-            forward();
+            if (!(_gamepad2.right_trigger>0.2)) {  // so human user can override
+                forward();
+            }
             is3Found = true;
         }else{
             is3Found = false;
@@ -192,7 +196,9 @@ public class Intake_Incomplete
                 (_middleBallColor == BallColor.NONE || _middleBallColor == BallColor.UNKNOWN) &&
                 (_rightBallColor == BallColor.NONE || _rightBallColor == BallColor.UNKNOWN) &&
                 !is3Found){
-            backward();
+            if (!(_gamepad2.left_trigger>0.2)) {
+                backward();
+            }
             isNunFound = true;
         }else{
             isNunFound = false;
