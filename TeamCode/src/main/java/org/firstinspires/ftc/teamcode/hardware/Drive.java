@@ -80,16 +80,16 @@ public class Drive
     }
     public void arcadeDriveSpeedControl2(double x,double y,double yaw,double yawImportant)
     {
-        if (_gamepad.left_stick_button && !_wasLeftStickButtonPressed)
-        {
-            _isSpeedFast = !_isSpeedFast; //--- Toggle movement speed
-        }
-        _wasLeftStickButtonPressed = _gamepad.left_stick_button;
-
-        if (_gamepad.right_stick_button && !_wasRightStickButtonPressed)
-        {
-            _isRotateFast = !_isRotateFast; //--- Toggle rotation speed
-        }
+//        if (_gamepad.left_stick_button && !_wasLeftStickButtonPressed)
+//        {
+//            _isSpeedFast = !_isSpeedFast; //--- Toggle movement speed
+//        }
+//        _wasLeftStickButtonPressed = _gamepad.left_stick_button;
+//
+//        if (_gamepad.right_stick_button && !_wasRightStickButtonPressed)
+//        {
+//            _isRotateFast = !_isRotateFast; //--- Toggle rotation speed
+//        }
         _wasRightStickButtonPressed = _gamepad.right_stick_button;
 
         double speedMultiplier = _isSpeedFast ? SPEED_FAST : SPEED_SLOW;

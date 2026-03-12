@@ -254,16 +254,19 @@ public class DriveUtilsAdvanced {
 //        }
 //        else
 //        {
-            double[] distBreakdown = limelightHardware2Axis.getDistanceBreakdown();
+            //double[] distBreakdown = limelightHardware2Axis.getDistanceBreakdown();
             //distBreakdown = null; // temp todo: can we just use
             double angleToTurnFromCamera = limelightHardware2Axis.getTxDegreesForId(this.targetTagId);
 
-            calcDif += Math.toRadians(adjustmentDegrees());
-            angleToTurnFromCamera+= adjustmentDegrees();
+            //calcDif += Math.toRadians(adjustmentDegrees());
+            //angleToTurnFromCamera+= adjustmentDegrees();
             if(Math.abs(angleToTurnFromCamera)< 1){ // within 2 degrees
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,0); // done turn off power
                 if(dxdt<0.1&&dydt<0.1&&yaw<0.1) {
-                    return true;
+                    return false;
+                }
+                else{
+                    return false;
                 }
             }
             if(/*distBreakdown == null */angleToTurnFromCamera > (double)120.0){
@@ -276,8 +279,18 @@ public class DriveUtilsAdvanced {
 
                 //posibilty not usiing camera is better
                 //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
+                double speed = Math.toRadians(angleToTurnFromCamera)*0.8;
+                if(Math.abs(angleToTurnFromCamera)<20){
+                    speed = speed * ((48+Math.abs(angleToTurnFromCamera))/68);
+                }
+                if(speed<0.05 && speed>=0){
+                    speed=0.05;
+                }
+                if(speed>-0.05 && speed<=0){
+                    speed=-0.05;
+                }
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,
-                        Math.toRadians(angleToTurnFromCamera)*0.8);//-angleToTurnFromCamera bc posotive turn makes it turn clockwise in the method
+                        speed);//-angleToTurnFromCamera bc posotive turn makes it turn clockwise in the method
                 //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
                 // todo: temp uncomment line above and enable camera
                 //auto aligns using roadrunner position do first disable once camera works
@@ -308,8 +321,13 @@ public class DriveUtilsAdvanced {
 
         double targetHeading = getTargetHeading(y4-14.55098425, x4-11.82122047);
         double calcDif = calcDifference(targetHeading);
+        double angleToTurnFromCamera = limelightHardware2Axis.getTxDegreesForId(this.targetTagId);
 
-        calcDif+=Math.toRadians(adjustmentDegrees());
+        //calcDif+=Math.toRadians(adjustmentDegrees());
+
+       if (Math.abs(angleToTurnFromCamera)<45){
+           calcDif= Math.toRadians(angleToTurnFromCamera);
+       }
 
 
         //drive.arcadeDriveSpeedControl2(0, 0, 0, calcDif/2);
@@ -348,9 +366,10 @@ public class DriveUtilsAdvanced {
         //can change to be x only and not pythagors theorem if camera is supposed to look at both april tags
     };
 
+    // gives you amount to turn based on movement
     private double thetadt (){
         if(isBlue){
-            return (y2*dxdt-x2*dydt)/(x2*x2+y2*y2);
+            return (y2*dxdt-x2*dydt)/(x2*x2+y2*y2);// partial differentiation of theta with respect to x and y
         }else{
             return -(y2*dxdt-x2*dydt)/(x2*x2+y2*y2);
         }

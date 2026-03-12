@@ -196,8 +196,8 @@ public class TeleOp_State_Red extends LinearOpMode {
             if (_driveUtilsAdvanced.driveMecanum(gamepad1, _robot.kickers)) {
                 if (!alreadyShot) {
                     if (isThreeBallMode) {
-                        if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60, _robot.shooter.getSpeed(),
-                                true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
+                        if (_robot.kickers.runFinal((double) (shooterSpeedRpm * Shooter.ticksPerRotation) / 60, _robot.shooter.getSpeed(),
+                                true, (double) (shooterSpeedRpm3Ball * Shooter.ticksPerRotation) / 60,
                                 3, _robot.intake)) {
                             _driveUtilsAdvanced.endAutoAlign();
                             alreadyShot = false;
@@ -237,7 +237,7 @@ public class TeleOp_State_Red extends LinearOpMode {
                 shooterSpeedRpm = Math.round((float) (2667 + (dist * -31.6) + (0.597 * (dist * dist)) -
                         (0.00375 * dist * dist * dist) + (0.00000895 * dist * dist * dist * dist)));
             } else {
-                shooterSpeedRpm3Ball = Math.round((float) ((_driveUtilsAdvanced.getDist() * 11.1) + 1887));
+                shooterSpeedRpm3Ball = Math.round((float) ((dist * 11.1) + 1887));
             }
 
             if (gamepad1.xWasPressed()) {
