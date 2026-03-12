@@ -43,6 +43,7 @@ public class Auto_Blue_Far extends LinearOpMode{
 
         Pose2d _beginPos = new Pose2d(-63, 16, 0);
         MecanumDrive drive = new MecanumDrive(hardwareMap,_beginPos);
+        Location.SetPose(_beginPos);
 
         //waitForStart();
         _robot.limelightHardware2Axis.setPipeline(1);
@@ -71,8 +72,8 @@ public class Auto_Blue_Far extends LinearOpMode{
 
             }
             telemetry.addData("target motif", _TargetMotif.toString());
-            telemetry.addData("location string in teleopState", Location.pose.toString());
-            telemetry.addData("Class Hash in teleopState", Location.class.hashCode());
+            telemetry.addData("location string in autoState", Location.pose.toString());
+            telemetry.addData("Class Hash in autoState", Location.class.hashCode());
             telemetry.update();
             MotifKicking.updateMotif(_TargetMotifAction);
         }

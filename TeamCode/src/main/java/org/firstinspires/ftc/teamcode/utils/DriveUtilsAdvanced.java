@@ -94,6 +94,10 @@ public class DriveUtilsAdvanced {
         {
             this.targetTagId = 24;
         }
+        telemetry.addData("location string in driveUtils", Location.GetPose());
+        telemetry.addData("Class Hash in driveUtils", Location.class.hashCode());
+        telemetry.addData("rr pinpoint localizer", driveClass.localizer.getPose().toString());
+
     }
 
 
