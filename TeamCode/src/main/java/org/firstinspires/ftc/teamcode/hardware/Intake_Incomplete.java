@@ -416,11 +416,17 @@ public class Intake_Incomplete
 
         //--- Update left light based on left ball color
         _lights.setLeft(ballColorToLightColor(_leftBallColor));
+        _telemetry.addData("L Ball Color:", _leftBallColor.name());
+
         //--- Update middle light based on middle ball color
         _lights.setMiddle(ballColorToLightColor(_middleBallColor));
+        _telemetry.addData("M Ball Color:", _middleBallColor.name());
+
         //_telemetry.addData("I set the middle light color", ballColorToLightColor(_middleBallColor));
         //--- Update right light based on right ball color
         _lights.setRight(ballColorToLightColor(_rightBallColor));
+        _telemetry.addData("R Ball Color:", _rightBallColor.name());
+
         //_telemetry.addData("I set the right light color", ballColorToLightColor(_rightBallColor));
 
     }
