@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
+@Disabled
 @TeleOp(name="ServoTest", group="1")
 @Config
 

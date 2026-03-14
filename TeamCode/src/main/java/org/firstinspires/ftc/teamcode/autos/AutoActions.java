@@ -208,7 +208,7 @@ public class AutoActions {
         }
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-            robot.intake.backward();
+            robot.intake.forward();
             return false;
         }
     }
