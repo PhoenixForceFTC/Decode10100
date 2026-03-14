@@ -7,6 +7,7 @@ import android.provider.ContactsContract;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.teamcode.utils.DataLog;
 import org.firstinspires.ftc.teamcode.utils.RisingEdge;
@@ -59,6 +60,7 @@ import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //----------------------------------------------------------------------
 //endregion
 
+@Disabled
 @TeleOp(name="TeleOpOldDataLog", group="1")
 public class TeleOp_Mecanum_DataLog extends LinearOpMode
 {

@@ -21,8 +21,8 @@ import org.firstinspires.ftc.teamcode.utils.Location;
 import java.util.Arrays;
 
 
-@Autonomous(name="1 Auto Blue Far")
-public class Auto_Blue_Far extends LinearOpMode{
+@Autonomous(name="7 Auto Red Far Dummy")
+public class Auto_Red_Far_Dummy extends LinearOpMode{
     RobotHardware _robot = new RobotHardware(this);
     private LimelightHardware2Axis.Motif _TargetMotif;
 
@@ -41,7 +41,7 @@ public class Auto_Blue_Far extends LinearOpMode{
         _robot.init(1); // Initialize robot parts
         //_TargetMotif = _robot.limelightHardware2Axis.getObliskTagId();
 
-        Pose2d _beginPos = new Pose2d(-63, 16, 0);
+        Pose2d _beginPos = new Pose2d(-63, -16, 0);
         MecanumDrive drive = new MecanumDrive(hardwareMap,_beginPos);
         Location.SetPose(_beginPos);
 
@@ -101,14 +101,16 @@ public class Auto_Blue_Far extends LinearOpMode{
                 // move to shooting area
 
 
-                .strafeToSplineHeading(new Vector2d(-56, 12), Math.toRadians(32))
+                .strafeToSplineHeading(new Vector2d(-56, -12), Math.toRadians(-32))
                 .waitSeconds(1.6)
                 //.stopAndAdd(new AutoActions.waitForShooter(_robot, fastSpeed))
                 .stopAndAdd(new AutoActions.shootKickingColor(_robot, 80, _TargetMotifAction))
                 .waitSeconds(0.5)
                 .stopAndAdd(new AutoActions.KickerUnkick(_robot))
                 .waitSeconds(0.1)
+                .strafeToSplineHeading(new Vector2d(-50, -40), Math.toRadians(0));
 
+                /*
                 //intakes first spike
                 .stopAndAdd(new AutoActions.IntakeRunFast(_robot, 0.6))
                 .stopAndAdd(new AutoActions.SetShooterSpeed(_robot, 2395))
@@ -120,7 +122,6 @@ public class Auto_Blue_Far extends LinearOpMode{
                 //opens gate
                 .strafeToSplineHeading(new Vector2d(-3, 58), Math.toRadians(93), fastVelConstraint, fastAccelConstraint)
                 .strafeToSplineHeading(new Vector2d(-2, 61), Math.toRadians(93), fastVelConstraint, fastAccelConstraint)
-                .waitSeconds(0.3)
 
                // .stopAndAdd(new AutoActions.IntakeRunFast(_robot, 0.6))
 
@@ -169,7 +170,7 @@ public class Auto_Blue_Far extends LinearOpMode{
 
                 .strafeToSplineHeading(new Vector2d(-56, 48), Math.toRadians(0));
 
-              /*  .strafeToSplineHeading(new Vector2d(-33, 32), Math.toRadians(90))
+                .strafeToSplineHeading(new Vector2d(-33, 32), Math.toRadians(90))
                 .waitSeconds(0.1)
                 .strafeToSplineHeading(new Vector2d(-33, 62), Math.toRadians(90));
                 */

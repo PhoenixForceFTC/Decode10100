@@ -6,6 +6,8 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+
 
 import org.firstinspires.ftc.teamcode.utils.DriveUtilsAdvanced;
 //endregion
@@ -57,6 +59,7 @@ import org.firstinspires.ftc.teamcode.utils.DriveUtilsAdvanced;
 //----------------------------------------------------------------------
 //endregion
 
+@Disabled
 @TeleOp(name="TeleOpOld RR", group="1")
 public class TeleOp_Mecanum_RR extends LinearOpMode
 {

@@ -13,6 +13,8 @@ import org.firstinspires.ftc.teamcode.hardware.Shooter;
 import org.firstinspires.ftc.teamcode.utils.DriveUtilsAdvanced;
 import org.firstinspires.ftc.teamcode.utils.Location;
 import org.firstinspires.ftc.teamcode.utils.RisingEdge;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+
 //endregion
 
 //region --- Controls ---
@@ -62,6 +64,7 @@ import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //----------------------------------------------------------------------
 //endregion
 
+@Disabled
 @TeleOp(name="TeleOpOldMecanumTest", group="1")
 public class TeleOp_Mecanum_test extends LinearOpMode
 {

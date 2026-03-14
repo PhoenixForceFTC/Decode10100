@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 
 import java.util.Arrays;
 
-
+@Disabled
 @Autonomous(name="Auton Goal Red 12pt")
 public class Auto_Goal_Red_12pt extends LinearOpMode{
     RobotHardware _robot = new RobotHardware(this);

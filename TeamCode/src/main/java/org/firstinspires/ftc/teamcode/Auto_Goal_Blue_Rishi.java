@@ -9,6 +9,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.VelConstraint;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.autos.AutoActions;
@@ -17,7 +18,7 @@ import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 
 import java.util.Arrays;
 
-
+@Disabled
 @Autonomous(name="Auton Goal Blue Rishi")
 public class Auto_Goal_Blue_Rishi extends LinearOpMode{
     RobotHardware _robot = new RobotHardware(this);
