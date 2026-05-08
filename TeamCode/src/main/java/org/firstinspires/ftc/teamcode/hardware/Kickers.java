@@ -347,6 +347,16 @@ public class Kickers
         }
 
     }
+    /** Fires all 3 kickers simultaneously by resetting all timers at once.
+     *  runFinal() then holds them in the kicked position for KICKER_ACTION_DELAY seconds
+     *  and auto-retracts — no separate retract call needed. */
+    public void fireAll3Simultaneous() {
+        timerL.reset();
+        timerM.reset();
+        timerR.reset();
+        timerGlobal.reset();
+    }
+
     public void retractKickerAuto(int kickerPos)
     {
 

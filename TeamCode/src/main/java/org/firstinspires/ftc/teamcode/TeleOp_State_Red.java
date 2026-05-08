@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 //region -- Imports ---
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -58,8 +59,19 @@ import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //----------------------------------------------------------------------
 //endregion
 
+@Config
 @TeleOp(name="\uD83D\uDFE5Red_TeleOp_State", group = "!State")
 public class TeleOp_State_Red extends LinearOpMode {
+
+    // --- Speed tuning (live-editable via FTC Dashboard) ---
+    // 3-ball simultaneous: all 3 fly at once, higher RPM needed
+    public static int SPEED_3BALL_CLOSE  = 2280;
+    public static int SPEED_3BALL_MEDIUM = 2650;
+    public static int SPEED_3BALL_FAR    = 3330;
+    // 1-ball sequential: one at a time, lower RPM is fine
+    public static int SPEED_1BALL_CLOSE  = 2090;
+    public static int SPEED_1BALL_MEDIUM = 2430;
+    public static int SPEED_1BALL_FAR    = 3060;
     //------------------------------------------------------------------------------------------
     // Variables
     //------------------------------------------------------------------------------------------
@@ -181,10 +193,11 @@ public class TeleOp_State_Red extends LinearOpMode {
             _robot.run();
 
             //------------------------------------------------------------------------------------------
-            //--- G1 A: fire motif kick sequence (non-blocking)
+            //--- G1 A: fire kick sequence (non-blocking)
+            //    3-ball mode = simultaneous, 1-ball mode = sequential motif order
             //------------------------------------------------------------------------------------------
             if (gamepad1.a) {
-                _kickMotif.setKick();
+                _kickMotif.setKick(isThreeBallMode);
             }
             _kickMotif.checkKick();
 
@@ -232,7 +245,7 @@ public class TeleOp_State_Red extends LinearOpMode {
                 // Trigger just released — decide whether to fire
                 double angle = _driveUtilsAdvanced.getAlignmentAngle();
                 if (Math.abs(angle) <= 5.0) {
-                    _kickMotif.setKick();
+                    _kickMotif.setKick(isThreeBallMode);
                 }
                 _driveUtilsAdvanced.endAutoAlign();
             }
@@ -283,18 +296,18 @@ public class TeleOp_State_Red extends LinearOpMode {
             }
             if (gamepad2.y) {
                 robotPosition = position.Close;
-                shooterSpeedRpm3Ball = 2280;
-                shooterSpeedRpm = 2090;
+                shooterSpeedRpm3Ball = SPEED_3BALL_CLOSE;
+                shooterSpeedRpm = SPEED_1BALL_CLOSE;
             }
             if (gamepad2.x) {
                 robotPosition = position.Medium;
-                shooterSpeedRpm3Ball = 2650;
-                shooterSpeedRpm = 2430;
+                shooterSpeedRpm3Ball = SPEED_3BALL_MEDIUM;
+                shooterSpeedRpm = SPEED_1BALL_MEDIUM;
             }
             if (gamepad2.a) {
                 robotPosition = position.Far;
-                shooterSpeedRpm3Ball = 3330;
-                shooterSpeedRpm = 3060;
+                shooterSpeedRpm3Ball = SPEED_3BALL_FAR;
+                shooterSpeedRpm = SPEED_1BALL_FAR;
             }
             if (gamepad2.b) {
                 _robot.intake.stop();

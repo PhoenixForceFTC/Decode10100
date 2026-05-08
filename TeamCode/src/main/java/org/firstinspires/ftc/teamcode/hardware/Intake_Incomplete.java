@@ -322,7 +322,12 @@ public class Intake_Incomplete
         double blueToGreen = (avgGreenValue != 0 ? avgBlueValue/avgGreenValue : 0);
 
         if(!OverrideDistanceCheck) {
-            if (avgDistValue > distanceThreshold) {
+            // Hysteresis: once a good color is locked in, require 2× the threshold to lose it.
+            // This prevents the light flickering white when the sensor briefly reads high.
+            double lossThreshold = (previousColor == BallColor.GREEN || previousColor == BallColor.PURPLE)
+                    ? distanceThreshold * 2.0
+                    : distanceThreshold;
+            if (avgDistValue > lossThreshold) {
                 return BallColor.NONE;
             }
         }
