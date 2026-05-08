@@ -12,6 +12,7 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -40,9 +41,14 @@ import java.util.List;
 public class DriveUtilsAdvanced {
     // --- Alignment tuning (edit here OR live-tune via FTC Dashboard) ---
     public static double ALIGN_KP = 0.7;         // proportional gain: deg → turn power
+    public static double ALIGN_KD = 0.02;        // derivative gain: damps oscillations
     public static double ALIGN_MIN_POWER = 0.15; // minimum power to overcome static friction
     public static double ALIGN_FINE_DEG = 2.0;   // within this angle → stop turning (done)
     // -------------------------------------------------------------------
+
+    // PD state — reset each time alignment starts/ends
+    private double _alignPrevError = 0;
+    private final ElapsedTime _alignDtTimer = new ElapsedTime();
 
     private List<Action> runningActions = new ArrayList<>();
     // Pre-allocated to avoid creating a new ArrayList every loop iteration.
@@ -291,8 +297,14 @@ public class DriveUtilsAdvanced {
             }
             else
             {
-                // Proportional controller: turn power = kP * angle (in radians)
-                double speed = Math.toRadians(angleToTurnFromCamera) * ALIGN_KP;
+                // PD controller: P damps steady-state error, D damps oscillations
+                double error = Math.toRadians(angleToTurnFromCamera);
+                double dt = _alignDtTimer.seconds();
+                _alignDtTimer.reset();
+                double derivative = (dt > 0.001) ? (error - _alignPrevError) / dt : 0;
+                _alignPrevError = error;
+
+                double speed = (error * ALIGN_KP) + (derivative * ALIGN_KD);
                 // Clamp to minimum power so motor overcomes static friction
                 if(speed < ALIGN_MIN_POWER && speed >= 0){ speed = ALIGN_MIN_POWER; }
                 if(speed > -ALIGN_MIN_POWER && speed <= 0){ speed = -ALIGN_MIN_POWER; }
@@ -365,6 +377,8 @@ public class DriveUtilsAdvanced {
     // Must be called else robot control will be off
     public void endAutoAlign(){
         isAligning=false;
+        _alignPrevError = 0;
+        _alignDtTimer.reset();
     }
 
     /** Returns the camera Tx angle (degrees) to the goal tag. 0 = perfectly centered. */
