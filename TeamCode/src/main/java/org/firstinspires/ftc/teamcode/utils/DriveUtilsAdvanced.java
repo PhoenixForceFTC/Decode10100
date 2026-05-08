@@ -41,13 +41,14 @@ import java.util.List;
 public class DriveUtilsAdvanced {
     // --- Alignment tuning (edit here OR live-tune via FTC Dashboard) ---
     public static double ALIGN_KP = 0.7;         // proportional gain: deg → turn power
-    public static double ALIGN_KD = 0.02;        // derivative gain: damps oscillations
+    public static double ALIGN_KD = 0.003;       // derivative gain: damps oscillations
     public static double ALIGN_MIN_POWER = 0.15; // minimum power to overcome static friction
     public static double ALIGN_FINE_DEG = 2.0;   // within this angle → stop turning (done)
     // -------------------------------------------------------------------
 
     // PD state — reset each time alignment starts/ends
     private double _alignPrevError = 0;
+    private boolean _alignFirstLoop = true; // seed prevError on first loop to avoid spike
     private final ElapsedTime _alignDtTimer = new ElapsedTime();
 
     private List<Action> runningActions = new ArrayList<>();
@@ -297,14 +298,31 @@ public class DriveUtilsAdvanced {
             }
             else
             {
-                // PD controller: P damps steady-state error, D damps oscillations
+                // PD controller: P corrects steady-state error, D damps oscillations
                 double error = Math.toRadians(angleToTurnFromCamera);
-                double dt = _alignDtTimer.seconds();
-                _alignDtTimer.reset();
-                double derivative = (dt > 0.001) ? (error - _alignPrevError) / dt : 0;
-                _alignPrevError = error;
 
-                double speed = (error * ALIGN_KP) + (derivative * ALIGN_KD);
+                double derivative = 0;
+                if (_alignFirstLoop) {
+                    // Seed prevError to current so the first derivative is 0, not a spike from 0.
+                    _alignPrevError = error;
+                    _alignFirstLoop = false;
+                } else {
+                    double dt = _alignDtTimer.seconds();
+                    if (dt > 0.001) {
+                        derivative = (error - _alignPrevError) / dt;
+                    }
+                    _alignPrevError = error;
+                }
+                _alignDtTimer.reset();
+
+                double pTerm = error * ALIGN_KP;
+                double dTerm = derivative * ALIGN_KD;
+                // Guard: D term must never flip the output direction vs P term.
+                // This prevents overpowering the P term near the target when converging fast.
+                if (Math.signum(dTerm) != Math.signum(pTerm)) {
+                    dTerm = Math.min(Math.abs(dTerm), Math.abs(pTerm)) * Math.signum(dTerm);
+                }
+                double speed = pTerm + dTerm;
                 // Clamp to minimum power so motor overcomes static friction
                 if(speed < ALIGN_MIN_POWER && speed >= 0){ speed = ALIGN_MIN_POWER; }
                 if(speed > -ALIGN_MIN_POWER && speed <= 0){ speed = -ALIGN_MIN_POWER; }
@@ -377,7 +395,7 @@ public class DriveUtilsAdvanced {
     // Must be called else robot control will be off
     public void endAutoAlign(){
         isAligning=false;
-        _alignPrevError = 0;
+        _alignFirstLoop = true;
         _alignDtTimer.reset();
     }
 
