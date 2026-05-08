@@ -38,6 +38,12 @@ import java.util.List;
 //turn faster
 @Config
 public class DriveUtilsAdvanced {
+    // --- Alignment tuning (edit here OR live-tune via FTC Dashboard) ---
+    public static double ALIGN_KP = 0.7;         // proportional gain: deg → turn power
+    public static double ALIGN_MIN_POWER = 0.15; // minimum power to overcome static friction
+    public static double ALIGN_FINE_DEG = 2.0;   // within this angle → stop turning (done)
+    // -------------------------------------------------------------------
+
     private List<Action> runningActions = new ArrayList<>();
     // Pre-allocated to avoid creating a new ArrayList every loop iteration.
     private final List<Action> _newActions = new ArrayList<>();
@@ -271,8 +277,8 @@ public class DriveUtilsAdvanced {
 
             calcDif += Math.toRadians(adjustmentDegrees());
             angleToTurnFromCamera+= adjustmentDegrees();
-            if(Math.abs(angleToTurnFromCamera)< 2){ // within 2 degrees
-                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,0); // done turn off power
+            if(Math.abs(angleToTurnFromCamera) < ALIGN_FINE_DEG){ // within fine-alignment threshold
+                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,0);
                 if(dxdt<0.1&&dydt<0.1&&yaw<0.1) {
                     return true;
                 }
@@ -280,28 +286,18 @@ public class DriveUtilsAdvanced {
                     return false;
                 }
             }
-            if(/*distBreakdown == null */angleToTurnFromCamera > (double)120.0){
-                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
+            if(angleToTurnFromCamera > (double)120.0){
+                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));
             }
             else
             {
-                //todo: fix the camera auto aligning
-                //chnge to do atan using trig and subtracting the heading from the loclizer
-
-                //posibilty not usiing camera is better
-                //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
-                double speed = Math.toRadians(angleToTurnFromCamera)*0.7;
-//                if(Math.abs(angleToTurnFromCamera)<20){
-//                    speed = speed * ((48+Math.abs(angleToTurnFromCamera))/68);
-//                }
-                if(speed<0.15 && speed>=0){
-                    speed=0.15;
-                }
-                if(speed>-0.15 && speed<=0){
-                    speed=-0.15;
-                }
+                // Proportional controller: turn power = kP * angle (in radians)
+                double speed = Math.toRadians(angleToTurnFromCamera) * ALIGN_KP;
+                // Clamp to minimum power so motor overcomes static friction
+                if(speed < ALIGN_MIN_POWER && speed >= 0){ speed = ALIGN_MIN_POWER; }
+                if(speed > -ALIGN_MIN_POWER && speed <= 0){ speed = -ALIGN_MIN_POWER; }
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,
-                        speed);//-angleToTurnFromCamera bc posotive turn makes it turn clockwise in the method
+                        speed);
                 //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
                 // todo: temp uncomment line above and enable camera
                 //auto aligns using roadrunner position do first disable once camera works
