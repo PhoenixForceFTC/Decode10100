@@ -70,6 +70,8 @@ public class Intake_Incomplete
     RollingAverage avgRedR = new RollingAverage(), avgGreenR = new RollingAverage(), avgBlueR = new RollingAverage(), avgDistR = new RollingAverage();
     //--- Lights reference for ball indication
     private Lights _lights = null;
+    // When true, updateLights() is suppressed so alignment/other overrides take priority
+    public boolean lightsLocked = false;
 
     //endregion
 
@@ -409,9 +411,9 @@ public class Intake_Incomplete
 
     private void updateLights()
     {
-        if (_lights == null)
+        if (_lights == null || lightsLocked)
         {
-            return;
+            return; // skip when lights are owned by an external override (e.g. alignment)
         }
 
         //--- Update left light based on left ball color
@@ -454,6 +456,13 @@ public class Intake_Incomplete
     }
 
     //endregion
+
+    //--- Returns true when all 3 positions have a known ball color
+    public boolean isAll3Detected() {
+        return _leftBallColor != BallColor.NONE && _leftBallColor != BallColor.UNKNOWN &&
+               _middleBallColor != BallColor.NONE && _middleBallColor != BallColor.UNKNOWN &&
+               _rightBallColor != BallColor.NONE && _rightBallColor != BallColor.UNKNOWN;
+    }
 
     //--- Get detected ball colors
 

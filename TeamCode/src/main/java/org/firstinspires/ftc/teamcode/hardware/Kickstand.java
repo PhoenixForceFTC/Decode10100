@@ -6,7 +6,6 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -32,7 +31,7 @@ public class Kickstand
     private final double COUNTS_PER_MOTOR_REV = 5281.1; // for 30 rpm
 
     private final int UNKICKED = 0;
-    private final int KICKED = (int) (0.15*COUNTS_PER_MOTOR_REV);
+    private final int KICKED = (int) (0.25*COUNTS_PER_MOTOR_REV); // 90 degrees
 
     private Boolean button_was_pressed = false; //was button pressed?
     private Boolean to_kick = false;
@@ -57,23 +56,24 @@ public class Kickstand
     public boolean run()
     {
         // when button pressed
-        if(_gamepad.left_stick_button && !button_was_pressed){
-            to_kick = !to_kick; // if kicking
+        if(_gamepad.right_stick_button && !button_was_pressed){
+            to_kick = !to_kick; // toggle deployed state
             button_was_pressed = true;
             _kickstand.setTargetPosition(to_kick ? KICKED : UNKICKED);
-        } else if (!_gamepad.left_stick_button && button_was_pressed) {
+        } else if (!_gamepad.right_stick_button && button_was_pressed) {
             button_was_pressed = false;
         }
 
-        if(to_kick){
-            _kickstand.setPower(1);
-        }else{
-            _kickstand.setPower(0);
-        }
+        // Always apply power so motor drives to whichever target is set;
+        // ZeroPowerBehavior.BRAKE holds position once reached.
+        _kickstand.setPower(1);
 
-        return to_kick; // returns if kicked
+        return to_kick; // returns if deployed
     }
 
+    public boolean isDeployed() {
+        return to_kick;
+    }
 
     //--- Access telemetry data
     public void getTelemetry(){

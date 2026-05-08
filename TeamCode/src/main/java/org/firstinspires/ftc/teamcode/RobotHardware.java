@@ -24,7 +24,7 @@ import org.firstinspires.ftc.teamcode.hardware.LimelightHardware2Axis;
 import org.firstinspires.ftc.teamcode.hardware.Shooter;
 import org.firstinspires.ftc.teamcode.hardware.Intake_Incomplete;
 import org.firstinspires.ftc.teamcode.hardware.Kickers;
-//import org.firstinspires.ftc.teamcode.hardware.Kickstand;
+import org.firstinspires.ftc.teamcode.hardware.Kickstand;
 
 import org.firstinspires.ftc.teamcode.hardware.Drive;
 //endregion
@@ -129,6 +129,7 @@ public class RobotHardware {
     public ColorSensor colorSensorMiddle = null;
     public ColorSensor colorSensorRight = null;
     public Lights lights;
+    public Kickstand kickstand;
     public List<LynxModule> hubs;
     public RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(new Orientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES,135,0,0,0));
     //------------------------------------------------------------------------------------------
@@ -159,6 +160,9 @@ public class RobotHardware {
         //------------------------------------------------------------------------------------------
         //--- Motor Config
         //------------------------------------------------------------------------------------------
+        //--- Kickstand Motor (port 0, Control Hub)
+        motorKickstand = myOpMode.hardwareMap.get(DcMotorEx.class, "kickstand");
+
         //--- Drive Motors
         motorDriveFrontLeft = myOpMode.hardwareMap.get(DcMotor.class, "FL");
         motorDriveRearLeft = myOpMode.hardwareMap.get(DcMotor.class, "RL");
@@ -280,6 +284,8 @@ public class RobotHardware {
                 myOpMode.gamepad2,
                 myOpMode.telemetry,
                 true);
+
+        kickstand = new Kickstand(motorKickstand, myOpMode.gamepad2, myOpMode.telemetry, _showInfo);
 
         lights = new Lights(
                 servoLightLeft,

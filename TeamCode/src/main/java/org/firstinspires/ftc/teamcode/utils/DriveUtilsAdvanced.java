@@ -371,6 +371,11 @@ public class DriveUtilsAdvanced {
         isAligning=false;
     }
 
+    /** Returns the camera Tx angle (degrees) to the goal tag. 0 = perfectly centered. */
+    public double getAlignmentAngle() {
+        return limelightHardware2Axis.getTxDegreesForId(targetTagId);
+    }
+
     public void updateCameraPitch(){
         limelightHardware2Axis.setServoAngles(0, Math.toDegrees(Math.atan(18/Math.sqrt(x3*x3+y3*y3))) );//22 should be hight difference of the camera and the april tags on the goals
         telemetry.addData("pitch angle", Math.toDegrees(Math.atan(18/Math.sqrt(x3*x3+y3*y3))));

@@ -45,6 +45,10 @@ public class LimelightHardware2Axis
     private double _pitchPosition = _PitchPositionStart;
     private LLResult _latestLLResult = null; // Stores the latest result from the loop
 
+    // Obelisk motif detected from tags 21/22/23 — set once, persists across TeleOp
+    // Tag 21→GPP, 22→PGP, 23→PPG
+    public static Motif storedGameMotif = null;
+
     //endregion
 
     // Define an enum representing the days of the week
@@ -399,6 +403,16 @@ public class LimelightHardware2Axis
         if (_latestLLResult != null && _latestLLResult.isValid()) {
             //_latestLLResult = templlResult;  // update reference only if valid
             List<LLResultTypes.FiducialResult> fiducials = _latestLLResult.getFiducialResults();
+
+            // Store obelisk motif on first detection (tag 21→GPP, 22→PGP, 23→PPG)
+            if (storedGameMotif == null && fiducials != null) {
+                for (LLResultTypes.FiducialResult tag : fiducials) {
+                    int id = tag.getFiducialId();
+                    if (id == 21) { storedGameMotif = Motif.GPP; break; }
+                    else if (id == 22) { storedGameMotif = Motif.PGP; break; }
+                    else if (id == 23) { storedGameMotif = Motif.PPG; break; }
+                }
+            }
 
             if (fiducials != null && !fiducials.isEmpty()) {
                 // Get the first fiducial
