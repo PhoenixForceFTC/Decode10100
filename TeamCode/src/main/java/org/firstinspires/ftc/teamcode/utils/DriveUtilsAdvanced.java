@@ -42,8 +42,8 @@ public class DriveUtilsAdvanced {
     // --- Alignment tuning (edit here OR live-tune via FTC Dashboard) ---
     public static double ALIGN_KP = 0.7;         // proportional gain: deg → turn power
     public static double ALIGN_KD = 0.003;       // derivative gain: damps oscillations
-    public static double ALIGN_MIN_POWER = 0.15; // minimum power to overcome static friction
-    public static double ALIGN_FINE_DEG = 2.0;   // within this angle → stop turning (done)
+    public static double ALIGN_MIN_POWER = 0.07; // minimum power to overcome static friction
+    public static double ALIGN_FINE_DEG = 8;   // within this angle → stop turning (done)
     // -------------------------------------------------------------------
 
     // PD state — reset each time alignment starts/ends
