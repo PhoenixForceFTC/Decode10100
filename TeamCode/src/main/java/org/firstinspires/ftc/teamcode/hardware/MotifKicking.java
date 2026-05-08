@@ -20,6 +20,7 @@ public class MotifKicking {
 
     private int[] shootingSequence;
     private boolean _simultaneous = false; // true = all 3 fire at once, false = sequential motif
+    private int _seqStage = -1; // -1 = idle; 0-3 = active stage in sequential sequence
 
     public MotifKicking(RobotHardware hardware){
         this.hardware = hardware;
@@ -162,6 +163,7 @@ public class MotifKicking {
             Intake_Incomplete.BallColor[] colors = {leftColor, middleColor, rightColor};
             Motif intakeMotif = colorsToMotif(colors);
             shootingSequence = fireAutoKickerSeq(GameMotif, intakeMotif);
+            _seqStage = 0; // start sequential sequence
         }
         if (myTimer == null) { myTimer = new ElapsedTime(); }
         myTimer.reset();
@@ -178,17 +180,33 @@ public class MotifKicking {
             // Nothing extra needed here.
             return;
         }
-        // Sequential mode: fire one kicker at a time per shooting sequence.
-        if (myTimer.time() < 0.4) {
-            hardware.kickers.fireKickerAuto(shootingSequence[0]);
-        } else if (myTimer.time() < 0.8) {
-            hardware.kickers.fireKickerAuto(shootingSequence[1]);
-        } else if (myTimer.time() < 1.2) {
-            hardware.kickers.fireKickerAuto(shootingSequence[2]);
-        } else if (myTimer.time() < 1.4) {
-            hardware.kickers.retractKickerAuto(0);
-            hardware.kickers.retractKickerAuto(1);
-            hardware.kickers.retractKickerAuto(2);
+        if (_seqStage < 0) return; // idle — nothing to do
+
+        // Sequential mode: fire each kicker exactly once via fireKicker() so that
+        // runFinal()'s timer-based position control holds the servo in kicked position
+        // for KICKER_ACTION_DELAY (1.0s) before auto-retracting.
+        // Stage 0: fire immediately; stages 1-2: fire at 0.4s intervals.
+        double t = myTimer.time();
+        if (_seqStage == 0) {
+            hardware.kickers.fireKicker(shootingSequence[0]);
+            _seqStage = 1;
+        } else if (t >= 0.4 && _seqStage == 1) {
+            hardware.kickers.fireKicker(shootingSequence[1]);
+            _seqStage = 2;
+        } else if (t >= 0.8 && _seqStage == 2) {
+            hardware.kickers.fireKicker(shootingSequence[2]);
+            _seqStage = 3;
+        } else if (t >= 1.8 && _seqStage == 3) {
+            // Last kicker fired at t=0.8s; KICKER_ACTION_DELAY=1.0s → retracted by t=1.8s.
+            _seqStage = -1; // sequence complete
         }
+    }
+
+    /** Returns true while any kicker is still in motion (fired but not yet retracted). */
+    public boolean isKicking() {
+        if (_simultaneous) {
+            return myTimer.time() < 1.0; // KICKER_ACTION_DELAY
+        }
+        return _seqStage >= 0;
     }
 }

@@ -120,6 +120,9 @@ public class TeleOp_State_Red extends LinearOpMode {
         // 3-ball vibration rising-edge detection
         boolean prev3Balls = false;
 
+        // Kick-completion detection: restart intake when sequence finishes
+        boolean wasKicking = false;
+
         _robot.init(robotVersion);
         telemetry.addData("location string in teleopState", Location.GetPose());
         telemetry.addData("Class Hash in teleopState", Location.class.hashCode());
@@ -200,6 +203,13 @@ public class TeleOp_State_Red extends LinearOpMode {
                 _kickMotif.setKick(isThreeBallMode);
             }
             _kickMotif.checkKick();
+
+            // Falling-edge: kick sequence just finished → clear ball detection so auto-intake restarts
+            boolean isKickingNow = _kickMotif.isKicking();
+            if (wasKicking && !isKickingNow) {
+                _robot.intake.clearAllSensorValues();
+            }
+            wasKicking = isKickingNow;
 
             //------------------------------------------------------------------------------------------
             //--- Limelight motif detection: update GameMotif on first obelisk tag seen

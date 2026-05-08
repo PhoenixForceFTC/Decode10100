@@ -462,6 +462,12 @@ public class Intake_Incomplete
 
     //endregion
 
+    public void clearAllSensorValues() {
+        clearLeftSensorValues();
+        clearMiddleSensorValues();
+        clearRightSensorValues();
+    }
+
     //--- Returns true when all 3 positions have a known ball color
     public boolean isAll3Detected() {
         return _leftBallColor != BallColor.NONE && _leftBallColor != BallColor.UNKNOWN &&
