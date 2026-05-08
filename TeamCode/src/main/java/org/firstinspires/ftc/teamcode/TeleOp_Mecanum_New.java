@@ -103,11 +103,15 @@ public class TeleOp_Mecanum_New extends LinearOpMode
         //--- Hardware Initialize
         //------------------------------------------------------------------------------------------
         _robot.shooter.initialize();
+        _robot.enableManualBulkReads();
 
         //------------------------------------------------------------------------------------------
         //--- Run until the end of the match (driver presses STOP)
         //------------------------------------------------------------------------------------------
         while (opModeIsActive()) {
+            _robot.clearBulkCache();
+            _robot.shooter.cacheVelocity();
+            double shooterSpeed = _robot.shooter.getSpeed();
             telemetry.addData("floor distance final", floorDistance);
             telemetry.addData("target pitch", targetPitch);
             telemetry.addData("is shooting", isShooting);
@@ -181,7 +185,7 @@ public class TeleOp_Mecanum_New extends LinearOpMode
             //--- Shooter
             //------------------------------------------------------------------------------------------
             _robot.shooter.shoot(speed);//change so speed is set in shooter based on the distance
-            telemetry.addData("speed reading from the motor in ticks per second",_robot.shooter.getSpeed());
+            telemetry.addData("speed reading from the motor in ticks per second", shooterSpeed);
             _robot.shooter.getTelemetry();
 
 
@@ -204,7 +208,7 @@ public class TeleOp_Mecanum_New extends LinearOpMode
                     speed = 6000;
                 }
             }
-            _robot.kickers.run(_robot.shooter.speed, _robot.shooter.getSpeed(),readyForShooting);
+            _robot.kickers.run(_robot.shooter.speed, shooterSpeed, readyForShooting);
             //------------------------------------------------------------------------------------------
             //--- Update Telemetry Display
             //------------------------------------------------------------------------------------------

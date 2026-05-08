@@ -144,11 +144,12 @@ public class RobotHardware {
      * This method must be called ONCE when the OpMode is initialized.
      */
     public void init(int robotVersion) {
-        // Enable bulk reads — dramatically reduces I2C overhead.
-        // Caller MUST call clearBulkCache() once at the top of every loop iteration.
+        // Enable bulk reads in AUTO mode — safe for both TeleOp and Autonomous.
+        // The SDK automatically manages the cache between reads so no manual clearing is needed.
+        // TeleOp can call enableManualBulkReads() before its loop for tighter control.
         hubs = myOpMode.hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : hubs) {
-            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
         //FtcDashboard dashboard = FtcDashboard.getInstance();
@@ -304,7 +305,18 @@ public class RobotHardware {
     }
 
 
-    /** Call once at the very top of every loop iteration to refresh the I2C bulk-read cache. */
+    /**
+     * Switch hubs to MANUAL bulk caching for maximum loop efficiency.
+     * Call this ONCE before a TeleOp loop starts — then call clearBulkCache() at the
+     * top of every loop iteration. Do NOT call this from Autonomous OpModes.
+     */
+    public void enableManualBulkReads() {
+        for (LynxModule hub : hubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
+    }
+
+    /** Call once at the very top of every TeleOp loop iteration to refresh the I2C bulk-read cache. */
     public void clearBulkCache() {
         for (LynxModule hub : hubs) {
             hub.clearBulkCache();

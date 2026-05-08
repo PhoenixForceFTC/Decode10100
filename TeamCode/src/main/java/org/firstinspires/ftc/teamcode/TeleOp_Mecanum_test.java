@@ -126,11 +126,15 @@ public class TeleOp_Mecanum_test extends LinearOpMode
         _robot.limelightHardware2Axis.servos();
         _robot.kickers.initialize();
        // _robot.intake.initialize();
+        _robot.enableManualBulkReads();
 
         //------------------------------------------------------------------------------------------
         //--- Run until the end of the match (driver presses STOP)
         //------------------------------------------------------------------------------------------
         while (opModeIsActive()) {
+            _robot.clearBulkCache();
+            _robot.shooter.cacheVelocity();
+            double shooterSpeed = _robot.shooter.getSpeed();
 
             //------------------------------------------------------------------------------------------
             //--- Hardware Run (updates lights, etc.)
@@ -178,7 +182,7 @@ public class TeleOp_Mecanum_test extends LinearOpMode
                 boolean alreadyShot = true;
                 if(!alreadyShot) {
                     if (isThreeBallMode) {
-                        if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60, _robot.shooter.getSpeed(),
+                        if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60, shooterSpeed,
                                 true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
                                 3,_robot.intake)) {
                             _driveUtilsAdvanced.endAutoAlign();
@@ -227,7 +231,7 @@ public class TeleOp_Mecanum_test extends LinearOpMode
 
             }
 
-            _robot.kickers.run(_robot.shooter.speed,_robot.shooter.getSpeed(),true);
+            _robot.kickers.run(_robot.shooter.speed, shooterSpeed, true);
             _robot.intake.run();
             //_robot.shooter.shoot(shooterSpeedRpm);
             telemetry.addData("dist", _driveUtilsAdvanced.getDist());

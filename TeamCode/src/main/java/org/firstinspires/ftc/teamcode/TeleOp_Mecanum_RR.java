@@ -110,11 +110,14 @@ public class TeleOp_Mecanum_RR extends LinearOpMode
         _robot.shooter.initialize();
        // _robot.intake.initialize();
         _robot.lights.initialize();
+        _robot.enableManualBulkReads();
 
         //------------------------------------------------------------------------------------------
         //--- Run until the end of the match (driver presses STOP)
         //------------------------------------------------------------------------------------------
         while (opModeIsActive()) {
+            _robot.clearBulkCache();
+            _robot.shooter.cacheVelocity();
 
             //------------------------------------------------------------------------------------------
             //--- Hardware Run (updates lights, etc.)

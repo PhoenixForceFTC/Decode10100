@@ -107,11 +107,15 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
         _robot.shooter.initialize();
        // _robot.intake.initialize();
         _robot.lights.initialize();
+        _robot.enableManualBulkReads();
 
         //------------------------------------------------------------------------------------------
         //--- Run until the end of the match (driver presses STOP)
         //------------------------------------------------------------------------------------------
         while (opModeIsActive()) {
+            _robot.clearBulkCache();
+            _robot.shooter.cacheVelocity();
+            double shooterSpeed = _robot.shooter.getSpeed();
 
             //------------------------------------------------------------------------------------------
             //--- Hardware Run (updates lights, etc.)
@@ -176,11 +180,11 @@ public class TeleOp_Mecanum_OLD extends LinearOpMode
             }
             _robot.shooter.shoot(shooterSpeedRpm);
             _robot.intake.run();
-            _robot.kickers.run(_robot.shooter.speed,_robot.shooter.getSpeed(),true);
+            _robot.kickers.run(_robot.shooter.speed, shooterSpeed, true);
             telemetry.addData("target speed in rpm", shooterSpeedRpm);
             telemetry.addData("three ball mode", isThreeBallMode);
             telemetry.addData("robot shooting position", robotPosition.toString());
-            telemetry.addData("speed reading from the motor in ticks per second",_robot.shooter.getSpeed());
+            telemetry.addData("speed reading from the motor in ticks per second", shooterSpeed);
             _robot.shooter.getTelemetry();
             //_robot.limelightHardware.loop();
             _robot.limelightHardware2Axis.loop();

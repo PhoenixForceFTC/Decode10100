@@ -108,11 +108,15 @@ public class TeleOp_Mecanum_DataLog extends LinearOpMode
         //--- Hardware Initialize
         //------------------------------------------------------------------------------------------
         _robot.shooter.initialize();
+        _robot.enableManualBulkReads();
 
         //------------------------------------------------------------------------------------------
         //--- Run until the end of the match (driver presses STOP)
         //------------------------------------------------------------------------------------------
         while (opModeIsActive()) {
+            _robot.clearBulkCache();
+            _robot.shooter.cacheVelocity();
+            double shooterSpeed = _robot.shooter.getSpeed();
 
             //------------------------------------------------------------------------------------------
             //--- Start Telemetry Display
@@ -172,7 +176,7 @@ public class TeleOp_Mecanum_DataLog extends LinearOpMode
             }
             _robot.shooter.shoot(shooterSpeedRpm);
             _robot.intake.run();
-            DataLog.Shooter shooterPos =_robot.kickers.run2(_robot.shooter.speed,_robot.shooter.getSpeed(),true);
+            DataLog.Shooter shooterPos =_robot.kickers.run2(_robot.shooter.speed, shooterSpeed, true);
             if(shooterPos != DataLog.Shooter.Unkown){
 
                 currentData = new DataLog(0,0,0,0,0,false,0,0,0,0,shooterPos);
@@ -185,7 +189,7 @@ public class TeleOp_Mecanum_DataLog extends LinearOpMode
             telemetry.addData("target speed in rpm", shooterSpeedRpm);
             telemetry.addData("three ball mode", isThreeBallMode);
             telemetry.addData("robot shooting position", robotPosition.toString());
-            telemetry.addData("speed reading from the motor in ticks per second",_robot.shooter.getSpeed());
+            telemetry.addData("speed reading from the motor in ticks per second", shooterSpeed);
             _robot.shooter.getTelemetry();
             //_robot.limelightHardware.loop();
             _robot.limelightHardware2Axis.loop();

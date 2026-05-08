@@ -128,6 +128,10 @@ public class TeleOp_State_Red extends LinearOpMode {
         // _robot.intake.initialize();
         _robot.lights.initialize();
 
+        // Switch to MANUAL bulk caching for tightest loop timing — clearBulkCache() is
+        // called at the top of every loop iteration below. Autos stay on AUTO (set in init()).
+        _robot.enableManualBulkReads();
+
         //------------------------------------------------------------------------------------------
         //--- Run until the end of the match (driver presses STOP)
         //------------------------------------------------------------------------------------------
