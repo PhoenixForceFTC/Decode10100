@@ -47,7 +47,34 @@ public class DriveUtilsAdvanced {
     // -------------------------------------------------------------------
 
     // PD state — reset each time alignment starts/ends
+    public static double ALIGN_PID_KP = 0.035;       // degrees -> turn power
+    public static double ALIGN_PID_KI = 0.0;         // keep 0 unless the robot consistently stops off-center
+    public static double ALIGN_PID_KD = 0.0025;      // damps fast approach near target
+    public static double ALIGN_PID_KS = 0.045;       // static-friction feedforward
+    public static double ALIGN_PID_KS_END_DEG = 4.0; // no static push inside this range, prevents close wiggle
+    public static double ALIGN_PID_MAX_POWER = 0.65;
+    public static double ALIGN_PID_MAX_ACCEL = 0.12; // max turn-power change per loop
+    public static double ALIGN_TARGET_DEG = 1.75;
+    public static double ALIGN_INTEGRAL_LIMIT = 120.0;
+    public static int ALIGN_STABLE_LOOPS = 4;
+    public static boolean SHOW_DASHBOARD_DEBUG = false;
+
+    // --- TeleOp strafe heading-hold assist (does NOT run during auto-align) ---
+    public static boolean STRAFE_HOLD_ENABLED = true;
+    public static double STRAFE_HOLD_KP = 2.2;               // rad error -> turn power
+    public static double STRAFE_HOLD_MAX_POWER = 0.35;
+    public static double STRAFE_HOLD_STRAFE_DEADBAND = 0.25; // left stick X
+    public static double STRAFE_HOLD_AXIAL_MAX = 0.20;       // left stick Y
+    public static double STRAFE_HOLD_YAW_DEADBAND = 0.12;    // right stick X
+
+    private boolean _strafeHoldActive = false;
+    private double _strafeHoldHeadingRad = 0.0;
+
     private double _alignPrevError = 0;
+    private double _alignIntegral = 0;
+    private double _lastAlignPower = 0;
+    private double _lastAlignErrorDeg = 180.0;
+    private int _alignStableLoops = 0;
     private boolean _alignFirstLoop = true; // seed prevError on first loop to avoid spike
     private final ElapsedTime _alignDtTimer = new ElapsedTime();
 
@@ -140,7 +167,7 @@ public class DriveUtilsAdvanced {
         this.heading = heading;
         this.yaw = yaw;// yaw is posotive goes counterclockwise
         // Only push debug telemetry every N loops to reduce hub communication overhead.
-        if (_telemetryThrottle % TELEMETRY_EVERY_N_LOOPS == 0) {
+        if (SHOW_DASHBOARD_DEBUG && _telemetryThrottle % TELEMETRY_EVERY_N_LOOPS == 0) {
             telemetry.addData("x", x);
             telemetry.addData("y", y);
             telemetry.addData("x speed", dxdt);
@@ -193,29 +220,32 @@ public class DriveUtilsAdvanced {
         // Throttle dashboard robot-drawing to every N loops (no need to redraw every 10ms).
         TelemetryPacket packet2 = new TelemetryPacket();
         if (_telemetryThrottle % TELEMETRY_EVERY_N_LOOPS == 0) {
-            telemetry.addData("change in heading", thetadt());
-            TelemetryPacket packet = new TelemetryPacket();
-            Canvas c = packet.fieldOverlay();
-            Drawing.drawRobot(c, currentPose);
-            packet.put("change in heading", thetadt());
-            dashboard.sendTelemetryPacket(packet);
+            if (SHOW_DASHBOARD_DEBUG) {
+                TelemetryPacket packet = new TelemetryPacket();
+                Canvas c = packet.fieldOverlay();
+                Drawing.drawRobot(c, currentPose);
+                packet.put("change in heading", thetadt());
+                dashboard.sendTelemetryPacket(packet);
+            }
         }
 
         // update running actions — use Iterator to remove finished actions in-place,
         // avoiding a new ArrayList allocation every loop.
         boolean skipDrive = false;
         if(runningActions.isEmpty()){
-            telemetry.addLine("RR is not running");
-            packet2.addLine("RR is not running");
+            if (SHOW_DASHBOARD_DEBUG) {
+                packet2.addLine("RR is not running");
+            }
         }
         else
         {
             java.util.Iterator<Action> iter = runningActions.iterator();
             while (iter.hasNext()) {
                 Action action = iter.next();
-                telemetry.addLine("RR is running");
-                packet2.addLine("RR is running");
-                action.preview(packet2.fieldOverlay());
+                if (SHOW_DASHBOARD_DEBUG) {
+                    packet2.addLine("RR is running");
+                    action.preview(packet2.fieldOverlay());
+                }
                 if (action.run(packet2)) {
                     skipDrive = true;  // action still running — keep it
                 } else {
@@ -224,7 +254,9 @@ public class DriveUtilsAdvanced {
             }
         }
 
-        dashboard.sendTelemetryPacket(packet2);
+        if (SHOW_DASHBOARD_DEBUG) {
+            dashboard.sendTelemetryPacket(packet2);
+        }
 
         double targetHeading = getTargetHeading(y4-14.55098425, x4-11.82122047);
         double calcDif = calcDifference(targetHeading);//calc diff uses road
@@ -241,10 +273,38 @@ public class DriveUtilsAdvanced {
 //        //and then we will use only heading data in combination with camera data to calculate the difference
 //        // skipDrive=true: robot still under RR control, got to wait
         if(!skipDrive){
+            // Heading hold while strafing (TeleOp usability assist).
+            // Only applies when NOT auto-aligning and driver is not commanding rotation.
+            double yawImportant = 0.0;
+            if (STRAFE_HOLD_ENABLED && !isAligning) {
+                double lateralCmd = gamepad.left_stick_x;
+                double axialCmd = -gamepad.left_stick_y;
+                double yawCmd = gamepad.right_stick_x;
+
+                boolean wantsStrafe = Math.abs(lateralCmd) >= STRAFE_HOLD_STRAFE_DEADBAND
+                        && Math.abs(axialCmd) <= STRAFE_HOLD_AXIAL_MAX
+                        && Math.abs(yawCmd) <= STRAFE_HOLD_YAW_DEADBAND;
+
+                if (wantsStrafe) {
+                    if (!_strafeHoldActive) {
+                        _strafeHoldActive = true;
+                        _strafeHoldHeadingRad = heading;
+                    }
+                    double err = _strafeHoldHeadingRad - heading;
+                    while (err > Math.PI) err -= 2.0 * Math.PI;
+                    while (err < -Math.PI) err += 2.0 * Math.PI;
+                    yawImportant = clamp(err * STRAFE_HOLD_KP, -STRAFE_HOLD_MAX_POWER, STRAFE_HOLD_MAX_POWER);
+                } else {
+                    _strafeHoldActive = false;
+                }
+            } else {
+                _strafeHoldActive = false;
+            }
+
             if (calcDif > Math.PI / 2 || calcDif < -Math.PI / 2) {
                 // this is the default drive signal
                 // yawImportant = 0 means no additional turn power
-                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
+                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, yawImportant);
 
                 // todo: trying driveRR to see if that is faster, tried driveRR but was messing up auto align
                 //_robot.driveRR.driveControl(1.0);
@@ -253,13 +313,12 @@ public class DriveUtilsAdvanced {
             else
             {
                 if(isAligning) {  //right trigger sets this and reset after shooting
-                    telemetry.addData("Aligning:","Yes");
                     returnn = autoAlignViaLLandPower(gamepad,calcDif);  // return true if we are close enough and aligned.
                 }
                 else
                 {
                     // _robot.driveRR.driveControl(1.0);  // maybe faster but autoaligning not working
-                   drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, 0);
+                   drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, yawImportant);
                 }
             }
         }
@@ -281,12 +340,15 @@ public class DriveUtilsAdvanced {
             //double[] distBreakdown = limelightHardware2Axis.getDistanceBreakdown();
             //distBreakdown = null; // temp todo: can we just use
             double angleToTurnFromCamera = limelightHardware2Axis.getTxDegreesForId(this.targetTagId);
+            _lastAlignErrorDeg = angleToTurnFromCamera;
 
             calcDif += Math.toRadians(adjustmentDegrees());
             angleToTurnFromCamera+= adjustmentDegrees();
-            if(Math.abs(angleToTurnFromCamera) < ALIGN_FINE_DEG){ // within fine-alignment threshold
+            if(Math.abs(angleToTurnFromCamera) < ALIGN_TARGET_DEG){ // within fine-alignment threshold
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,0);
-                if(dxdt<0.1&&dydt<0.1&&yaw<0.1) {
+                _lastAlignPower = 0;
+                _alignStableLoops++;
+                if(_alignStableLoops >= ALIGN_STABLE_LOOPS) {
                     return true;
                 }
                 else{
@@ -294,38 +356,45 @@ public class DriveUtilsAdvanced {
                 }
             }
             if(angleToTurnFromCamera > (double)120.0){
-                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));
+                _alignStableLoops = 0;
+                _lastAlignPower = 0;
+                _lastAlignErrorDeg = 180.0;
+                double fallbackTurn = clamp(thetadt() + (calcDif / 3), -ALIGN_PID_MAX_POWER, ALIGN_PID_MAX_POWER);
+                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, fallbackTurn);
             }
             else
             {
-                // PD controller: P corrects steady-state error, D damps oscillations
-                double error = Math.toRadians(angleToTurnFromCamera);
-
+                _alignStableLoops = 0;
+                double error = angleToTurnFromCamera;
                 double derivative = 0;
+                double dt = _alignDtTimer.seconds();
                 if (_alignFirstLoop) {
-                    // Seed prevError to current so the first derivative is 0, not a spike from 0.
                     _alignPrevError = error;
                     _alignFirstLoop = false;
-                } else {
-                    double dt = _alignDtTimer.seconds();
-                    if (dt > 0.001) {
-                        derivative = (error - _alignPrevError) / dt;
-                    }
-                    _alignPrevError = error;
+                } else if (dt > 0.001) {
+                    derivative = (error - _alignPrevError) / dt;
                 }
+                if (dt > 0.001 && Math.abs(error) < 10.0) {
+                    _alignIntegral += error * dt;
+                    _alignIntegral = clamp(_alignIntegral, -ALIGN_INTEGRAL_LIMIT, ALIGN_INTEGRAL_LIMIT);
+                } else if (Math.signum(error) != Math.signum(_alignPrevError)) {
+                    _alignIntegral = 0;
+                }
+                _alignPrevError = error;
                 _alignDtTimer.reset();
 
-                double pTerm = error * ALIGN_KP;
-                double dTerm = derivative * ALIGN_KD;
-                // Guard: D term must never flip the output direction vs P term.
-                // This prevents overpowering the P term near the target when converging fast.
-                if (Math.signum(dTerm) != Math.signum(pTerm)) {
-                    dTerm = Math.min(Math.abs(dTerm), Math.abs(pTerm)) * Math.signum(dTerm);
-                }
-                double speed = pTerm + dTerm;
-                // Clamp to minimum power so motor overcomes static friction
-                if(speed < ALIGN_MIN_POWER && speed >= 0){ speed = ALIGN_MIN_POWER; }
-                if(speed > -ALIGN_MIN_POWER && speed <= 0){ speed = -ALIGN_MIN_POWER; }
+                double staticFeedForward = Math.abs(error) > ALIGN_PID_KS_END_DEG
+                        ? Math.signum(error) * ALIGN_PID_KS
+                        : 0;
+
+                double speed = (error * ALIGN_PID_KP)
+                        + (_alignIntegral * ALIGN_PID_KI)
+                        + (derivative * ALIGN_PID_KD)
+                        + staticFeedForward;
+                speed = clamp(speed, -ALIGN_PID_MAX_POWER, ALIGN_PID_MAX_POWER);
+                double change = clamp(speed - _lastAlignPower, -ALIGN_PID_MAX_ACCEL, ALIGN_PID_MAX_ACCEL);
+                speed = _lastAlignPower + change;
+                _lastAlignPower = speed;
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,
                         speed);
                 //drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, thetadt() + (calcDif / 3));//it is only turning right and not left maybe
@@ -354,29 +423,14 @@ public class DriveUtilsAdvanced {
 
     //  Use road runner first to get it to be able to see april tag
    public void autoAlign(){
-        isAligning=true;
-
-        double targetHeading = getTargetHeading(y4-14.55098425, x4-11.82122047);
-        double calcDif = calcDifference(targetHeading);
-        double angleToTurnFromCamera = limelightHardware2Axis.getTxDegreesForId(this.targetTagId);
-
-        calcDif+=Math.toRadians(adjustmentDegrees());
-
-       if (Math.abs(angleToTurnFromCamera)<45){
-           calcDif= Math.toRadians(angleToTurnFromCamera);
-       }
-
-
-        //drive.arcadeDriveSpeedControl2(0, 0, 0, calcDif/2);
-        //drive.arcadeDriveSpeedControl2(0, 0, 0, 0);  -> anyway done when skipDrive is setup
-        driveClass.updatePoseEstimate();  // only dashboard update
-        if(runningActions.isEmpty()) {
-            //todo: uncomment out once you get both calcdif and camera alignign working because those are always aligning and are more accurate
-            runningActions.add(driveClass.actionBuilder(driveClass.localizer.getPose())
-                    .turn(-calcDif)
-                    .build()
-            );
+        if (!isAligning) {
+            _alignFirstLoop = true;
+            _alignIntegral = 0;
+            _lastAlignPower = 0;
+            _alignStableLoops = 0;
+            _alignDtTimer.reset();
         }
+        isAligning=true;
     }
 
     private double getTargetHeading(double targetLocationY, double targetLocationX) {
@@ -396,6 +450,9 @@ public class DriveUtilsAdvanced {
     public void endAutoAlign(){
         isAligning=false;
         _alignFirstLoop = true;
+        _alignIntegral = 0;
+        _lastAlignPower = 0;
+        _alignStableLoops = 0;
         _alignDtTimer.reset();
     }
 
@@ -404,9 +461,32 @@ public class DriveUtilsAdvanced {
         return limelightHardware2Axis.getTxDegreesForId(targetTagId);
     }
 
+    public boolean isAlignedToGoal() {
+        double angle = getAlignmentAngle();
+        return Math.abs(angle) <= ALIGN_TARGET_DEG && _alignStableLoops >= ALIGN_STABLE_LOOPS;
+    }
+
+    public boolean hasGoalTag() {
+        return Math.abs(getAlignmentAngle()) < 120.0;
+    }
+
+    public double getLastAlignErrorDeg() {
+        return _lastAlignErrorDeg;
+    }
+
+    public double getLastAlignPower() {
+        return _lastAlignPower;
+    }
+
+    public int getAlignStableLoops() {
+        return _alignStableLoops;
+    }
+
     public void updateCameraPitch(){
         limelightHardware2Axis.setServoAngles(0, Math.toDegrees(Math.atan(18/Math.sqrt(x3*x3+y3*y3))) );//22 should be hight difference of the camera and the april tags on the goals
-        telemetry.addData("pitch angle", Math.toDegrees(Math.atan(18/Math.sqrt(x3*x3+y3*y3))));
+        if (SHOW_DASHBOARD_DEBUG) {
+            telemetry.addData("pitch angle", Math.toDegrees(Math.atan(18/Math.sqrt(x3*x3+y3*y3))));
+        }
         //can change to be x only and not pythagors theorem if camera is supposed to look at both april tags
     };
 
@@ -440,6 +520,10 @@ public class DriveUtilsAdvanced {
         return difference;
     };
 
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
     // Resets position of localizer based on camera
     // currently this is called in the loop of the opmode every 20 times
     public void reset(boolean reset){
@@ -462,7 +546,9 @@ public class DriveUtilsAdvanced {
                 }
             }
         }
-        Drawing.drawRobot(c, driveClass.localizer.getPose());
-        dashboard.sendTelemetryPacket(packet);
+        if (SHOW_DASHBOARD_DEBUG) {
+            Drawing.drawRobot(c, driveClass.localizer.getPose());
+            dashboard.sendTelemetryPacket(packet);
+        }
     }
 }

@@ -285,7 +285,7 @@ public class RobotHardware {
                 myOpMode.telemetry,
                 true);
 
-        kickstand = new Kickstand(motorKickstand, myOpMode.gamepad2, myOpMode.telemetry, _showInfo);
+        kickstand = new Kickstand(motorKickstand, myOpMode.gamepad1, myOpMode.telemetry, _showInfo);
 
         lights = new Lights(
                 servoLightLeft,

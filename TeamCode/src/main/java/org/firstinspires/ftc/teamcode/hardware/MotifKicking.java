@@ -41,6 +41,17 @@ public class MotifKicking {
         GameMotif = AutoActionstoKickerKickMotif(motif);
     }
 
+    public static void updateMotif(LimelightHardware2Axis.Motif motif){
+        if (motif == null) {
+            return;
+        }
+        switch (motif) {
+            case GPP: GameMotif = Motif.GPP; break;
+            case PGP: GameMotif = Motif.PGP; break;
+            case PPG: GameMotif = Motif.PPG; break;
+        }
+    }
+
     private static Motif colorsToMotif(Intake_Incomplete.BallColor[] colors){
 
         if (colors[0] == Intake_Incomplete.BallColor.GREEN &&
@@ -146,6 +157,7 @@ public class MotifKicking {
             // runFinal() holds kicked position for KICKER_ACTION_DELAY then auto-retracts.
             hardware.kickers.fireAll3Simultaneous();
         } else {
+            updateMotif(hardware.limelightHardware2Axis.updateStoredGameMotif(false));
             // Sequential motif: read ball colors and build firing order.
             Intake_Incomplete.BallColor leftColor =
                     hardware.intake.detectBallSticky(hardware.intake._colorSensorLeft,

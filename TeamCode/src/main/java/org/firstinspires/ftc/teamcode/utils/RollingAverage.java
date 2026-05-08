@@ -4,7 +4,7 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 public class RollingAverage {
-    private static final int MAX_SIZE = 5; // 5 samples ≈ 50ms at 10ms/loop — fast enough to catch balls, still filters noise
+    private static final int MAX_SIZE = 3; // Faster ball-count updates without extra sensor reads.
 
     private Queue<Double> readings = new ArrayDeque<>();
     private double sum = 0.0;

@@ -44,6 +44,7 @@ public class LimelightHardware2Axis
     private double _yawPosition = _YawPositionStart;
     private double _pitchPosition = _PitchPositionStart;
     private LLResult _latestLLResult = null; // Stores the latest result from the loop
+    public static boolean SHOW_LIMELIGHT_DEBUG = false;
 
     // Obelisk motif detected from tags 21/22/23 — set once, persists across TeleOp
     // Tag 21→GPP, 22→PGP, 23→PPG
@@ -256,7 +257,9 @@ public class LimelightHardware2Axis
             //c.strokeLine(pivotPose.getX(DistanceUnit.INCH),pivotPose.getY(DistanceUnit.INCH),botPose.getX(DistanceUnit.INCH),botPose.getY(DistanceUnit.INCH));
         c.strokeLine(pivotPose.getX(DistanceUnit.INCH),pivotPose.getY(DistanceUnit.INCH),pivotPose.getX(DistanceUnit.INCH)-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack,pivotPose.getY(DistanceUnit.INCH)-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack);
         c.strokeLine(pivotPose.getX(DistanceUnit.INCH)-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack,pivotPose.getY(DistanceUnit.INCH)-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack,botPose.getX(DistanceUnit.INCH),botPose.getY(DistanceUnit.INCH));
-        dashboard.sendTelemetryPacket(packet);
+        if (SHOW_LIMELIGHT_DEBUG) {
+            dashboard.sendTelemetryPacket(packet);
+        }
 
         double tiltRad = Math.toRadians(_cameraPitchAngle);
 
@@ -405,13 +408,8 @@ public class LimelightHardware2Axis
             List<LLResultTypes.FiducialResult> fiducials = _latestLLResult.getFiducialResults();
 
             // Store obelisk motif on first detection (tag 21→GPP, 22→PGP, 23→PPG)
-            if (storedGameMotif == null && fiducials != null) {
-                for (LLResultTypes.FiducialResult tag : fiducials) {
-                    int id = tag.getFiducialId();
-                    if (id == 21) { storedGameMotif = Motif.GPP; break; }
-                    else if (id == 22) { storedGameMotif = Motif.PGP; break; }
-                    else if (id == 23) { storedGameMotif = Motif.PPG; break; }
-                }
+            if (storedGameMotif == null) {
+                updateStoredGameMotif(false);
             }
 
             if (fiducials != null && !fiducials.isEmpty()) {
@@ -425,18 +423,18 @@ public class LimelightHardware2Axis
                 // Get detailed breakdown
                 double[] breakdown = getDistanceBreakdown(_latestLLResult);
 
-                _telemetry.addLine("=== Tag ID: " + tagId + " ===");
+                if (SHOW_LIMELIGHT_DEBUG) _telemetry.addLine("=== Tag ID: " + tagId + " ===");
 
                 if (floorDistance > 0 && breakdown != null) {
-                    _telemetry.addData("Floor Distance", String.format("%.2f m", floorDistance));
-                    _telemetry.addData("Forward (Z)", String.format("%.2f m", breakdown[1]));
-                    _telemetry.addData("Lateral (X)", String.format("%.2f m", breakdown[2]));
-                    _telemetry.addData("Vertical (Y)", String.format("%.2f m", breakdown[3]));
+                    if (SHOW_LIMELIGHT_DEBUG) _telemetry.addData("Floor Distance", String.format("%.2f m", floorDistance));
+                    if (SHOW_LIMELIGHT_DEBUG) _telemetry.addData("Forward (Z)", String.format("%.2f m", breakdown[1]));
+                    if (SHOW_LIMELIGHT_DEBUG) _telemetry.addData("Lateral (X)", String.format("%.2f m", breakdown[2]));
+                    if (SHOW_LIMELIGHT_DEBUG) _telemetry.addData("Vertical (Y)", String.format("%.2f m", breakdown[3]));
                 } else {
-                    _telemetry.addData("Floor Distance", "Cannot calculate");
+                    if (SHOW_LIMELIGHT_DEBUG) _telemetry.addData("Floor Distance", "Cannot calculate");
                 }
 
-                _telemetry.addData("Camera Tilt", String.format("%.2f°", _cameraPitchAngle)+"°");
+                if (SHOW_LIMELIGHT_DEBUG) _telemetry.addData("Camera Tilt", String.format("%.2f°", _cameraPitchAngle)+"°");
 
                 // Show raw angles too
                 double tx = _latestLLResult.getTx();
@@ -444,11 +442,13 @@ public class LimelightHardware2Axis
                 //_telemetry.addData("Tx (Horizontal)", String.format("%.2f°", tx));
 //                _telemetry.addData("Ty (Vertical)", String.format("%.2f°", ty));
             } else {
-                _telemetry.addLine("No AprilTags detected");
+                if (SHOW_LIMELIGHT_DEBUG) _telemetry.addLine("No AprilTags detected");
             }
 
             // Get robot pose if available
-            Pose2D botPose2d = getRobotPos(_latestLLResult,null);
+            if (SHOW_LIMELIGHT_DEBUG) {
+                Pose2D botPose2d = getRobotPos(_latestLLResult,null);
+            }
         }
 
     }
@@ -493,6 +493,28 @@ public class LimelightHardware2Axis
 
     public void setPipeline(int index){
         _limelight.pipelineSwitch(index);
+    }
+
+    public Motif updateStoredGameMotif(boolean allowOverwrite) {
+        Motif visibleMotif = getVisibleObeliskMotif();
+        if (visibleMotif != null && (allowOverwrite || storedGameMotif == null)) {
+            storedGameMotif = visibleMotif;
+        }
+        return storedGameMotif;
+    }
+
+    public Motif getVisibleObeliskMotif() {
+        List<LLResultTypes.FiducialResult> results = getVisibleTags();
+        if (results == null) {
+            return null;
+        }
+        for (LLResultTypes.FiducialResult tag : results) {
+            int id = tag.getFiducialId();
+            if (id == 21) { return Motif.GPP; }
+            if (id == 22) { return Motif.PGP; }
+            if (id == 23) { return Motif.PPG; }
+        }
+        return null;
     }
     // Uses the result cached by loop() — no additional I2C/hardware read.
     public List<LLResultTypes.FiducialResult> getVisibleTags() {

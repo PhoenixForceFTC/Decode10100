@@ -33,7 +33,8 @@ import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //  - Y (▲)             - Toggle 3-ball / 1-ball mode
 //  - A (✕)             - Fire motif kick sequence (non-blocking)
 //  - X (■)             - Toggle auto-speed
-//  - B (○)             - Kick middle position (manual override)
+//  - B (○)             - Toggle auto-align enable/disable (manual shooting)
+//  - Dpad Up           - Kickers to middle + override ball distance detect (~2s)
 //
 //----------------------------------------------------------------------
 // Joystick 2 -----------------------------------------------------------
@@ -72,6 +73,14 @@ public class TeleOp_State_Red extends LinearOpMode {
     public static int SPEED_1BALL_CLOSE  = 2090;
     public static int SPEED_1BALL_MEDIUM = 2430;
     public static int SPEED_1BALL_FAR    = 3060;
+    public static double SHOOTER_READY_RATIO = 0.95;
+    public static double ODOMETRY_SPEED_BLEND = 0.65;
+    public static int ODOMETRY_RPM_MIN = 0;
+    public static int ODOMETRY_RPM_MAX = 6000;
+    public static int G2_PRESET_RUMBLE_MS = 120;
+    public static int G2_PRESET_RUMBLE_CLOSE_MS = 80;
+    public static int G2_PRESET_RUMBLE_MEDIUM_MS = 120;
+    public static int G2_PRESET_RUMBLE_FAR_MS = 170;
     //------------------------------------------------------------------------------------------
     // Variables
     //------------------------------------------------------------------------------------------
@@ -84,7 +93,7 @@ public class TeleOp_State_Red extends LinearOpMode {
     MotifKicking _kickMotif = new MotifKicking(_robot);
 
     public boolean overrideBallDistanceDetection = false;
-    public ElapsedTime overrideTimer = new ElapsedTime(3);
+    public ElapsedTime overrideTimer = new ElapsedTime();
 
 
     enum position {
@@ -92,6 +101,60 @@ public class TeleOp_State_Red extends LinearOpMode {
         Medium,
         Far,
         None
+    }
+
+    private double targetShooterTps(boolean isThreeBallMode, int oneBallRpm, int threeBallRpm) {
+        int targetRpm = isThreeBallMode ? threeBallRpm : oneBallRpm;
+        return (double) targetRpm * Shooter.ticksPerRotation / 60.0;
+    }
+
+    private boolean readyToShoot(boolean isThreeBallMode, int oneBallRpm, int threeBallRpm, double shooterSpeed) {
+        double targetSpeedTps = targetShooterTps(isThreeBallMode, oneBallRpm, threeBallRpm);
+        return _driveUtilsAdvanced.isAlignedToGoal()
+                && targetSpeedTps > 0
+                && shooterSpeed >= targetSpeedTps * SHOOTER_READY_RATIO;
+    }
+
+    private int odometryOneBallRpm(double dist) {
+        int rpm = Math.round((float) (2667 + (dist * -31.6) + (0.597 * (dist * dist)) -
+                (0.00375 * dist * dist * dist) + (0.00000895 * dist * dist * dist * dist)));
+        return Math.max(ODOMETRY_RPM_MIN, Math.min(ODOMETRY_RPM_MAX, rpm));
+    }
+
+    private int odometryThreeBallRpm(double dist) {
+        int rpm = Math.round((float) ((dist * dist * 0.0621) - (0.707 * dist) + 2414.16));
+        return Math.max(ODOMETRY_RPM_MIN, Math.min(ODOMETRY_RPM_MAX, rpm));
+    }
+
+    private int blendPresetWithOdometry(int presetRpm, int odometryRpm) {
+        if (presetRpm <= 0) {
+            return odometryRpm;
+        }
+        return Math.round((float) (presetRpm * (1.0 - ODOMETRY_SPEED_BLEND)
+                + odometryRpm * ODOMETRY_SPEED_BLEND));
+    }
+
+    private Lights.Color motifCharToLight(char motifColor) {
+        return motifColor == 'G' ? Lights.Color.GREEN : Lights.Color.PURPLE;
+    }
+
+    private void showMotifLights(LimelightHardware2Axis.Motif motif) {
+        if (motif == null) {
+            _robot.lights.setLeft(Lights.Color.WHITE, Lights.Blink.FAST);
+            _robot.lights.setMiddle(Lights.Color.WHITE, Lights.Blink.FAST);
+            _robot.lights.setRight(Lights.Color.WHITE, Lights.Blink.FAST);
+            return;
+        }
+        char[] pattern = motif.toString().toCharArray();
+        _robot.lights.setLeft(motifCharToLight(pattern[0]));
+        _robot.lights.setMiddle(motifCharToLight(pattern[1]));
+        _robot.lights.setRight(motifCharToLight(pattern[2]));
+    }
+
+    private void showWhiteSolid() {
+        _robot.lights.setLeft(Lights.Color.WHITE);
+        _robot.lights.setMiddle(Lights.Color.WHITE);
+        _robot.lights.setRight(Lights.Color.WHITE);
     }
 
     //------------------------------------------------------------------------------------------
@@ -108,17 +171,16 @@ public class TeleOp_State_Red extends LinearOpMode {
         int shooterSpeedRpm3Ball = 0;
         boolean isThreeBallMode = true;
         boolean isAutoSpeed = true;
+        boolean autoAlignEnabled = true; // G1 B toggles whether driver-assist auto-align is allowed
+        int presetOneBallRpm = 0;
+        int presetThreeBallRpm = 0;
 
         position robotPosition = position.None;
 
         // Trigger-release auto-align state
         boolean wasAlignTriggered = false;
 
-        // Limelight motif detection (update MotifKicking.GameMotif once per match)
-        boolean motifUpdatedFromLL = false;
-
-        // 3-ball vibration rising-edge detection
-        boolean prev3Balls = false;
+        LimelightHardware2Axis.Motif lastSavedMotif = null;
 
         // Kick-completion detection: restart intake when sequence finishes
         boolean wasKicking = false;
@@ -130,6 +192,7 @@ public class TeleOp_State_Red extends LinearOpMode {
                 _robot.limelightHardware2Axis, this.telemetry, isBlue, _robot);
 
         RisingEdge g1RE = new RisingEdge();
+        RisingEdge g2RE = new RisingEdge();
 
         //------------------------------------------------------------------------------------------
         //--- Display and wait for the game to start (driver presses START)
@@ -163,43 +226,44 @@ public class TeleOp_State_Red extends LinearOpMode {
             _robot.shooter.cacheVelocity();
             double shooterSpeed = _robot.shooter.getSpeed();
 
-            telemetry.addData("Run Time", " " + _runtime.toString() + " Loop Count:" + loop_count);
-
             //------------------------------------------------------------------------------------------
             //--- Lights blink state machine
             //------------------------------------------------------------------------------------------
             _robot.lights.run();
 
             // Lock intake's updateLights() when aligning so red override wins.
-            // Must be set before _robot.run() / intake.run() calls below.
+            // Must be set before intake.run() below.
             _robot.intake.lightsLocked = _driveUtilsAdvanced.isAligning;
 
             //------------------------------------------------------------------------------------------
             //--- Kickers: G2 dpad manual override always active via runFinal()
             //------------------------------------------------------------------------------------------
-            if (!gamepad1.left_bumper) {
-                if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60,
-                        shooterSpeed, true,
-                        (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
-                        -1, _robot.intake)) {
-                    _driveUtilsAdvanced.endAutoAlign();
-                }
-            } else {
-                if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60,
-                        shooterSpeed, true,
-                        (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
-                        3, _robot.intake)) {
-                    _driveUtilsAdvanced.endAutoAlign();
-                }
+            // Manual D-pad firing should always be preset-based (not auto-speed/odometry).
+            // If no preset is selected, target remains 0 and runFinal() will not fire.
+            boolean g2ManualKickCommand =
+                    gamepad2.dpad_left || gamepad2.dpad_up || gamepad2.dpad_right || gamepad2.dpad_down;
+            int manualOneBallRpm = presetOneBallRpm;
+            int manualThreeBallRpm = presetThreeBallRpm;
+
+            // While driver/operator is manually commanding a kick, command shooter to the preset
+            // so the speed gate in runFinal() matches what the shooter is actually targeting.
+            if (g2ManualKickCommand && manualOneBallRpm > 0 && manualThreeBallRpm > 0) {
+                shooterSpeedRpm = manualOneBallRpm;
+                shooterSpeedRpm3Ball = manualThreeBallRpm;
             }
 
-            _robot.run();
+            if (_robot.kickers.runFinal((double) manualOneBallRpm * Shooter.ticksPerRotation / 60,
+                    shooterSpeed, true,
+                    (double) manualThreeBallRpm * Shooter.ticksPerRotation / 60,
+                    -1, _robot.intake)) {
+                _driveUtilsAdvanced.endAutoAlign();
+            }
 
             //------------------------------------------------------------------------------------------
             //--- G1 A: fire kick sequence (non-blocking)
             //    3-ball mode = simultaneous, 1-ball mode = sequential motif order
             //------------------------------------------------------------------------------------------
-            if (gamepad1.a) {
+            if (g1RE.RisingEdgeButton(gamepad1, "a") && !_kickMotif.isKicking()) {
                 _kickMotif.setKick(isThreeBallMode);
             }
             _kickMotif.checkKick();
@@ -212,22 +276,7 @@ public class TeleOp_State_Red extends LinearOpMode {
             wasKicking = isKickingNow;
 
             //------------------------------------------------------------------------------------------
-            //--- Limelight motif detection: update GameMotif on first obelisk tag seen
-            //------------------------------------------------------------------------------------------
-            if (!motifUpdatedFromLL) {
-                LimelightHardware2Axis.Motif llMotif = _robot.limelightHardware2Axis.storedGameMotif;
-                if (llMotif != null) {
-                    switch (llMotif) {
-                        case GPP: MotifKicking.GameMotif = MotifKicking.Motif.GPP; break;
-                        case PGP: MotifKicking.GameMotif = MotifKicking.Motif.PGP; break;
-                        case PPG: MotifKicking.GameMotif = MotifKicking.Motif.PPG; break;
-                    }
-                    motifUpdatedFromLL = true;
-                }
-            }
-
-            //------------------------------------------------------------------------------------------
-            //--- Kickstand: G2 right stick click toggles 0 deg / 90 deg
+            //--- Kickstand: G1 dpad down toggles 0 deg / 90 deg
             //------------------------------------------------------------------------------------------
             _robot.kickstand.run();
 
@@ -237,6 +286,12 @@ public class TeleOp_State_Red extends LinearOpMode {
             _driveUtilsAdvanced.updateCameraPitch();
             _robot.limelightHardware2Axis.loop();
             _robot.limelightHardware2Axis.servos();
+            LimelightHardware2Axis.Motif savedMotif =
+                    _robot.limelightHardware2Axis.updateStoredGameMotif(!isThreeBallMode);
+            if (savedMotif != null) {
+                MotifKicking.updateMotif(savedMotif);
+                lastSavedMotif = savedMotif;
+            }
             if ((loop_count % 20) == 0) {
                 _driveUtilsAdvanced.reset(true);
             }
@@ -250,24 +305,38 @@ public class TeleOp_State_Red extends LinearOpMode {
             boolean alignTriggered = gamepad1.right_trigger > 0.2;
 
             if (alignTriggered) {
+                // Auto-shoot depends on auto-align + auto-speed. Force both when trigger is used.
+                isAutoSpeed = true;
+                autoAlignEnabled = true;
                 _driveUtilsAdvanced.autoAlign();
             } else if (wasAlignTriggered) {
                 // Trigger just released — decide whether to fire
-                double angle = _driveUtilsAdvanced.getAlignmentAngle();
-                if (Math.abs(angle) <= 5.0) {
+                if (readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed)) {
                     _kickMotif.setKick(isThreeBallMode);
                 }
                 _driveUtilsAdvanced.endAutoAlign();
             }
             wasAlignTriggered = alignTriggered;
 
-            // G2 left stick click: cancel alignment at any time
-            if (gamepad2.left_stick_button) {
+            // Manual (non-auto-shoot) auto-align gating: if driver has disabled auto-align,
+            // keep alignment state off (auto-shoot via RT overrides by forcing it on above).
+            if (!alignTriggered && !autoAlignEnabled && _driveUtilsAdvanced.isAligning) {
                 _driveUtilsAdvanced.endAutoAlign();
             }
 
-            _driveUtilsAdvanced.printCalcDiff();
-            _driveUtilsAdvanced.printXDegrees();
+            // G1 right bumper: cancel alignment at any time
+            if (g1RE.RisingEdgeButton(gamepad1, "right_bumper")) {
+                _driveUtilsAdvanced.endAutoAlign();
+            }
+
+            // G1 B: toggle auto-align assist for manual shooting/driving (does NOT block trigger auto-shoot)
+            if (g1RE.RisingEdgeButton(gamepad1, "b")) {
+                autoAlignEnabled = !autoAlignEnabled;
+                if (!autoAlignEnabled) {
+                    _driveUtilsAdvanced.endAutoAlign();
+                }
+            }
+
             _driveUtilsAdvanced.driveMecanum(gamepad1, _robot.kickers);
 
             //------------------------------------------------------------------------------------------
@@ -294,30 +363,45 @@ public class TeleOp_State_Red extends LinearOpMode {
 
             double dist = _driveUtilsAdvanced.getDist();
 
-            if (!isThreeBallMode && isAutoSpeed) {
-                shooterSpeedRpm = Math.round((float) (2667 + (dist * -31.6) + (0.597 * (dist * dist)) -
-                        (0.00375 * dist * dist * dist) + (0.00000895 * dist * dist * dist * dist)));
-            } else {
-                shooterSpeedRpm3Ball = Math.round((float) ((dist * dist * 0.0621) - (0.707 * dist) + 2414.16));
+            // Spin up shooter automatically when starting auto-align (no confirmation / no fail state).
+            if (alignTriggered && !wasAlignTriggered) {
+                int odo1 = odometryOneBallRpm(dist);
+                int odo3 = odometryThreeBallRpm(dist);
+                shooterSpeedRpm = blendPresetWithOdometry(presetOneBallRpm, odo1);
+                shooterSpeedRpm3Ball = blendPresetWithOdometry(presetThreeBallRpm, odo3);
             }
 
-            if (gamepad1.xWasPressed()) {
+            if (isAutoSpeed) {
+                shooterSpeedRpm = blendPresetWithOdometry(presetOneBallRpm, odometryOneBallRpm(dist));
+                shooterSpeedRpm3Ball = blendPresetWithOdometry(presetThreeBallRpm, odometryThreeBallRpm(dist));
+            }
+
+            if (g1RE.RisingEdgeButton(gamepad1, "x")) {
                 isAutoSpeed = !isAutoSpeed;
             }
-            if (gamepad2.y) {
+            if (g2RE.RisingEdgeButton(gamepad2, "y")) {
                 robotPosition = position.Close;
-                shooterSpeedRpm3Ball = SPEED_3BALL_CLOSE;
-                shooterSpeedRpm = SPEED_1BALL_CLOSE;
+                presetThreeBallRpm = SPEED_3BALL_CLOSE;
+                presetOneBallRpm = SPEED_1BALL_CLOSE;
+                shooterSpeedRpm3Ball = presetThreeBallRpm;
+                shooterSpeedRpm = presetOneBallRpm;
+                gamepad2.rumble(1.0, 1.0, G2_PRESET_RUMBLE_CLOSE_MS);
             }
-            if (gamepad2.x) {
+            if (g2RE.RisingEdgeButton(gamepad2, "x")) {
                 robotPosition = position.Medium;
-                shooterSpeedRpm3Ball = SPEED_3BALL_MEDIUM;
-                shooterSpeedRpm = SPEED_1BALL_MEDIUM;
+                presetThreeBallRpm = SPEED_3BALL_MEDIUM;
+                presetOneBallRpm = SPEED_1BALL_MEDIUM;
+                shooterSpeedRpm3Ball = presetThreeBallRpm;
+                shooterSpeedRpm = presetOneBallRpm;
+                gamepad2.rumble(1.0, 1.0, G2_PRESET_RUMBLE_MEDIUM_MS);
             }
-            if (gamepad2.a) {
+            if (g2RE.RisingEdgeButton(gamepad2, "a")) {
                 robotPosition = position.Far;
-                shooterSpeedRpm3Ball = SPEED_3BALL_FAR;
-                shooterSpeedRpm = SPEED_1BALL_FAR;
+                presetThreeBallRpm = SPEED_3BALL_FAR;
+                presetOneBallRpm = SPEED_1BALL_FAR;
+                shooterSpeedRpm3Ball = presetThreeBallRpm;
+                shooterSpeedRpm = presetOneBallRpm;
+                gamepad2.rumble(1.0, 1.0, G2_PRESET_RUMBLE_FAR_MS);
             }
             if (gamepad2.b) {
                 _robot.intake.stop();
@@ -336,7 +420,7 @@ public class TeleOp_State_Red extends LinearOpMode {
             //--- Intake & Ball Detection
             //------------------------------------------------------------------------------------------
             _robot.intake.run(overrideBallDistanceDetection);
-            if (gamepad1.b) {
+            if (g1RE.RisingEdgeButton(gamepad1, "dpad_up")) {
                 _robot.kickers.kickMiddle();
                 overrideBallDistanceDetection = true;
                 overrideTimer.reset();
@@ -346,51 +430,69 @@ public class TeleOp_State_Red extends LinearOpMode {
             }
 
             //------------------------------------------------------------------------------------------
-            //--- 3-Ball Detection: rumble both controllers on rising edge
-            //------------------------------------------------------------------------------------------
-            boolean curr3Balls = _robot.intake.isAll3Detected();
-            if (curr3Balls && !prev3Balls) {
-                gamepad1.rumble(0.9, 0.9, 500);
-                gamepad2.rumble(0.9, 0.9, 500);
-            }
-            prev3Balls = curr3Balls;
-
-            //------------------------------------------------------------------------------------------
             //--- Alignment Light Override
             //    Runs AFTER intake.run() (which sets ball-color lights) so it takes priority.
             //    Aligned + at speed → solid red; aligning → fast-blink red
             //------------------------------------------------------------------------------------------
             if (_driveUtilsAdvanced.isAligning) {
-                double angle = _driveUtilsAdvanced.getAlignmentAngle();
-                double targetSpeedTps = isThreeBallMode
-                        ? (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60.0
-                        : (double) shooterSpeedRpm * Shooter.ticksPerRotation / 60.0;
-                boolean isReadyToShoot = Math.abs(angle) <= 5.0 && shooterSpeed >= targetSpeedTps * 0.95;
+                boolean isReadyToShoot = readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed);
 
-                Lights.Blink blinkMode = isReadyToShoot ? Lights.Blink.NONE : Lights.Blink.FAST;
-                _robot.lights.setLeft(Lights.Color.RED, blinkMode);
-                _robot.lights.setMiddle(Lights.Color.RED, blinkMode);
-                _robot.lights.setRight(Lights.Color.RED, blinkMode);
+                if (!_driveUtilsAdvanced.hasGoalTag()) {
+                    _robot.lights.setLeft(Lights.Color.YELLOW, Lights.Blink.FAST);
+                    _robot.lights.setMiddle(Lights.Color.YELLOW, Lights.Blink.FAST);
+                    _robot.lights.setRight(Lights.Color.YELLOW, Lights.Blink.FAST);
+                } else if (isReadyToShoot) {
+                    _robot.lights.setLeft(Lights.Color.RED);
+                    _robot.lights.setMiddle(Lights.Color.RED);
+                    _robot.lights.setRight(Lights.Color.RED);
+                } else {
+                    // Aligning but not ready: in 1-ball mode, alternate flashing red with motif (known) or white (unknown).
+                    // In 3-ball mode, keep it simple: flashing red only.
+                    boolean phaseRed = (((int) (_runtime.seconds() / 0.25)) % 2 == 0);
+                    if (isThreeBallMode || phaseRed) {
+                        _robot.lights.setLeft(Lights.Color.RED, Lights.Blink.FAST);
+                        _robot.lights.setMiddle(Lights.Color.RED, Lights.Blink.FAST);
+                        _robot.lights.setRight(Lights.Color.RED, Lights.Blink.FAST);
+                    } else {
+                        if (savedMotif != null) {
+                            showMotifLights(savedMotif);
+                        } else {
+                            showWhiteSolid();
+                        }
+                    }
+                }
             }
 
             //------------------------------------------------------------------------------------------
             //--- Telemetry (throttled — reduces WiFi/serial overhead)
             //------------------------------------------------------------------------------------------
             if ((loop_count % 5) == 0) {
+                telemetry.addData("Run Time", " " + _runtime.toString() + " Loop Count:" + loop_count);
+                telemetry.addData("ball mode", isThreeBallMode ? "3 BALL" : "1 BALL");
+                telemetry.addData("AUTO SPEED", isAutoSpeed ? "ON" : "OFF");
+                telemetry.addData("AUTO ALIGN TOGGLE", autoAlignEnabled ? "ON" : "OFF");
+                telemetry.addData("AUTO SHOOT (G1 RT)", alignTriggered ? "ACTIVE (forces align+auto speed)" : "idle");
+                telemetry.addData("preset", robotPosition.toString());
+                telemetry.addData("rpm source",
+                        g2ManualKickCommand
+                                ? "PRESET (manual kick)"
+                                : (isAutoSpeed ? "ODOMETRY (blended)" : "MANUAL/PRESET"));
                 telemetry.addData("target speed one ball in rpm", shooterSpeedRpm);
                 telemetry.addData("target speed 3 ball in rpm", shooterSpeedRpm3Ball);
-                telemetry.addData("three ball mode", isThreeBallMode);
-                telemetry.addData("auto speed mode", isAutoSpeed);
                 telemetry.addData("robot shooting position", robotPosition.toString());
                 telemetry.addData("shooter ticks/sec", shooterSpeed);
+                telemetry.addData("goal tag", _driveUtilsAdvanced.hasGoalTag() ? "locked" : "odometry fallback");
+                telemetry.addData("align error deg", "%.2f", _driveUtilsAdvanced.getLastAlignErrorDeg());
+                telemetry.addData("align power", "%.3f", _driveUtilsAdvanced.getLastAlignPower());
+                telemetry.addData("align stable loops", _driveUtilsAdvanced.getAlignStableLoops());
+                telemetry.addData("ready to shoot", readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed));
                 telemetry.addData("game motif", MotifKicking.GameMotif.toString());
                 telemetry.addData("ll stored motif", _robot.limelightHardware2Axis.storedGameMotif != null
                         ? _robot.limelightHardware2Axis.storedGameMotif.toString() : "none");
                 telemetry.addData("kickstand deployed", _robot.kickstand.isDeployed());
                 _robot.shooter.getTelemetry();
+                telemetry.update();
             }
-
-            telemetry.update();
         }
     }
 }
