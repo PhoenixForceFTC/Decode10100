@@ -480,22 +480,20 @@ public class LimelightHardware2Axis
     public void setPipeline(int index){
         _limelight.pipelineSwitch(index);
     }
+    // Uses the result cached by loop() — no additional I2C/hardware read.
     public List<LLResultTypes.FiducialResult> getVisibleTags() {
-        LLResult llResult = _limelight.getLatestResult();
-        if (llResult == null || !llResult.isValid()) return null;
-        return llResult.getFiducialResults();
+        if (_latestLLResult == null || !_latestLLResult.isValid()) return null;
+        return _latestLLResult.getFiducialResults();
     }
     public boolean fiducialResultsContain(int id){
         List<LLResultTypes.FiducialResult> results = getVisibleTags();
         if(results==null){
             return false;
         }
-
-        for (LLResultTypes.FiducialResult f : getVisibleTags()) {
+        for (LLResultTypes.FiducialResult f : results) {
             if(f.getFiducialId()==id){return true;}
         }
         return false;
-
     }
     //endregion
 }

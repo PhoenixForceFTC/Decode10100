@@ -39,9 +39,14 @@ import java.util.List;
 @Config
 public class DriveUtilsAdvanced {
     private List<Action> runningActions = new ArrayList<>();
+    // Pre-allocated to avoid creating a new ArrayList every loop iteration.
+    private final List<Action> _newActions = new ArrayList<>();
     FtcDashboard dashboard = FtcDashboard.getInstance();
     private boolean isBlue = false;
     public boolean isAligning = false;
+    // Throttle counter — dashboard/telemetry spam is sent every N loops only.
+    private int _telemetryThrottle = 0;
+    private static final int TELEMETRY_EVERY_N_LOOPS = 5;
     private double x = 0;
 
     private double x2 = 60;
@@ -121,29 +126,32 @@ public class DriveUtilsAdvanced {
         this.dydt = dydt;
         this.heading = heading;
         this.yaw = yaw;// yaw is posotive goes counterclockwise
-        telemetry.addData("x", x);
-        telemetry.addData("y", y);
-        telemetry.addData("x speed", dxdt);
-        telemetry.addData("y speed", dydt);
-        telemetry.addData("heading", heading);
-        telemetry.addData("heading speed", yaw);
-        telemetry.addData("distance", Math.sqrt(x2*x2+y2*y2));
-        telemetry.addData("target heading degrees",Math.toDegrees(getTargetHeading(y4-14.55098425, x4-11.82122047)));
-        telemetry.addData("calcDiff degrees", Math.toDegrees(calcDifference(getTargetHeading(y4-14.55098425, x4-11.82122047))));
-        TelemetryPacket packet = new TelemetryPacket();
-        packet.put("x", x);
-        packet.put("y", y);
-        packet.put("x speed", dxdt);
-        packet.put("y speed", dydt);
-        packet.put("heading", heading);
-        packet.put("heading speed", yaw);
-
-        packet.put("x2", x2);
-        packet.put("y2", y2);
-        packet.put("distance",Math.sqrt(x2*x2+y2*y2));
-        packet.put("target heading degrees",Math.toDegrees(getTargetHeading(y4-14.55098425, x4-11.82122047)));
-        packet.put("calcDiff degrees", Math.toDegrees(calcDifference(getTargetHeading(y4-14.55098425, x4-11.82122047))));
-        dashboard.sendTelemetryPacket(packet);
+        // Only push debug telemetry every N loops to reduce hub communication overhead.
+        if (_telemetryThrottle % TELEMETRY_EVERY_N_LOOPS == 0) {
+            telemetry.addData("x", x);
+            telemetry.addData("y", y);
+            telemetry.addData("x speed", dxdt);
+            telemetry.addData("y speed", dydt);
+            telemetry.addData("heading", heading);
+            telemetry.addData("heading speed", yaw);
+            telemetry.addData("distance", Math.sqrt(x2*x2+y2*y2));
+            double _tgtHeading = getTargetHeading(y4-14.55098425, x4-11.82122047);
+            telemetry.addData("target heading degrees", Math.toDegrees(_tgtHeading));
+            telemetry.addData("calcDiff degrees", Math.toDegrees(calcDifference(_tgtHeading)));
+            TelemetryPacket packet = new TelemetryPacket();
+            packet.put("x", x);
+            packet.put("y", y);
+            packet.put("x speed", dxdt);
+            packet.put("y speed", dydt);
+            packet.put("heading", heading);
+            packet.put("heading speed", yaw);
+            packet.put("x2", x2);
+            packet.put("y2", y2);
+            packet.put("distance", Math.sqrt(x2*x2+y2*y2));
+            packet.put("target heading degrees", Math.toDegrees(_tgtHeading));
+            packet.put("calcDiff degrees", Math.toDegrees(calcDifference(_tgtHeading)));
+            dashboard.sendTelemetryPacket(packet);
+        }
     }
     private void setVarsAdvanced(double x, double y, double heading,double axial, double lateral, double yaw){
         setVars(x,lateral*sin(heading)+axial*cos(heading),y,axial*sin(heading)-lateral*cos(heading),heading,yaw);
@@ -153,34 +161,35 @@ public class DriveUtilsAdvanced {
     // returns true if trying to auto align and the auto align is finished
     public boolean driveMecanum(Gamepad gamepad, Kickers kickers){
         boolean returnn = false;
+        _telemetryThrottle++;
 
         driveClass.localizer.update();
+        // Cache pose once to avoid repeated getPose() calls below.
+        com.acmerobotics.roadrunner.Pose2d currentPose = driveClass.localizer.getPose();
         setVarsAdvanced(
-                driveClass.localizer.getPose().position.x,
-                driveClass.localizer.getPose().position.y,
-                driveClass.localizer.getPose().heading.toDouble(),
+                currentPose.position.x,
+                currentPose.position.y,
+                currentPose.heading.toDouble(),
                 -gamepad.left_stick_y * drive.getSpeedMultiplier(),
                 gamepad.left_stick_x * drive.getSpeedMultiplier(),
                 -gamepad.right_stick_x * drive.getSpeedMultiplierRotate()
         );
         //driveClass.setDrivePowers(new PoseVelocity2d(new Vector2d(gamepad.left_stick_x, gamepad.left_stick_y), gamepad.right_stick_x));
         //drive.driveControl(1);
-        telemetry.addData("change in heading", thetadt());
 
-
-
-        TelemetryPacket packet = new TelemetryPacket();
-            Canvas c = packet.fieldOverlay();
-            Drawing.drawRobot(c, driveClass.localizer.getPose());
-            packet.put("change in heading", thetadt());
-        dashboard.sendTelemetryPacket(packet);
-
+        // Throttle dashboard robot-drawing to every N loops (no need to redraw every 10ms).
         TelemetryPacket packet2 = new TelemetryPacket();
+        if (_telemetryThrottle % TELEMETRY_EVERY_N_LOOPS == 0) {
+            telemetry.addData("change in heading", thetadt());
+            TelemetryPacket packet = new TelemetryPacket();
+            Canvas c = packet.fieldOverlay();
+            Drawing.drawRobot(c, currentPose);
+            packet.put("change in heading", thetadt());
+            dashboard.sendTelemetryPacket(packet);
+        }
 
-        // updated based on gamepads
-
-        // update running actions
-        List<Action> newActions = new ArrayList<>();
+        // update running actions — use Iterator to remove finished actions in-place,
+        // avoiding a new ArrayList allocation every loop.
         boolean skipDrive = false;
         if(runningActions.isEmpty()){
             telemetry.addLine("RR is not running");
@@ -188,17 +197,19 @@ public class DriveUtilsAdvanced {
         }
         else
         {
-            for (Action action : runningActions) {
+            java.util.Iterator<Action> iter = runningActions.iterator();
+            while (iter.hasNext()) {
+                Action action = iter.next();
                 telemetry.addLine("RR is running");
                 packet2.addLine("RR is running");
                 action.preview(packet2.fieldOverlay());
-                if (action.run(packet2)) {   // this is a blocking call but may not finish fully
-                    newActions.add(action);
-                    skipDrive=true;
+                if (action.run(packet2)) {
+                    skipDrive = true;  // action still running — keep it
+                } else {
+                    iter.remove();    // action finished — remove it
                 }
             }
         }
-        runningActions = newActions;
 
         dashboard.sendTelemetryPacket(packet2);
 

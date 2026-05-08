@@ -137,6 +137,15 @@ public class TeleOp_State_Red extends LinearOpMode {
             //--- Hardware Run (updates lights, etc.)
             //------------------------------------------------------------------------------------------
             loop_count++;
+
+            // Refresh the I2C bulk-read cache once per loop — all encoder/sensor reads this
+            // loop will hit this cache instead of triggering separate I2C transactions.
+            _robot.clearBulkCache();
+
+            // Cache shooter velocity once here; all getSpeed() calls this loop reuse it.
+            _robot.shooter.cacheVelocity();
+            double shooterSpeed = _robot.shooter.getSpeed();
+
             telemetry.addData("Run Time", " " + _runtime.toString() + " Loop Count:" + loop_count);
 
 
@@ -144,14 +153,14 @@ public class TeleOp_State_Red extends LinearOpMode {
             _robot.lights.run();
             if(!gamepad1.left_bumper){
                 if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60,
-                        _robot.shooter.getSpeed(), true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
+                        shooterSpeed, true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
                         -1, _robot.intake)) {
                     _driveUtilsAdvanced.endAutoAlign();
                     alreadyShot = false;
                 }
             }else{
                 if (_robot.kickers.runFinal((double) shooterSpeedRpm * Shooter.ticksPerRotation / 60,
-                        _robot.shooter.getSpeed(), true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
+                        shooterSpeed, true, (double) shooterSpeedRpm3Ball * Shooter.ticksPerRotation / 60,
                         3, _robot.intake)) {
                     _driveUtilsAdvanced.endAutoAlign();
                     alreadyShot = false;
@@ -206,7 +215,7 @@ public class TeleOp_State_Red extends LinearOpMode {
             if (_driveUtilsAdvanced.driveMecanum(gamepad1, _robot.kickers)) {
                 if (!alreadyShot) {
                     if (isThreeBallMode) {
-                        if (_robot.kickers.runFinal((double) (shooterSpeedRpm * Shooter.ticksPerRotation) / 60, _robot.shooter.getSpeed(),
+                        if (_robot.kickers.runFinal((double) (shooterSpeedRpm * Shooter.ticksPerRotation) / 60, shooterSpeed,
                                 true, (double) (shooterSpeedRpm3Ball * Shooter.ticksPerRotation) / 60,
                                 3, _robot.intake)) {
                             _driveUtilsAdvanced.endAutoAlign();
@@ -296,13 +305,16 @@ public class TeleOp_State_Red extends LinearOpMode {
             }
 
 
-            telemetry.addData("target speed one ball in rpm", shooterSpeedRpm);
-            telemetry.addData("target speed 3 ball in rpm", shooterSpeedRpm3Ball);
-            telemetry.addData("three ball mode", isThreeBallMode);
-            telemetry.addData("auto speed mode", isAutoSpeed);
-            telemetry.addData("robot shooting position", robotPosition.toString());
-            telemetry.addData("speed reading from the motor in ticks per second", _robot.shooter.getSpeed());
-            _robot.shooter.getTelemetry();  // dashboard metrics
+            // Non-critical telemetry throttled to every 5 loops — reduces WiFi/serial overhead.
+            if ((loop_count % 5) == 0) {
+                telemetry.addData("target speed one ball in rpm", shooterSpeedRpm);
+                telemetry.addData("target speed 3 ball in rpm", shooterSpeedRpm3Ball);
+                telemetry.addData("three ball mode", isThreeBallMode);
+                telemetry.addData("auto speed mode", isAutoSpeed);
+                telemetry.addData("robot shooting position", robotPosition.toString());
+                telemetry.addData("speed reading from the motor in ticks per second", shooterSpeed);
+                _robot.shooter.getTelemetry();  // dashboard metrics
+            }
 
 
             //------------------------------------------------------------------------------------------

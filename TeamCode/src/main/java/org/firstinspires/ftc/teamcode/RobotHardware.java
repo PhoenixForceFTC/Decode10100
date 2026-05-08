@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 //region --- Imports ---
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -9,6 +10,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import java.util.List;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -126,6 +129,7 @@ public class RobotHardware {
     public ColorSensor colorSensorMiddle = null;
     public ColorSensor colorSensorRight = null;
     public Lights lights;
+    public List<LynxModule> hubs;
     public RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(new Orientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES,135,0,0,0));
     //------------------------------------------------------------------------------------------
     //--- Define a constructor that allows the OpMode to pass a reference to itself
@@ -140,6 +144,13 @@ public class RobotHardware {
      * This method must be called ONCE when the OpMode is initialized.
      */
     public void init(int robotVersion) {
+        // Enable bulk reads — dramatically reduces I2C overhead.
+        // Caller MUST call clearBulkCache() once at the top of every loop iteration.
+        hubs = myOpMode.hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : hubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
+
         //FtcDashboard dashboard = FtcDashboard.getInstance();
         //myOpMode.telemetry = dashboard.getTelemetry();
         // i do this in the main teleop now that might be wrong code structure
@@ -292,6 +303,13 @@ public class RobotHardware {
         myOpMode.telemetry.update();
     }
 
+
+    /** Call once at the very top of every loop iteration to refresh the I2C bulk-read cache. */
+    public void clearBulkCache() {
+        for (LynxModule hub : hubs) {
+            hub.clearBulkCache();
+        }
+    }
 
     public void run()
     {

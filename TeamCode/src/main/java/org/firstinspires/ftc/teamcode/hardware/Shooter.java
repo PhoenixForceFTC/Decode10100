@@ -51,6 +51,10 @@ public class Shooter
     public static double kI = 20;
     public static double kD = 60;
     public static double kF = 0;
+
+    // Cached velocity — updated once per loop via cacheVelocity() to avoid redundant encoder reads.
+    private double _cachedVelocity = 0;
+    private final TelemetryPacket _telemetryPacket = new TelemetryPacket();
     //endregion
 
     //defualt pidf is p:10 i:3 d:0 f:0
@@ -91,22 +95,26 @@ public class Shooter
         this.speed = speed*ticksPerRotation/60;
     }
 
-    //--- Access telemetry data
-    public void getTelemetry(){
-        TelemetryPacket packet = new TelemetryPacket();
-        packet.put("pidf coeficients for get velocoity", _motorShooterLeft.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));
-        packet.addLine("this is a string line");
-        packet.put("motorSpeed", _motorShooterLeft.getVelocity());
-        packet.put("speed", speed);
-        dashboard.sendTelemetryPacket(packet);
+    /** Read and cache the motor velocity once per loop. Call at the top of every loop before getSpeed(). */
+    public void cacheVelocity() {
+        _cachedVelocity = _motorShooterLeft.getVelocity();
     }
 
-    //--- Get motor speed
+    //--- Access telemetry data — reuses a pre-allocated packet to avoid GC pressure
+    public void getTelemetry(){
+        _telemetryPacket.put("pidf coeficients for get velocoity", _motorShooterLeft.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));
+        _telemetryPacket.addLine("this is a string line");
+        _telemetryPacket.put("motorSpeed", _cachedVelocity);
+        _telemetryPacket.put("speed", speed);
+        dashboard.sendTelemetryPacket(_telemetryPacket);
+    }
+
+    //--- Get motor speed — returns cached value (call cacheVelocity() once per loop first)
     public double getSpeed(){
-        return(_motorShooterLeft.getVelocity());
+        return _cachedVelocity;
     }
     public double getSpeedRPM(){
-        return(_motorShooterLeft.getVelocity()*60/ticksPerRotation);
+        return _cachedVelocity * 60 / ticksPerRotation;
     }
 
 
