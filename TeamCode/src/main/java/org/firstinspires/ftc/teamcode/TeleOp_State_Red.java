@@ -519,11 +519,6 @@ public class TeleOp_State_Red extends LinearOpMode {
                 telemetry.addData("game motif", MotifKicking.GameMotif.toString());
                 telemetry.addData("ll stored motif", _robot.limelightHardware2Axis.storedGameMotif != null
                         ? _robot.limelightHardware2Axis.storedGameMotif.toString() : "none");
-                telemetry.addData("ll visible motif", _robot.limelightHardware2Axis.getVisibleObeliskMotif() != null
-                        ? _robot.limelightHardware2Axis.getVisibleObeliskMotif().toString() : "none");
-                telemetry.addData("field motif known", MotifKicking.isFieldMotifKnown(_robot));
-                telemetry.addData("balls match motif", MotifKicking.currentBallsMatchFieldMotif(_robot));
-                telemetry.addData("intake motif", MotifKicking.intakeMotifFromRobot(_robot).toString());
                 telemetry.addData("kickstand deployed", _robot.kickstand.isDeployed());
                 _robot.shooter.getTelemetry();
                 telemetry.update();
