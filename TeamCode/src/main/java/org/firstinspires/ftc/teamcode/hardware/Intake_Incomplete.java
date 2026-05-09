@@ -9,8 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.util.ElapsedTime;
-
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.utils.RollingAverage;
@@ -49,15 +47,6 @@ public class Intake_Incomplete
     private static final double BALL_LOSS_THRESHOLD_MULTIPLIER = 1.2;
     private static final int THREE_BALL_RUMBLE_MS = 500;
     private static int loopCount = 0;
-
-    // --- Jam detection / auto-clear (safe: only runs when intaking inward) ---
-    public static boolean JAM_DETECT_ENABLED = true;
-    public static double JAM_MIN_INTAKE_POWER = 0.25;
-    public static double JAM_VELOCITY_TPS_THRESHOLD = 70; // ticks/sec; tune if needed
-    public static double JAM_DETECT_SECONDS = 0.25;
-    public static double JAM_CLEAR_SECONDS = 0.25;
-    public static double JAM_CLEAR_POWER = 0.65; // outward power during clear
-    public static double JAM_COOLDOWN_SECONDS = 0.6;
 
     //region --- Enums ---
     public enum BallColor
@@ -119,11 +108,6 @@ public class Intake_Incomplete
     private boolean isNunFound = false;
     private boolean _wasAll3Detected = false;
 
-    private final ElapsedTime _jamDetectTimer = new ElapsedTime();
-    private final ElapsedTime _jamClearTimer = new ElapsedTime();
-    private final ElapsedTime _jamCooldownTimer = new ElapsedTime();
-    private boolean _jamClearingActive = false;
-    private boolean _jamCooldownActive = false;
     //endregion
 
     //region --- Constructor
@@ -194,38 +178,21 @@ public class Intake_Incomplete
         detectBalls(overrideDistanceCheck);
         updateThreeBallRumble();
 
-        if (_gamepad2.left_trigger>0.2){
-            forward();
-        }
-        if (_gamepad2.right_trigger>0.2){
-            backward();
-            //restoreLights();
-        }
-        if (_gamepad2.b){
+        boolean all3 = _leftBallColor != BallColor.NONE && _leftBallColor != BallColor.UNKNOWN &&
+                       _middleBallColor != BallColor.NONE && _middleBallColor != BallColor.UNKNOWN &&
+                       _rightBallColor != BallColor.NONE && _rightBallColor != BallColor.UNKNOWN;
+
+        if (_gamepad2.left_trigger > 0.2) {
+            forward();       // manual outtake override
+        } else if (_gamepad2.right_trigger > 0.2) {
+            backward();      // manual intake override
+        } else if (_gamepad2.b) {
             stop();
             restoreLights();
-        }
-        if (_leftBallColor != BallColor.NONE &&_leftBallColor != BallColor.UNKNOWN &&
-                _middleBallColor != BallColor.NONE &&_middleBallColor != BallColor.UNKNOWN &&
-                _rightBallColor != BallColor.NONE && _rightBallColor != BallColor.UNKNOWN &&
-                !is3Found){
-            if (!(_gamepad2.right_trigger>0.2)) {  // so human user can override
-                forward();
-            }
-            is3Found = true;
-        }else{
-            is3Found = false;
-        }
-        if ((_leftBallColor == BallColor.NONE || _leftBallColor == BallColor.UNKNOWN) &&
-                (_middleBallColor == BallColor.NONE || _middleBallColor == BallColor.UNKNOWN) &&
-                (_rightBallColor == BallColor.NONE || _rightBallColor == BallColor.UNKNOWN) &&
-                !is3Found){
-            if (!(_gamepad2.left_trigger>0.2)) {
-                backward();
-            }
-            isNunFound = true;
-        }else{
-            isNunFound = false;
+        } else if (all3) {
+            forward();       // auto: all 3 loaded → outtake to shooter position
+        } else {
+            backward();      // auto: fewer than 3 → keep intaking
         }
 //        if (_gamepad2.y && _gamepad2.left_stick_y > 0.5){
 //            intakePower = Math.min(1, intakePower + 0.005);
@@ -240,73 +207,11 @@ public class Intake_Incomplete
 
         updateLights();
 
-        // Jam protection runs last so it can override the commanded intake power safely.
-        updateJamProtection();
-
         loopCount++;
         //_telemetry.addData("Loop count:", "%d", loopCount);
         //_telemetry.addData("Intake Power: ", intakePower);
         //--- Only detect balls and update lights while intaking or outtaking
     }
-
-    private void updateJamProtection() {
-        if (!JAM_DETECT_ENABLED) {
-            _jamClearingActive = false;
-            _jamCooldownActive = false;
-            _jamDetectTimer.reset();
-            return;
-        }
-
-        // Don't interfere with manual controls (driver is actively commanding intake/outtake/stop).
-        boolean manualOverride = (_gamepad2.left_trigger > 0.2) || (_gamepad2.right_trigger > 0.2) || _gamepad2.b;
-        if (manualOverride) {
-            _jamClearingActive = false;
-            _jamCooldownActive = false;
-            _jamDetectTimer.reset();
-            return;
-        }
-
-        if (_jamCooldownActive) {
-            if (_jamCooldownTimer.seconds() >= JAM_COOLDOWN_SECONDS) {
-                _jamCooldownActive = false;
-            } else {
-                return;
-            }
-        }
-
-        double power = _intake.getPower();
-        double vel = Math.abs(_intake.getVelocity());
-
-        // Only detect jams when INTAKING inward (negative power).
-        boolean isIntakingIn = power < -JAM_MIN_INTAKE_POWER;
-        boolean ballPresentSomewhere = (_leftBallColor != BallColor.NONE) || (_middleBallColor != BallColor.NONE) || (_rightBallColor != BallColor.NONE);
-
-        if (_jamClearingActive) {
-            // Continue clearing for fixed time, then release back to normal logic next loop.
-            if (_jamClearTimer.seconds() < JAM_CLEAR_SECONDS) {
-                _intake.setPower(Math.abs(JAM_CLEAR_POWER)); // outward
-            } else {
-                _jamClearingActive = false;
-                _jamCooldownActive = true;
-                _jamCooldownTimer.reset();
-                _jamDetectTimer.reset();
-            }
-            return;
-        }
-
-        if (isIntakingIn && ballPresentSomewhere && vel < JAM_VELOCITY_TPS_THRESHOLD) {
-            // Velocity low while intaking and balls present -> count time to confirm it's not just transient.
-            if (_jamDetectTimer.seconds() >= JAM_DETECT_SECONDS) {
-                _jamClearingActive = true;
-                _jamClearTimer.reset();
-                _intake.setPower(Math.abs(JAM_CLEAR_POWER)); // start outward clear immediately
-            }
-        } else {
-            _jamDetectTimer.reset();
-        }
-    }
-
-
 
     public void setColorSensors(ColorSensor left, ColorSensor middle, ColorSensor right)
     {
