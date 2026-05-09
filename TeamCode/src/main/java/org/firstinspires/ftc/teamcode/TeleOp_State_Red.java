@@ -22,34 +22,28 @@ import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //  - Left Stick        - Mecanum Drive
 //  - Right Stick       - Mecanum Rotate
 //
-//  - Dpad Up           - Move Forward (Slow)
-//  - Dpad Down         - Move Back (Slow)
-//  - Dpad Right        - Rotate Right (Slow)
+//  - Dpad Up           - Kickers to middle + override ball distance detect (~2s)
+//  - Dpad Down         - Toggle kickstand (0 deg OFF / 90 deg ON)
 //  - Dpad Left         - Rotate Left (Slow)
+//  - Dpad Right        - Rotate Right (Slow)
 //
-//  - Right Trigger     - Hold to auto-align to goal; release to shoot
-//  - Left Bumper       - (hold) Override: fire all 3 via runFinal
+//  - Right Trigger     - Hold to auto-align; auto-fires when within SHOOT_TOLERANCE_DEG
+//  - Right Bumper      - Cancel auto-align
 //
 //  - Y (▲)             - Toggle 3-ball / 1-ball mode
-//  - A (✕)             - Fire motif kick sequence (non-blocking)
-//  - X (■)             - Toggle auto-speed
-//  - B (○)             - Toggle auto-align enable/disable (manual shooting)
-//  - Dpad Up           - Kickers to middle + override ball distance detect (~2s)
+//  - A (✕)             - Fire: 3-ball simultaneous or 1-ball sequential motif order
+//  - X (■)             - Toggle auto-speed on/off
+//  - B (○)             - Toggle auto-align assist on/off
 //
 //----------------------------------------------------------------------
 // Joystick 2 -----------------------------------------------------------
-//  - Left Stick        -
-//  - Right Stick       -
-//  - Left Stick Click  - Cancel auto-align
-//  - Right Stick Click - Toggle kickstand (0 deg OFF / 90 deg ON)
+//  - Dpad Left         - Manual kick left   (requires preset selected)
+//  - Dpad Up           - Manual kick middle (requires preset selected)
+//  - Dpad Right        - Manual kick right  (requires preset selected)
+//  - Dpad Down         - Manual kick all 3  (requires preset selected)
 //
-//  - Dpad Left         - Manual kick left  (requires shooter at speed)
-//  - Dpad Up           - Manual kick middle (requires shooter at speed)
-//  - Dpad Right        - Manual kick right  (requires shooter at speed)
-//  - Dpad Down         - Manual kick all 3  (3-ball, requires speed)
-//
-//  - Right Trigger     - Outtake (forward)
-//  - Left Trigger      - Intake (backward)
+//  - Right Trigger     - Manual intake  (overrides auto)
+//  - Left Trigger      - Manual outtake (overrides auto)
 //  - Right Bumper      - Shooter RPM +10
 //  - Left Bumper       - Shooter RPM -10
 //
@@ -74,6 +68,9 @@ public class TeleOp_State_Red extends LinearOpMode {
     public static int SPEED_1BALL_MEDIUM = 2430;
     public static int SPEED_1BALL_FAR    = 3060;
     public static double SHOOTER_READY_RATIO = 0.95;
+    // Angle tolerance for auto-fire: shoot if within this many degrees when trigger is released
+    // (or while trigger is held once aligned). Wider than ALIGN_TARGET_DEG on purpose.
+    public static double SHOOT_TOLERANCE_DEG = 5.0;
     public static double ODOMETRY_SPEED_BLEND = 0.65;
     public static int ODOMETRY_RPM_MIN = 0;
     public static int ODOMETRY_RPM_MAX = 6000;
@@ -110,7 +107,8 @@ public class TeleOp_State_Red extends LinearOpMode {
 
     private boolean readyToShoot(boolean isThreeBallMode, int oneBallRpm, int threeBallRpm, double shooterSpeed) {
         double targetSpeedTps = targetShooterTps(isThreeBallMode, oneBallRpm, threeBallRpm);
-        return _driveUtilsAdvanced.isAlignedToGoal()
+        double alignError = Math.abs(_driveUtilsAdvanced.getLastAlignErrorDeg());
+        return alignError <= SHOOT_TOLERANCE_DEG
                 && targetSpeedTps > 0
                 && shooterSpeed >= targetSpeedTps * SHOOTER_READY_RATIO;
     }
@@ -175,7 +173,7 @@ public class TeleOp_State_Red extends LinearOpMode {
         int shooterSpeedRpm3Ball = 0;
         boolean isThreeBallMode = true;
         boolean isAutoSpeed = true;
-        boolean autoAlignEnabled = true; // G1 B toggles whether driver-assist auto-align is allowed
+        boolean autoAlignEnabled = true;
         int presetOneBallRpm = 0;
         int presetThreeBallRpm = 0;
 
@@ -183,6 +181,8 @@ public class TeleOp_State_Red extends LinearOpMode {
 
         // Trigger-release auto-align state
         boolean wasAlignTriggered = false;
+        // Armed on each fresh trigger press; disarmed once the shot fires so we don't re-fire every loop.
+        boolean autoFireArmed = false;
 
         LimelightHardware2Axis.Motif lastSavedMotif = null;
 
@@ -268,7 +268,11 @@ public class TeleOp_State_Red extends LinearOpMode {
             //    3-ball mode = simultaneous, 1-ball mode = sequential motif order
             //------------------------------------------------------------------------------------------
             if (g1RE.RisingEdgeButton(gamepad1, "a") && !_kickMotif.isKicking()) {
-                _kickMotif.setKick(isThreeBallMode);
+                if (!isThreeBallMode && !MotifKicking.isFieldMotifKnown(_robot)) {
+                    _kickMotif.setKickLeftToRightSequential();
+                } else {
+                    _kickMotif.setKick(isThreeBallMode);
+                }
             }
             _kickMotif.checkKick();
 
@@ -309,14 +313,28 @@ public class TeleOp_State_Red extends LinearOpMode {
             boolean alignTriggered = gamepad1.right_trigger > 0.2;
 
             if (alignTriggered) {
-                // Auto-shoot depends on auto-align + auto-speed. Force both when trigger is used.
-                isAutoSpeed = true;
-                autoAlignEnabled = true;
+                if (!wasAlignTriggered) {
+                    // First loop of trigger press only: arm auto-fire and enable auto-speed.
+                    // Doing this once prevents the trigger from overriding G1 X (auto-speed toggle)
+                    // every loop while held.
+                    autoFireArmed = true;
+                    isAutoSpeed = true;
+                }
                 _driveUtilsAdvanced.autoAlign();
+                // Auto-fire: once aligned within SHOOT_TOLERANCE_DEG and shooter is ready, fire once.
+                if (autoFireArmed && !_kickMotif.isKicking()
+                        && readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed)) {
+                    if (!isThreeBallMode && !MotifKicking.isFieldMotifKnown(_robot)) {
+                        _kickMotif.setKickLeftToRightSequential();
+                    } else {
+                        _kickMotif.setKick(isThreeBallMode);
+                    }
+                    autoFireArmed = false; // disarm — don't re-fire until trigger is released and re-pressed
+                }
             } else if (wasAlignTriggered) {
-                // Trigger just released — decide whether to fire
-                if (readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed)) {
-                    // Unknown field motif in 1-ball: shoot L → M → R; otherwise motif-based / 3-ball.
+                // Trigger just released — fire if still within tolerance (covers slow alignments)
+                if (autoFireArmed
+                        && readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed)) {
                     if (!isThreeBallMode && !MotifKicking.isFieldMotifKnown(_robot)) {
                         _kickMotif.setKickLeftToRightSequential();
                     } else {
@@ -324,11 +342,11 @@ public class TeleOp_State_Red extends LinearOpMode {
                     }
                 }
                 _driveUtilsAdvanced.endAutoAlign();
+                autoFireArmed = false;
             }
             wasAlignTriggered = alignTriggered;
 
-            // Manual (non-auto-shoot) auto-align gating: if driver has disabled auto-align,
-            // keep alignment state off (auto-shoot via RT overrides by forcing it on above).
+            // Manual auto-align gating: end alignment if driver has disabled it and trigger isn't held
             if (!alignTriggered && !autoAlignEnabled && _driveUtilsAdvanced.isAligning) {
                 _driveUtilsAdvanced.endAutoAlign();
             }
@@ -338,7 +356,7 @@ public class TeleOp_State_Red extends LinearOpMode {
                 _driveUtilsAdvanced.endAutoAlign();
             }
 
-            // G1 B: toggle auto-align assist for manual shooting/driving (does NOT block trigger auto-shoot)
+            // G1 B: toggle auto-align assist on/off (does NOT block trigger auto-shoot)
             if (g1RE.RisingEdgeButton(gamepad1, "b")) {
                 autoAlignEnabled = !autoAlignEnabled;
                 if (!autoAlignEnabled) {
@@ -394,7 +412,7 @@ public class TeleOp_State_Red extends LinearOpMode {
                 presetOneBallRpm = SPEED_1BALL_CLOSE;
                 shooterSpeedRpm3Ball = presetThreeBallRpm;
                 shooterSpeedRpm = presetOneBallRpm;
-                gamepad2.rumble(1.0, 1.0, G2_PRESET_RUMBLE_CLOSE_MS);
+                gamepad2.rumbleBlips(1);
             }
             if (g2RE.RisingEdgeButton(gamepad2, "x")) {
                 robotPosition = position.Medium;
@@ -402,7 +420,7 @@ public class TeleOp_State_Red extends LinearOpMode {
                 presetOneBallRpm = SPEED_1BALL_MEDIUM;
                 shooterSpeedRpm3Ball = presetThreeBallRpm;
                 shooterSpeedRpm = presetOneBallRpm;
-                gamepad2.rumble(1.0, 1.0, G2_PRESET_RUMBLE_MEDIUM_MS);
+                gamepad2.rumbleBlips(2);
             }
             if (g2RE.RisingEdgeButton(gamepad2, "a")) {
                 robotPosition = position.Far;
@@ -410,7 +428,7 @@ public class TeleOp_State_Red extends LinearOpMode {
                 presetOneBallRpm = SPEED_1BALL_FAR;
                 shooterSpeedRpm3Ball = presetThreeBallRpm;
                 shooterSpeedRpm = presetOneBallRpm;
-                gamepad2.rumble(1.0, 1.0, G2_PRESET_RUMBLE_FAR_MS);
+                gamepad2.rumbleBlips(3);
             }
             if (gamepad2.b) {
                 _robot.intake.stop();
@@ -453,34 +471,25 @@ public class TeleOp_State_Red extends LinearOpMode {
                     _robot.lights.setMiddle(Lights.Color.RED);
                     _robot.lights.setRight(Lights.Color.RED);
                 } else {
-                    // 1-ball: alternate red blink with motif / white (wrong balls) / yellow (unknown motif).
-                    // 3-ball: red blink only.
+                    // Alternate red blink with a status color:
+                    //   yellow  → motif unknown (don't know which ball to fire)
+                    //   white   → motif known but wrong balls loaded
+                    //   red     → motif known and balls correct (pure red blink while settling)
                     boolean phaseRed = (((int) (_runtime.seconds() / 0.25)) % 2 == 0);
-                    if (isThreeBallMode || phaseRed) {
-                        _robot.lights.setLeft(Lights.Color.RED, Lights.Blink.FAST);
-                        _robot.lights.setMiddle(Lights.Color.RED, Lights.Blink.FAST);
-                        _robot.lights.setRight(Lights.Color.RED, Lights.Blink.FAST);
-                    } else if (!isThreeBallMode) {
-                        if (!MotifKicking.isFieldMotifKnown(_robot)) {
-                            _robot.lights.setLeft(Lights.Color.YELLOW, Lights.Blink.FAST);
-                            _robot.lights.setMiddle(Lights.Color.YELLOW, Lights.Blink.FAST);
-                            _robot.lights.setRight(Lights.Color.YELLOW, Lights.Blink.FAST);
-                        } else if (!MotifKicking.currentBallsMatchFieldMotif(_robot)) {
-                            _robot.lights.setLeft(Lights.Color.WHITE, Lights.Blink.FAST);
-                            _robot.lights.setMiddle(Lights.Color.WHITE, Lights.Blink.FAST);
-                            _robot.lights.setRight(Lights.Color.WHITE, Lights.Blink.FAST);
-                        } else {
-                            LimelightHardware2Axis.Motif displayMotif =
-                                    savedMotif != null ? savedMotif : _robot.limelightHardware2Axis.storedGameMotif;
-                            if (displayMotif != null) {
-                                showMotifLights(displayMotif);
-                            } else {
-                                _robot.lights.setLeft(Lights.Color.YELLOW, Lights.Blink.FAST);
-                                _robot.lights.setMiddle(Lights.Color.YELLOW, Lights.Blink.FAST);
-                                _robot.lights.setRight(Lights.Color.YELLOW, Lights.Blink.FAST);
-                            }
-                        }
+                    boolean motifKnown = MotifKicking.isFieldMotifKnown(_robot);
+                    boolean ballsMatch = MotifKicking.currentBallsMatchFieldMotif(_robot);
+                    Lights.Color nonRedColor;
+                    if (!motifKnown) {
+                        nonRedColor = Lights.Color.YELLOW;
+                    } else if (!ballsMatch) {
+                        nonRedColor = Lights.Color.WHITE;
+                    } else {
+                        nonRedColor = Lights.Color.RED;
                     }
+                    Lights.Color blinkColor = phaseRed ? Lights.Color.RED : nonRedColor;
+                    _robot.lights.setLeft(blinkColor, Lights.Blink.FAST);
+                    _robot.lights.setMiddle(blinkColor, Lights.Blink.FAST);
+                    _robot.lights.setRight(blinkColor, Lights.Blink.FAST);
                 }
             }
 

@@ -61,7 +61,7 @@ public class DriveUtilsAdvanced {
     public static boolean SHOW_DASHBOARD_DEBUG = false;
 
     // --- TeleOp strafe heading-hold assist (does NOT run during auto-align) ---
-    public static boolean STRAFE_HOLD_ENABLED = true;
+    public static boolean STRAFE_HOLD_ENABLED = false;
     public static double STRAFE_HOLD_KP = 2.2;               // rad error -> turn power
     public static double STRAFE_HOLD_MAX_POWER = 0.35;
     public static double STRAFE_HOLD_STRAFE_DEADBAND = 0.25; // left stick X
@@ -459,6 +459,7 @@ public class DriveUtilsAdvanced {
         _alignIntegral = 0;
         _lastAlignPower = 0;
         _alignStableLoops = 0;
+        _lastAlignErrorDeg = 180.0; // reset so stale error can't trigger premature auto-fire next press
         _alignDtTimer.reset();
     }
 
