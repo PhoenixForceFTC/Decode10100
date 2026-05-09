@@ -151,10 +151,14 @@ public class TeleOp_State_Red extends LinearOpMode {
         _robot.lights.setRight(motifCharToLight(pattern[2]));
     }
 
-    private void showWhiteSolid() {
-        _robot.lights.setLeft(Lights.Color.WHITE);
-        _robot.lights.setMiddle(Lights.Color.WHITE);
-        _robot.lights.setRight(Lights.Color.WHITE);
+    private void showNoGoalTagSearchLights() {
+        int phase = ((int) (_runtime.seconds() / 0.2)) % 3;
+        Lights.Color color = phase == 0
+                ? Lights.Color.RED
+                : (phase == 1 ? Lights.Color.ORANGE : Lights.Color.YELLOW);
+        _robot.lights.setLeft(color);
+        _robot.lights.setMiddle(color);
+        _robot.lights.setRight(color);
     }
 
     //------------------------------------------------------------------------------------------
@@ -312,7 +316,12 @@ public class TeleOp_State_Red extends LinearOpMode {
             } else if (wasAlignTriggered) {
                 // Trigger just released — decide whether to fire
                 if (readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed)) {
-                    _kickMotif.setKick(isThreeBallMode);
+                    // Unknown field motif in 1-ball: shoot L → M → R; otherwise motif-based / 3-ball.
+                    if (!isThreeBallMode && !MotifKicking.isFieldMotifKnown(_robot)) {
+                        _kickMotif.setKickLeftToRightSequential();
+                    } else {
+                        _kickMotif.setKick(isThreeBallMode);
+                    }
                 }
                 _driveUtilsAdvanced.endAutoAlign();
             }
@@ -438,26 +447,38 @@ public class TeleOp_State_Red extends LinearOpMode {
                 boolean isReadyToShoot = readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed);
 
                 if (!_driveUtilsAdvanced.hasGoalTag()) {
-                    _robot.lights.setLeft(Lights.Color.YELLOW, Lights.Blink.FAST);
-                    _robot.lights.setMiddle(Lights.Color.YELLOW, Lights.Blink.FAST);
-                    _robot.lights.setRight(Lights.Color.YELLOW, Lights.Blink.FAST);
+                    showNoGoalTagSearchLights();
                 } else if (isReadyToShoot) {
                     _robot.lights.setLeft(Lights.Color.RED);
                     _robot.lights.setMiddle(Lights.Color.RED);
                     _robot.lights.setRight(Lights.Color.RED);
                 } else {
-                    // Aligning but not ready: in 1-ball mode, alternate flashing red with motif (known) or white (unknown).
-                    // In 3-ball mode, keep it simple: flashing red only.
+                    // 1-ball: alternate red blink with motif / white (wrong balls) / yellow (unknown motif).
+                    // 3-ball: red blink only.
                     boolean phaseRed = (((int) (_runtime.seconds() / 0.25)) % 2 == 0);
                     if (isThreeBallMode || phaseRed) {
                         _robot.lights.setLeft(Lights.Color.RED, Lights.Blink.FAST);
                         _robot.lights.setMiddle(Lights.Color.RED, Lights.Blink.FAST);
                         _robot.lights.setRight(Lights.Color.RED, Lights.Blink.FAST);
-                    } else {
-                        if (savedMotif != null) {
-                            showMotifLights(savedMotif);
+                    } else if (!isThreeBallMode) {
+                        if (!MotifKicking.isFieldMotifKnown(_robot)) {
+                            _robot.lights.setLeft(Lights.Color.YELLOW, Lights.Blink.FAST);
+                            _robot.lights.setMiddle(Lights.Color.YELLOW, Lights.Blink.FAST);
+                            _robot.lights.setRight(Lights.Color.YELLOW, Lights.Blink.FAST);
+                        } else if (!MotifKicking.currentBallsMatchFieldMotif(_robot)) {
+                            _robot.lights.setLeft(Lights.Color.WHITE, Lights.Blink.FAST);
+                            _robot.lights.setMiddle(Lights.Color.WHITE, Lights.Blink.FAST);
+                            _robot.lights.setRight(Lights.Color.WHITE, Lights.Blink.FAST);
                         } else {
-                            showWhiteSolid();
+                            LimelightHardware2Axis.Motif displayMotif =
+                                    savedMotif != null ? savedMotif : _robot.limelightHardware2Axis.storedGameMotif;
+                            if (displayMotif != null) {
+                                showMotifLights(displayMotif);
+                            } else {
+                                _robot.lights.setLeft(Lights.Color.YELLOW, Lights.Blink.FAST);
+                                _robot.lights.setMiddle(Lights.Color.YELLOW, Lights.Blink.FAST);
+                                _robot.lights.setRight(Lights.Color.YELLOW, Lights.Blink.FAST);
+                            }
                         }
                     }
                 }

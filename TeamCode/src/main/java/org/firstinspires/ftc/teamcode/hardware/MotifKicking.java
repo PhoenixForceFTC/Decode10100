@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import java.util.Arrays;
+
 import org.firstinspires.ftc.teamcode.RobotHardware;
 import org.firstinspires.ftc.teamcode.autos.AutoActions;
 
@@ -45,11 +48,66 @@ public class MotifKicking {
         if (motif == null) {
             return;
         }
-        switch (motif) {
-            case GPP: GameMotif = Motif.GPP; break;
-            case PGP: GameMotif = Motif.PGP; break;
-            case PPG: GameMotif = Motif.PPG; break;
+        GameMotif = limelightToMotif(motif);
+    }
+
+    private static Motif limelightToMotif(LimelightHardware2Axis.Motif motif) {
+        if (motif == null) {
+            return Motif.INVALID;
         }
+        switch (motif) {
+            case GPP: return Motif.GPP;
+            case PGP: return Motif.PGP;
+            case PPG: return Motif.PPG;
+            default: return Motif.INVALID;
+        }
+    }
+
+    /** True if the field / Limelight has stored a game motif from the obelisk. */
+    public static boolean isFieldMotifKnown(RobotHardware hardware) {
+        return hardware.limelightHardware2Axis.storedGameMotif != null;
+    }
+
+    /** Intake tube colors as a GPP/PGP/PPG motif, or INVALID if not a valid full pattern. */
+    public static Motif intakeMotifFromRobot(RobotHardware hardware) {
+        Intake_Incomplete.BallColor leftColor =
+                hardware.intake.detectBallSticky(hardware.intake._colorSensorLeft,
+                        hardware.intake._distanceSensorLeft, 85,
+                        hardware.intake._leftBallColor, "L");
+        Intake_Incomplete.BallColor middleColor =
+                hardware.intake.detectBallSticky(hardware.intake._colorSensorMiddle,
+                        hardware.intake._distanceSensorMiddle, 45,
+                        hardware.intake._middleBallColor, "M");
+        Intake_Incomplete.BallColor rightColor =
+                hardware.intake.detectBallSticky(hardware.intake._colorSensorRight,
+                        hardware.intake._distanceSensorRight, 85,
+                        hardware.intake._rightBallColor, "R");
+        return colorsToMotif(new Intake_Incomplete.BallColor[]{leftColor, middleColor, rightColor});
+    }
+
+    private static boolean multisetMotifsMatch(Motif a, Motif b) {
+        if (a == Motif.INVALID || b == Motif.INVALID) {
+            return false;
+        }
+        char[] ca = a.toString().toCharArray();
+        char[] cb = b.toString().toCharArray();
+        Arrays.sort(ca);
+        Arrays.sort(cb);
+        return Arrays.equals(ca, cb);
+    }
+
+    /**
+     * True when the three loaded balls are a valid PPG/PGP/GPP multiset matching the stored field motif.
+     * If no field motif is stored, returns true (caller handles unknown-motif UI separately).
+     */
+    public static boolean currentBallsMatchFieldMotif(RobotHardware hardware) {
+        LimelightHardware2Axis.Motif stored = hardware.limelightHardware2Axis.storedGameMotif;
+        if (stored == null) {
+            return true;
+        }
+        Motif target = limelightToMotif(stored);
+        Motif intake = intakeMotifFromRobot(hardware);
+        return multisetMotifsMatch(target, intake);
     }
 
     private static Motif colorsToMotif(Intake_Incomplete.BallColor[] colors){
@@ -184,6 +242,20 @@ public class MotifKicking {
     /** Defaults to sequential (1-ball) mode. */
     public void setKick() {
         setKick(false);
+    }
+
+    /**
+     * 1-ball sequential fire: left, then middle, then right (no motif matching).
+     * Used when field motif is unknown (e.g. auto-shoot trigger release).
+     */
+    public void setKickLeftToRightSequential() {
+        _simultaneous = false;
+        shootingSequence = new int[]{0, 1, 2};
+        _seqStage = 0;
+        if (myTimer == null) {
+            myTimer = new ElapsedTime();
+        }
+        myTimer.reset();
     }
 
     public void checkKick() {

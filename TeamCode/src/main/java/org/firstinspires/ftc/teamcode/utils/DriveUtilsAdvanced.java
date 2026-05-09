@@ -57,6 +57,7 @@ public class DriveUtilsAdvanced {
     public static double ALIGN_TARGET_DEG = 1.75;
     public static double ALIGN_INTEGRAL_LIMIT = 120.0;
     public static int ALIGN_STABLE_LOOPS = 4;
+    public static double ALIGN_MANUAL_YAW_OVERRIDE = 0.08;
     public static boolean SHOW_DASHBOARD_DEBUG = false;
 
     // --- TeleOp strafe heading-hold assist (does NOT run during auto-align) ---
@@ -359,7 +360,12 @@ public class DriveUtilsAdvanced {
                 _alignStableLoops = 0;
                 _lastAlignPower = 0;
                 _lastAlignErrorDeg = 180.0;
-                double fallbackTurn = clamp(thetadt() + (calcDif / 3), -ALIGN_PID_MAX_POWER, ALIGN_PID_MAX_POWER);
+                _alignIntegral = 0;
+                _alignFirstLoop = true;
+                double fallbackTurn = Math.abs(gamepad.right_stick_x) > ALIGN_MANUAL_YAW_OVERRIDE
+                        ? 0
+                        : clamp(thetadt() + (calcDif / 3), -ALIGN_PID_MAX_POWER, ALIGN_PID_MAX_POWER);
+                _lastAlignPower = fallbackTurn;
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, fallbackTurn);
             }
             else
