@@ -118,9 +118,9 @@ public class DriveUtilsAdvanced {
 
     double adjustmentDegrees(){//higher value will turn it more clockwise
         if(isBlue){
-            return 0;
+            return -2; // 2° counter-clockwise offset for blue alliance goal tag
         }else{
-            return -2;
+            return -2; // 2° counter-clockwise offset for red alliance goal tag
         }
      };
     public DriveUtilsAdvanced(HardwareMap hardwareMap, Pose2d pose, Drive drive,LimelightHardware2Axis limelightHardware2Axis,
@@ -263,7 +263,7 @@ public class DriveUtilsAdvanced {
         double calcDif = calcDifference(targetHeading);//calc diff uses road
 
 
-        calcDif+=Math.toRadians(adjustmentDegrees());
+        // adjustmentDegrees() is applied only inside autoAlignViaLLandPower() — not here.
 
 
 
@@ -333,10 +333,13 @@ public class DriveUtilsAdvanced {
             //double[] distBreakdown = limelightHardware2Axis.getDistanceBreakdown();
             //distBreakdown = null; // temp todo: can we just use
             double angleToTurnFromCamera = limelightHardware2Axis.getTxDegreesForId(this.targetTagId);
-            _lastAlignErrorDeg = angleToTurnFromCamera;
-
             calcDif += Math.toRadians(adjustmentDegrees());
-            angleToTurnFromCamera+= adjustmentDegrees();
+            angleToTurnFromCamera += adjustmentDegrees();
+            // Store AFTER applying the adjustment so readyToShoot() compares against the same
+            // reference frame the alignment logic uses. Storing pre-adjustment caused readyToShoot()
+            // to see e.g. 2.5° while the alignment logic saw 0.5° (adjusted), blocking auto-fire
+            // even when the robot was physically aligned.
+            _lastAlignErrorDeg = angleToTurnFromCamera;
             if(Math.abs(angleToTurnFromCamera) < ALIGN_TARGET_DEG){ // within fine-alignment threshold
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x,0);
                 _lastAlignPower = 0;
@@ -354,9 +357,12 @@ public class DriveUtilsAdvanced {
                 _lastAlignErrorDeg = 180.0;
                 _alignIntegral = 0;
                 _alignFirstLoop = true;
+                // Tag not visible — rotate toward where odometry estimates the goal to be.
+                // Uses pure-P on calcDif only; thetadt() was removed because it depends on
+                // commanded stick velocity and caused the direction to flip randomly.
                 double fallbackTurn = Math.abs(gamepad.right_stick_x) > ALIGN_MANUAL_YAW_OVERRIDE
                         ? 0
-                        : clamp(thetadt() + (calcDif / 3), -ALIGN_PID_MAX_POWER, ALIGN_PID_MAX_POWER);
+                        : clamp(calcDif * 0.4, -0.25, 0.25);
                 _lastAlignPower = fallbackTurn;
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, fallbackTurn);
             }
