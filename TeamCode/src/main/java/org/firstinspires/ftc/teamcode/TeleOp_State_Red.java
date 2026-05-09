@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.hardware.Intake_Incomplete;
 import org.firstinspires.ftc.teamcode.hardware.Lights;
 import org.firstinspires.ftc.teamcode.hardware.LimelightHardware2Axis;
 import org.firstinspires.ftc.teamcode.hardware.MotifKicking;
@@ -183,6 +184,11 @@ public class TeleOp_State_Red extends LinearOpMode {
         boolean wasAlignTriggered = false;
         // Armed on each fresh trigger press; disarmed once the shot fires so we don't re-fire every loop.
         boolean autoFireArmed = false;
+        // Set when a blip is triggered mid-alignment to reposition balls for re-read. Cleared on each
+        // new trigger press. If still INVALID after one blip, falls back to sequential.
+        boolean autoFireBlipped = false;
+        // Rising-edge tracker for 3-ball auto-blip
+        boolean wasAll3 = false;
 
         LimelightHardware2Axis.Motif lastSavedMotif = null;
 
@@ -268,7 +274,8 @@ public class TeleOp_State_Red extends LinearOpMode {
             //    3-ball mode = simultaneous, 1-ball mode = sequential motif order
             //------------------------------------------------------------------------------------------
             if (g1RE.RisingEdgeButton(gamepad1, "a") && !_kickMotif.isKicking()) {
-                if (!isThreeBallMode && !MotifKicking.isFieldMotifKnown(_robot)) {
+                if (!isThreeBallMode && (!MotifKicking.isFieldMotifKnown(_robot)
+                        || !MotifKicking.currentBallsMatchFieldMotif(_robot))) {
                     _kickMotif.setKickLeftToRightSequential();
                 } else {
                     _kickMotif.setKick(isThreeBallMode);
@@ -276,9 +283,15 @@ public class TeleOp_State_Red extends LinearOpMode {
             }
             _kickMotif.checkKick();
 
-            // Falling-edge: kick sequence just finished → clear ball detection so auto-intake restarts
+            // Rising/falling-edge: kick sequence start and end
             boolean isKickingNow = _kickMotif.isKicking();
+            if (!wasKicking && isKickingNow) {
+                // Kick just started — rumble both controllers
+                gamepad1.rumble(1.0, 1.0, 400);
+                gamepad2.rumble(1.0, 1.0, 400);
+            }
             if (wasKicking && !isKickingNow) {
+                // Kick sequence finished — clear ball detection so auto-intake restarts
                 _robot.intake.clearAllSensorValues();
             }
             wasKicking = isKickingNow;
@@ -318,31 +331,48 @@ public class TeleOp_State_Red extends LinearOpMode {
                     // Doing this once prevents the trigger from overriding G1 X (auto-speed toggle)
                     // every loop while held.
                     autoFireArmed = true;
+                    autoFireBlipped = false;
                     isAutoSpeed = true;
                 }
                 _driveUtilsAdvanced.autoAlign();
                 // Auto-fire: once aligned within SHOOT_TOLERANCE_DEG and shooter is ready, fire once.
                 if (autoFireArmed && !_kickMotif.isKicking()
                         && readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed)) {
-                    if (!isThreeBallMode && !MotifKicking.isFieldMotifKnown(_robot)) {
+                    if (!isThreeBallMode && (!MotifKicking.isFieldMotifKnown(_robot)
+                            || !MotifKicking.currentBallsMatchFieldMotif(_robot))) {
+                        // Motif unknown or wrong balls — fire sequential
                         _kickMotif.setKickLeftToRightSequential();
+                        autoFireArmed = false;
+                    } else if (!isThreeBallMode
+                            && MotifKicking.intakeMotifFromRobot(_robot) == MotifKicking.Motif.INVALID
+                            && !autoFireBlipped) {
+                        // Motif known, balls match multiset, but color sensors can't read arrangement —
+                        // blip once to reposition balls for re-read. Keep autoFireArmed to retry.
+                        _robot.kickers.kickMiddle();
+                        overrideBallDistanceDetection = true;
+                        overrideTimer.reset();
+                        autoFireBlipped = true;
                     } else {
+                        // Arrangement readable (or already blipped once) — fire in motif order
                         _kickMotif.setKick(isThreeBallMode);
+                        autoFireArmed = false;
                     }
-                    autoFireArmed = false; // disarm — don't re-fire until trigger is released and re-pressed
                 }
             } else if (wasAlignTriggered) {
                 // Trigger just released — fire if still within tolerance (covers slow alignments)
                 if (autoFireArmed
                         && readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed)) {
-                    if (!isThreeBallMode && !MotifKicking.isFieldMotifKnown(_robot)) {
+                    if (!isThreeBallMode && (!MotifKicking.isFieldMotifKnown(_robot)
+                            || !MotifKicking.currentBallsMatchFieldMotif(_robot))) {
                         _kickMotif.setKickLeftToRightSequential();
                     } else {
+                        // On release, fire whatever arrangement is readable; INVALID falls back to GPP default
                         _kickMotif.setKick(isThreeBallMode);
                     }
                 }
                 _driveUtilsAdvanced.endAutoAlign();
                 autoFireArmed = false;
+                autoFireBlipped = false;
             }
             wasAlignTriggered = alignTriggered;
 
@@ -447,6 +477,22 @@ public class TeleOp_State_Red extends LinearOpMode {
             //--- Intake & Ball Detection
             //------------------------------------------------------------------------------------------
             _robot.intake.run(overrideBallDistanceDetection);
+
+            // Auto-blip: when all 3 balls are first detected, automatically kick middle
+            // and override distance detection (same as G1 dpad up).
+            boolean all3 = _robot.intake._leftBallColor != Intake_Incomplete.BallColor.NONE
+                    && _robot.intake._leftBallColor != Intake_Incomplete.BallColor.UNKNOWN
+                    && _robot.intake._middleBallColor != Intake_Incomplete.BallColor.NONE
+                    && _robot.intake._middleBallColor != Intake_Incomplete.BallColor.UNKNOWN
+                    && _robot.intake._rightBallColor != Intake_Incomplete.BallColor.NONE
+                    && _robot.intake._rightBallColor != Intake_Incomplete.BallColor.UNKNOWN;
+            if (all3 && !wasAll3) {
+                _robot.kickers.kickMiddle();
+                overrideBallDistanceDetection = true;
+                overrideTimer.reset();
+            }
+            wasAll3 = all3;
+
             if (g1RE.RisingEdgeButton(gamepad1, "dpad_up")) {
                 _robot.kickers.kickMiddle();
                 overrideBallDistanceDetection = true;

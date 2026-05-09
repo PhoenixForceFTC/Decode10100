@@ -302,25 +302,17 @@ public class DriveUtilsAdvanced {
                 _strafeHoldActive = false;
             }
 
-            if (calcDif > Math.PI / 2 || calcDif < -Math.PI / 2) {
-                // this is the default drive signal
-                // yawImportant = 0 means no additional turn power
+            if (isAligning) {
+                // When auto-aligning, always use camera-based alignment regardless of odometry
+                // heading estimate. Odometry can drift, causing calcDif to exceed ±90° even when
+                // the camera can clearly see the goal tag — which would otherwise block alignment
+                // and leave the robot stationary.
+                returnn = autoAlignViaLLandPower(gamepad, calcDif);
+            } else if (calcDif > Math.PI / 2 || calcDif < -Math.PI / 2) {
+                // Robot is facing away from goal (odometry) and not aligning — pass driver input through.
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, yawImportant);
-
-                // todo: trying driveRR to see if that is faster, tried driveRR but was messing up auto align
-                //_robot.driveRR.driveControl(1.0);
-
-            }
-            else
-            {
-                if(isAligning) {  //right trigger sets this and reset after shooting
-                    returnn = autoAlignViaLLandPower(gamepad,calcDif);  // return true if we are close enough and aligned.
-                }
-                else
-                {
-                    // _robot.driveRR.driveControl(1.0);  // maybe faster but autoaligning not working
-                   drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, yawImportant);
-                }
+            } else {
+                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, yawImportant);
             }
         }
 
