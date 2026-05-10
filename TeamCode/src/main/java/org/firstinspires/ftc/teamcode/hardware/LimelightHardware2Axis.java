@@ -345,24 +345,16 @@ public class LimelightHardware2Axis
         _yawPosition=yawPosition;
         _pitchPosition=pitchPosition;
     };
-    public void setServoAngles(double yawAngle, double pitchAngles){
+    public void setServoAngles(double yawAngle, double pitchAngle){
+        double rawYaw = yawAngle / 300.0 + 0.5;
+        _yawPosition = Math.max(0.0, Math.min(1.0, rawYaw));
 
+        double rawPitch = pitchAngle / 300.0 + 0.5;
+        _pitchPosition = Math.max(0.0, Math.min(1.0, rawPitch));
+    }
 
-        if(yawAngle/300 +0.5>1){
-            _yawPosition = 1;
-        } else if (yawAngle/300 +0.5<0) {
-            _yawPosition=0;
-        }else{
-            _yawPosition=yawAngle/300 +0.5;
-        }
-
-        if(yawAngle/300 +0.5>1){
-            _pitchPosition = 1;
-        } else if (yawAngle/300 +0.5<0) {
-            _pitchPosition=0;
-        }else{
-            _pitchPosition=pitchAngles/300 +0.5;
-        }
+    public double getCameraYawAngle() {
+        return _cameraYawAngle;
     }
 
 

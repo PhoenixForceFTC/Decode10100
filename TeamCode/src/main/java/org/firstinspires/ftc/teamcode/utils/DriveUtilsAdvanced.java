@@ -68,6 +68,15 @@ public class DriveUtilsAdvanced {
     public static double STRAFE_HOLD_AXIAL_MAX = 0.20;       // left stick Y
     public static double STRAFE_HOLD_YAW_DEADBAND = 0.12;    // right stick X
 
+    // --- Camera yaw (horizontal servo) search assist ---
+    // When aligning and the goal tag is not visible, the camera pans toward the odometry-estimated
+    // goal direction to sweep the tag into the FOV. Once the tag is visible the camera returns to
+    // center (yaw=0) so the PID uses the raw camera angle without an offset correction.
+    public static boolean CAMERA_YAW_SEARCH_ENABLED = true;
+    public static double CAMERA_YAW_MAX_DEG = 30.0;  // max pan angle in either direction
+    // Sign: -1 = pan right when goal is to the right (calcDif > 0). Flip to +1 if wrong direction.
+    public static double CAMERA_YAW_SIGN = -1.0;
+
     private boolean _strafeHoldActive = false;
     private double _strafeHoldHeadingRad = 0.0;
 
@@ -438,11 +447,10 @@ public class DriveUtilsAdvanced {
     }
 
     private double getTargetHeading(double targetLocationY, double targetLocationX) {
-        double targetHeading = Math.atan2(-targetLocationY, -targetLocationX);
-        if (!isBlue) {
-            targetHeading = Math.atan2(targetLocationY, -targetLocationX);
-        }
-        return targetHeading;
+        // Direction from robot to goal: negate both components of the (robot - goal) vector.
+        // Both alliances use the same formula — the previous red branch had the y sign wrong,
+        // which caused calcDif to read ~101° off and the odometry fallback to spin backwards.
+        return Math.atan2(-targetLocationY, -targetLocationX);
     }
 
     public double getDist(){
@@ -488,11 +496,28 @@ public class DriveUtilsAdvanced {
     }
 
     public void updateCameraPitch(){
-        limelightHardware2Axis.setServoAngles(0, Math.toDegrees(Math.atan(18/Math.sqrt(x3*x3+y3*y3))) );//22 should be hight difference of the camera and the april tags on the goals
-        if (SHOW_DASHBOARD_DEBUG) {
-            telemetry.addData("pitch angle", Math.toDegrees(Math.atan(18/Math.sqrt(x3*x3+y3*y3))));
+        // Pitch: tilt camera up/down based on distance so the goal tag stays vertically centred.
+        double dist = Math.sqrt(x3*x3 + y3*y3);
+        double pitchAngle = Math.toDegrees(Math.atan(18.0 / dist));
+
+        // Yaw: pan camera horizontally toward the estimated goal direction when the goal tag is
+        // not currently visible. This sweeps the tag into the camera FOV so detection is more
+        // consistent. Once the tag IS visible the camera returns to centre (yaw=0) so the
+        // alignment PID uses the raw camera angle with no offset correction needed.
+        double yawAngle = 0.0;
+        if (CAMERA_YAW_SEARCH_ENABLED && isAligning && !hasGoalTag()) {
+            double targetHeading = getTargetHeading(y4 - 14.55098425, x4 - 11.82122047);
+            double calcDif = calcDifference(targetHeading); // radians; >0 means goal is to the right
+            double panDeg = CAMERA_YAW_SIGN * Math.toDegrees(calcDif);
+            yawAngle = clamp(panDeg, -CAMERA_YAW_MAX_DEG, CAMERA_YAW_MAX_DEG);
         }
-        //can change to be x only and not pythagors theorem if camera is supposed to look at both april tags
+
+        limelightHardware2Axis.setServoAngles(yawAngle, pitchAngle);
+
+        if (SHOW_DASHBOARD_DEBUG) {
+            telemetry.addData("camera pitch deg", String.format("%.1f", pitchAngle));
+            telemetry.addData("camera yaw deg",   String.format("%.1f", yawAngle));
+        }
     };
 
     // gives you amount to turn based on movement
