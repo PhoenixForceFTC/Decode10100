@@ -556,15 +556,20 @@ public class TeleOp_State_Blue extends LinearOpMode {
                     //   white   → motif known but wrong balls loaded
                     //   red     → motif known and balls correct (pure red blink while settling)
                     boolean phaseRed = (((int) (_runtime.seconds() / 0.25)) % 2 == 0);
-                    boolean motifKnown = MotifKicking.isFieldMotifKnown(_robot);
-                    boolean ballsMatch = MotifKicking.currentBallsMatchFieldMotif(_robot);
                     Lights.Color nonRedColor;
-                    if (!motifKnown) {
-                        nonRedColor = Lights.Color.YELLOW;
-                    } else if (!ballsMatch) {
-                        nonRedColor = Lights.Color.WHITE;
-                    } else {
+                    if (isThreeBallMode) {
+                        // All 3 balls fire simultaneously — motif check is irrelevant
                         nonRedColor = Lights.Color.RED;
+                    } else {
+                        boolean motifKnown = MotifKicking.isFieldMotifKnown(_robot);
+                        boolean ballsMatch = MotifKicking.currentBallsMatchFieldMotif(_robot);
+                        if (!motifKnown) {
+                            nonRedColor = Lights.Color.YELLOW;
+                        } else if (!ballsMatch) {
+                            nonRedColor = Lights.Color.WHITE;
+                        } else {
+                            nonRedColor = Lights.Color.RED;
+                        }
                     }
                     Lights.Color blinkColor = phaseRed ? Lights.Color.RED : nonRedColor;
                     _robot.lights.setLeft(blinkColor, Lights.Blink.FAST);

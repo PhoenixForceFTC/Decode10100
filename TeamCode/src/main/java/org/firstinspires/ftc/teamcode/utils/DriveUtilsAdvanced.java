@@ -51,10 +51,11 @@ public class DriveUtilsAdvanced {
     public static double ALIGN_PID_KI = 0.0;         // keep 0 unless the robot consistently stops off-center
     public static double ALIGN_PID_KD = 0.0025;      // damps fast approach near target
     public static double ALIGN_PID_KS = 0.045;       // static-friction feedforward
-    public static double ALIGN_PID_KS_END_DEG = 4.0; // no static push inside this range, prevents close wiggle
+    public static double ALIGN_PID_KS_END_DEG = 1.0; // no static push inside this range, prevents close wiggle
     public static double ALIGN_PID_MAX_POWER = 0.65;
-    public static double ALIGN_PID_MAX_ACCEL = 0.12; // max turn-power change per loop
-    public static double ALIGN_TARGET_DEG = 1.75;
+    public static double ALIGN_PID_MAX_ACCEL = 0.12;         // max turn-power change per loop
+    public static double ALIGN_FALLBACK_MAX_POWER = 0.15;    // speed cap while searching for goal tag; lower = less overshoot on acquisition
+    public static double ALIGN_TARGET_DEG = 1.0;
     public static double ALIGN_INTEGRAL_LIMIT = 120.0;
     public static int ALIGN_STABLE_LOOPS = 4;
     public static double ALIGN_MANUAL_YAW_OVERRIDE = 0.08;
@@ -358,7 +359,9 @@ public class DriveUtilsAdvanced {
             }
             if(angleToTurnFromCamera > (double)120.0){
                 _alignStableLoops = 0;
-                _lastAlignPower = 0;
+                // Note: _lastAlignPower is intentionally NOT reset here — preserving it lets
+                // the accel ramp carry over both from PID→fallback and within the fallback,
+                // preventing jerks and ensuring the robot decelerates naturally as it acquires the tag.
                 _lastAlignErrorDeg = 180.0;
                 _alignIntegral = 0;
                 _alignFirstLoop = true;
@@ -372,9 +375,9 @@ public class DriveUtilsAdvanced {
                 //            takes over immediately with direct camera tx data.
                 //
                 //  Tier 2 — Odometry calcDif: no tags at all visible — dead-wheel fallback only.
-                double fallbackTurn;
+                double fallbackTarget;
                 if (Math.abs(gamepad.right_stick_x) > ALIGN_MANUAL_YAW_OVERRIDE) {
-                    fallbackTurn = 0; // driver manually overriding rotation — don't fight them
+                    fallbackTarget = 0; // driver manually overriding rotation — don't fight them
                 } else {
                     Pose2D cameraPos = limelightHardware2Axis.getRobotPos(null);
                     if (cameraPos != null) {
@@ -386,12 +389,18 @@ public class DriveUtilsAdvanced {
                         double megaTagErr = camHeading - tgtHeading;
                         while (megaTagErr >  Math.PI) megaTagErr -= 2 * Math.PI;
                         while (megaTagErr < -Math.PI) megaTagErr += 2 * Math.PI;
-                        fallbackTurn = clamp(megaTagErr * 0.4, -0.25, 0.25);
+                        fallbackTarget = clamp(megaTagErr * 0.4, -ALIGN_FALLBACK_MAX_POWER, ALIGN_FALLBACK_MAX_POWER);
                     } else {
                         // Tier 2: no tags visible at all — dead-wheel odometry estimate.
-                        fallbackTurn = clamp(calcDif * 0.4, -0.25, 0.25);
+                        fallbackTarget = clamp(calcDif * 0.4, -ALIGN_FALLBACK_MAX_POWER, ALIGN_FALLBACK_MAX_POWER);
                     }
                 }
+                // Apply the same accel ramp used by the PID so the robot ramps up gradually
+                // and — critically — so _lastAlignPower reflects a ramped value when the goal tag
+                // first appears and the PID takes over. This prevents the PID from inheriting a
+                // sudden speed jump that would cause overshoot.
+                double fallbackChange = clamp(fallbackTarget - _lastAlignPower, -ALIGN_PID_MAX_ACCEL, ALIGN_PID_MAX_ACCEL);
+                double fallbackTurn = _lastAlignPower + fallbackChange;
                 _lastAlignPower = fallbackTurn;
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, fallbackTurn);
             }

@@ -45,6 +45,7 @@ public class Intake_Incomplete
     private static final double PURPLE_BG_THRESHOLD = 0.85; // G/R must exceed this for purple
     private static final double PURPLE_GR_MAX = 1.8; // G/R must be below this for purple
     private static final double BALL_LOSS_THRESHOLD_MULTIPLIER = 1.2;
+    public static double MIN_BALL_BRIGHTNESS = 150.0; // sum of R+G+B; below = ambient, not a ball
     private static final int THREE_BALL_RUMBLE_MS = 500;
     private static int loopCount = 0;
 
@@ -310,6 +311,12 @@ public class Intake_Incomplete
 
         double greenToRed = (avgRedValue != 0 ? avgGreenValue/avgRedValue : 0);
         double blueToGreen = (avgGreenValue != 0 ? avgBlueValue/avgGreenValue : 0);
+
+        // Reject ambient light through empty slot — no real ball can be this dim
+        double brightness = avgRedValue + avgGreenValue + avgBlueValue;
+        if (brightness < MIN_BALL_BRIGHTNESS) {
+            return BallColor.NONE;
+        }
 
         if(!OverrideDistanceCheck) {
             // Keep a little distance hysteresis, but release quickly so old balls do not stay counted.
