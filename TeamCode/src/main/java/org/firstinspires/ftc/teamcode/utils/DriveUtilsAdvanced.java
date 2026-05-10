@@ -127,7 +127,7 @@ public class DriveUtilsAdvanced {
 
     double adjustmentDegrees(){//higher value will turn it more clockwise
         if(isBlue){
-            return -2; // 2° counter-clockwise offset for blue alliance goal tag
+            return 2; // 2° clockwise offset for blue alliance goal tag
         }else{
             return -2; // 2° counter-clockwise offset for red alliance goal tag
         }

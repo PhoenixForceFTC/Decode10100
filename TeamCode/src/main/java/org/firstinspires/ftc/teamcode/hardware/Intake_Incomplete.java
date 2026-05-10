@@ -141,6 +141,10 @@ public class Intake_Incomplete
     public void stop(){
         _intake.setPower(0);
     }
+
+    public boolean isManualOverrideActive() {
+        return _gamepad2.left_trigger > 0.2 || _gamepad2.right_trigger > 0.2;
+    }
     //endregion
     public void clearLeftSensorValues()
     {
