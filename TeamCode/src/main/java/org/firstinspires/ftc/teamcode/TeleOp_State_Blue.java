@@ -5,6 +5,7 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.hardware.Intake_Incomplete;
@@ -68,10 +69,10 @@ public class TeleOp_State_Blue extends LinearOpMode {
     public static int SPEED_1BALL_CLOSE  = 2090;
     public static int SPEED_1BALL_MEDIUM = 2430;
     public static int SPEED_1BALL_FAR    = 3060;
-    public static double SHOOTER_READY_RATIO = 0.95;
+    public static double SHOOTER_READY_RATIO = 0.98;
     // Angle tolerance for auto-fire: shoot if within this many degrees when trigger is released
     // (or while trigger is held once aligned). Wider than ALIGN_TARGET_DEG on purpose.
-    public static double SHOOT_TOLERANCE_DEG = 2.0;
+    public static double SHOOT_TOLERANCE_DEG = 1.0;
     public static double ODOMETRY_SPEED_BLEND = 0.65;
     public static int ODOMETRY_RPM_MIN = 0;
     public static int ODOMETRY_RPM_MAX = 6000;
@@ -194,6 +195,8 @@ public class TeleOp_State_Blue extends LinearOpMode {
 
         // Kick-completion detection: restart intake when sequence finishes
         boolean wasKicking = false;
+        // Rising-edge tracker for "ready to shoot" rumble alert
+        boolean wasReadyToShoot = false;
 
         _robot.init(robotVersion);
         telemetry.addData("location string in teleopState", Location.GetPose());
@@ -203,6 +206,14 @@ public class TeleOp_State_Blue extends LinearOpMode {
 
         RisingEdge g1RE = new RisingEdge();
         RisingEdge g2RE = new RisingEdge();
+
+        // --- Rumble effects (built once; reused every shot) ---
+        // Two sharp bursts separated by a brief gap — clearly distinct from the blip patterns.
+        Gamepad.RumbleEffect shotRumbleEffect = new Gamepad.RumbleEffect.Builder()
+                .addStep(1.0, 1.0, 200)   // full-power burst
+                .addStep(0.0, 0.0,  80)   // brief gap
+                .addStep(1.0, 1.0, 200)   // second burst
+                .build();
 
         //------------------------------------------------------------------------------------------
         //--- Display and wait for the game to start (driver presses START)
@@ -286,9 +297,11 @@ public class TeleOp_State_Blue extends LinearOpMode {
             // Rising/falling-edge: kick sequence start and end
             boolean isKickingNow = _kickMotif.isKicking();
             if (!wasKicking && isKickingNow) {
-                // Kick just started — rumble both controllers
-                gamepad1.rumble(1.0, 1.0, 400);
-                gamepad2.rumble(1.0, 1.0, 400);
+                // Kick just started — two-burst rumble on both controllers.
+                // runRumbleEffect() replaces any active rumble, so no isRumbling() guard needed here;
+                // the shot confirmation should always win over anything currently playing.
+                gamepad1.runRumbleEffect(shotRumbleEffect);
+                gamepad2.runRumbleEffect(shotRumbleEffect);
             }
             if (wasKicking && !isKickingNow) {
                 // Kick sequence finished — clear ball detection so auto-intake restarts
@@ -442,7 +455,7 @@ public class TeleOp_State_Blue extends LinearOpMode {
                 presetOneBallRpm = SPEED_1BALL_CLOSE;
                 shooterSpeedRpm3Ball = presetThreeBallRpm;
                 shooterSpeedRpm = presetOneBallRpm;
-                gamepad2.rumbleBlips(1);
+                if (!gamepad2.isRumbling()) gamepad2.rumbleBlips(1); // 1 blip = Close
             }
             if (g2RE.RisingEdgeButton(gamepad2, "x")) {
                 robotPosition = position.Medium;
@@ -450,7 +463,7 @@ public class TeleOp_State_Blue extends LinearOpMode {
                 presetOneBallRpm = SPEED_1BALL_MEDIUM;
                 shooterSpeedRpm3Ball = presetThreeBallRpm;
                 shooterSpeedRpm = presetOneBallRpm;
-                gamepad2.rumbleBlips(2);
+                if (!gamepad2.isRumbling()) gamepad2.rumbleBlips(2); // 2 blips = Medium
             }
             if (g2RE.RisingEdgeButton(gamepad2, "a")) {
                 robotPosition = position.Far;
@@ -458,7 +471,7 @@ public class TeleOp_State_Blue extends LinearOpMode {
                 presetOneBallRpm = SPEED_1BALL_FAR;
                 shooterSpeedRpm3Ball = presetThreeBallRpm;
                 shooterSpeedRpm = presetOneBallRpm;
-                gamepad2.rumbleBlips(3);
+                if (!gamepad2.isRumbling()) gamepad2.rumbleBlips(3); // 3 blips = Far
             }
             if (gamepad2.b) {
                 _robot.intake.stop();
@@ -490,6 +503,9 @@ public class TeleOp_State_Blue extends LinearOpMode {
                 _robot.kickers.kickMiddle();
                 overrideBallDistanceDetection = true;
                 overrideTimer.reset();
+                // Notify both drivers that all 3 balls are loaded
+                if (!gamepad1.isRumbling()) gamepad1.rumbleBlips(1);
+                if (!gamepad2.isRumbling()) gamepad2.rumbleBlips(1);
             }
             wasAll3 = all3;
 
@@ -501,6 +517,16 @@ public class TeleOp_State_Blue extends LinearOpMode {
             if (overrideTimer.seconds() > 2 && overrideBallDistanceDetection) {
                 overrideBallDistanceDetection = false;
             }
+
+            // "Ready to shoot" rising-edge rumble: short buzz on G1 so the driver knows to hold still.
+            // Only fires while the trigger is held (alignment active) and won't override an in-progress
+            // shot rumble or blip (guarded by isRumbling()).
+            boolean isReadyNow = _driveUtilsAdvanced.isAligning
+                    && readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed);
+            if (isReadyNow && !wasReadyToShoot) {
+                if (!gamepad1.isRumbling()) gamepad1.rumble(0.5, 0.5, 150);
+            }
+            wasReadyToShoot = isReadyNow;
 
             //------------------------------------------------------------------------------------------
             //--- Alignment Light Override
