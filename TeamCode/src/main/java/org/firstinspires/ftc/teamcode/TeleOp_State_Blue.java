@@ -499,10 +499,16 @@ public class TeleOp_State_Blue extends LinearOpMode {
                     && _robot.intake._middleBallColor != Intake_Incomplete.BallColor.UNKNOWN
                     && _robot.intake._rightBallColor != Intake_Incomplete.BallColor.NONE
                     && _robot.intake._rightBallColor != Intake_Incomplete.BallColor.UNKNOWN;
-            if (all3 && !wasAll3) {
+            // Guard: !overrideBallDistanceDetection prevents re-triggering after the sensor averages
+            // are cleared below — colors go to NONE briefly, wasAll3 resets, and without this guard
+            // the blip would fire again as soon as the sensors re-detect all 3 balls.
+            if (all3 && !wasAll3 && !overrideBallDistanceDetection) {
                 _robot.kickers.kickMiddle();
                 overrideBallDistanceDetection = true;
                 overrideTimer.reset();
+                // Reset rolling averages so sensor reads after the blip reflect new ball positions.
+                // Lights will update within a few loops as fresh readings rebuild the averages.
+                _robot.intake.clearAllSensorValues();
                 // Notify both drivers that all 3 balls are loaded
                 if (!gamepad1.isRumbling()) gamepad1.rumbleBlips(1);
                 if (!gamepad2.isRumbling()) gamepad2.rumbleBlips(1);
@@ -513,6 +519,8 @@ public class TeleOp_State_Blue extends LinearOpMode {
                 _robot.kickers.kickMiddle();
                 overrideBallDistanceDetection = true;
                 overrideTimer.reset();
+                // Reset rolling averages so sensor reads after the blip reflect new ball positions.
+                _robot.intake.clearAllSensorValues();
             }
             if (overrideTimer.seconds() > 2 && overrideBallDistanceDetection) {
                 overrideBallDistanceDetection = false;

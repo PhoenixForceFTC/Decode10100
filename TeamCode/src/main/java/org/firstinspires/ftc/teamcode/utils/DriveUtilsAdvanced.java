@@ -68,14 +68,10 @@ public class DriveUtilsAdvanced {
     public static double STRAFE_HOLD_AXIAL_MAX = 0.20;       // left stick Y
     public static double STRAFE_HOLD_YAW_DEADBAND = 0.12;    // right stick X
 
-    // --- Camera yaw (horizontal servo) search assist ---
-    // When aligning and the goal tag is not visible, the camera pans toward the odometry-estimated
-    // goal direction to sweep the tag into the FOV. Once the tag is visible the camera returns to
-    // center (yaw=0) so the PID uses the raw camera angle without an offset correction.
-    public static boolean CAMERA_YAW_SEARCH_ENABLED = true;
-    public static double CAMERA_YAW_MAX_DEG = 30.0;  // max pan angle in either direction
-    // Sign: -1 = pan right when goal is to the right (calcDif > 0). Flip to +1 if wrong direction.
-    public static double CAMERA_YAW_SIGN = -1.0;
+    // Camera yaw search was removed — panning the camera horizontally while searching created a
+    // feedback loop: the pan moved the goal tag out of FOV, hasGoalTag() returned false, and the
+    // robot panned more. The fix is to keep the camera fixed (yaw=0) and use MegaTag bearing
+    // estimation instead (see autoAlignViaLLandPower fallback below).
 
     private boolean _strafeHoldActive = false;
     private double _strafeHoldHeadingRad = 0.0;
@@ -366,12 +362,36 @@ public class DriveUtilsAdvanced {
                 _lastAlignErrorDeg = 180.0;
                 _alignIntegral = 0;
                 _alignFirstLoop = true;
-                // Tag not visible — rotate toward where odometry estimates the goal to be.
-                // Uses pure-P on calcDif only; thetadt() was removed because it depends on
-                // commanded stick velocity and caused the direction to flip randomly.
-                double fallbackTurn = Math.abs(gamepad.right_stick_x) > ALIGN_MANUAL_YAW_OVERRIDE
-                        ? 0
-                        : clamp(calcDif * 0.4, -0.25, 0.25);
+                // Goal tag not visible. Rotate toward goal using the best available source:
+                //
+                //  Tier 1 — MegaTag field position: if the Limelight sees ANY other field tag
+                //            (obelisk 21/22/23, etc.) it produces a full field-frame robot pose.
+                //            We compute the exact bearing from that pose to the goal — far more
+                //            accurate than dead-wheel odometry, which drifts over time. Once the
+                //            robot is facing the goal, the goal tag enters the FOV and the PID
+                //            takes over immediately with direct camera tx data.
+                //
+                //  Tier 2 — Odometry calcDif: no tags at all visible — dead-wheel fallback only.
+                double fallbackTurn;
+                if (Math.abs(gamepad.right_stick_x) > ALIGN_MANUAL_YAW_OVERRIDE) {
+                    fallbackTurn = 0; // driver manually overriding rotation — don't fight them
+                } else {
+                    Pose2D cameraPos = limelightHardware2Axis.getRobotPos(null);
+                    if (cameraPos != null) {
+                        // Tier 1: MegaTag — compute exact bearing to goal from field-frame pose.
+                        double camX = cameraPos.getX(DistanceUnit.INCH);
+                        double camY = cameraPos.getY(DistanceUnit.INCH);
+                        double camHeading = cameraPos.getHeading(AngleUnit.RADIANS);
+                        double tgtHeading = getTargetHeading(camY - 14.55098425, camX - 11.82122047);
+                        double megaTagErr = camHeading - tgtHeading;
+                        while (megaTagErr >  Math.PI) megaTagErr -= 2 * Math.PI;
+                        while (megaTagErr < -Math.PI) megaTagErr += 2 * Math.PI;
+                        fallbackTurn = clamp(megaTagErr * 0.4, -0.25, 0.25);
+                    } else {
+                        // Tier 2: no tags visible at all — dead-wheel odometry estimate.
+                        fallbackTurn = clamp(calcDif * 0.4, -0.25, 0.25);
+                    }
+                }
                 _lastAlignPower = fallbackTurn;
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, fallbackTurn);
             }
@@ -496,27 +516,16 @@ public class DriveUtilsAdvanced {
     }
 
     public void updateCameraPitch(){
-        // Pitch: tilt camera up/down based on distance so the goal tag stays vertically centred.
+        // Pitch only — yaw is fixed at 0.
+        // Horizontal panning was removed: it caused a feedback loop where panning moved the goal
+        // tag out of FOV, hasGoalTag() returned false, and the servo panned further in a cycle.
+        // The robot body now rotates toward the goal (MegaTag fallback) instead of the camera.
         double dist = Math.sqrt(x3*x3 + y3*y3);
         double pitchAngle = Math.toDegrees(Math.atan(18.0 / dist));
-
-        // Yaw: pan camera horizontally toward the estimated goal direction when the goal tag is
-        // not currently visible. This sweeps the tag into the camera FOV so detection is more
-        // consistent. Once the tag IS visible the camera returns to centre (yaw=0) so the
-        // alignment PID uses the raw camera angle with no offset correction needed.
-        double yawAngle = 0.0;
-        if (CAMERA_YAW_SEARCH_ENABLED && isAligning && !hasGoalTag()) {
-            double targetHeading = getTargetHeading(y4 - 14.55098425, x4 - 11.82122047);
-            double calcDif = calcDifference(targetHeading); // radians; >0 means goal is to the right
-            double panDeg = CAMERA_YAW_SIGN * Math.toDegrees(calcDif);
-            yawAngle = clamp(panDeg, -CAMERA_YAW_MAX_DEG, CAMERA_YAW_MAX_DEG);
-        }
-
-        limelightHardware2Axis.setServoAngles(yawAngle, pitchAngle);
+        limelightHardware2Axis.setServoAngles(0.0, pitchAngle);
 
         if (SHOW_DASHBOARD_DEBUG) {
             telemetry.addData("camera pitch deg", String.format("%.1f", pitchAngle));
-            telemetry.addData("camera yaw deg",   String.format("%.1f", yawAngle));
         }
     };
 
