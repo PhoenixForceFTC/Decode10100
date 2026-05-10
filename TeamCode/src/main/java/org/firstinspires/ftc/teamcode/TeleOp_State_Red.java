@@ -80,6 +80,8 @@ public class TeleOp_State_Red extends LinearOpMode {
     public static int G2_PRESET_RUMBLE_CLOSE_MS = 80;
     public static int G2_PRESET_RUMBLE_MEDIUM_MS = 120;
     public static int G2_PRESET_RUMBLE_FAR_MS = 170;
+    public static double VELOCITY_GATE_THRESHOLD = 4.0;    // in/s; robot must be near-still to auto-fire
+    public static double POST_SHOT_SIGNAL_DURATION_S = 0.5; // seconds of green lights after shot completes
     //------------------------------------------------------------------------------------------
     // Variables
     //------------------------------------------------------------------------------------------
@@ -112,7 +114,8 @@ public class TeleOp_State_Red extends LinearOpMode {
         double alignError = Math.abs(_driveUtilsAdvanced.getLastAlignErrorDeg());
         return alignError <= SHOOT_TOLERANCE_DEG
                 && targetSpeedTps > 0
-                && shooterSpeed >= targetSpeedTps * SHOOTER_READY_RATIO;
+                && shooterSpeed >= targetSpeedTps * SHOOTER_READY_RATIO
+                && _driveUtilsAdvanced.getRobotSpeed() <= VELOCITY_GATE_THRESHOLD;
     }
 
     private int odometryOneBallRpm(double dist) {
@@ -197,6 +200,9 @@ public class TeleOp_State_Red extends LinearOpMode {
         boolean wasKicking = false;
         // Rising-edge tracker for "ready to shoot" rumble alert
         boolean wasReadyToShoot = false;
+        // Post-shot intake-ready signal
+        ElapsedTime postShotTimer = new ElapsedTime();
+        boolean showingPostShotSignal = false;
 
         _robot.init(robotVersion);
         telemetry.addData("location string in teleopState", Location.GetPose());
@@ -306,6 +312,9 @@ public class TeleOp_State_Red extends LinearOpMode {
             if (wasKicking && !isKickingNow) {
                 // Kick sequence finished — clear ball detection so auto-intake restarts
                 _robot.intake.clearAllSensorValues();
+                // Start green-light signal so driver knows to move to intake position
+                postShotTimer.reset();
+                showingPostShotSignal = true;
             }
             wasKicking = isKickingNow;
 
@@ -531,37 +540,86 @@ public class TeleOp_State_Red extends LinearOpMode {
             //------------------------------------------------------------------------------------------
             //--- Alignment Light Override
             //    Runs AFTER intake.run() (which sets ball-color lights) so it takes priority.
-            //    Aligned + at speed → solid red; aligning → fast-blink red
+            //    Priority top-to-bottom:
+            //      1. No goal tag      → RED/ORANGE/YELLOW search cycle
+            //      2. Ready to shoot   → solid RED  (angle + speed + not moving)
+            //      3. Movement inhibit → solid ORANGE (aligned + speed, but still sliding)
+            //      4. Spinning up      → fill animation: 1 light→2→3 as speed rises (ORANGE→YELLOW)
+            //      5. Angle settling   → fast-blink RED with status color (motif indicator)
             //------------------------------------------------------------------------------------------
             if (_driveUtilsAdvanced.isAligning) {
                 boolean isReadyToShoot = readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed);
+                double targetTps = targetShooterTps(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball);
+                boolean isSpeedReady = targetTps > 0 && shooterSpeed >= targetTps * SHOOTER_READY_RATIO;
+                boolean isAngleReady = Math.abs(_driveUtilsAdvanced.getLastAlignErrorDeg()) <= SHOOT_TOLERANCE_DEG;
 
                 if (!_driveUtilsAdvanced.hasGoalTag()) {
+                    // No goal tag visible — cycle RED/ORANGE/YELLOW while searching
                     showNoGoalTagSearchLights();
                 } else if (isReadyToShoot) {
+                    // All conditions met: angle, speed, not moving — solid RED, fire!
                     _robot.lights.setLeft(Lights.Color.RED);
                     _robot.lights.setMiddle(Lights.Color.RED);
                     _robot.lights.setRight(Lights.Color.RED);
-                } else {
-                    // Alternate red blink with a status color:
-                    //   yellow  → motif unknown (don't know which ball to fire)
-                    //   white   → motif known but wrong balls loaded
-                    //   red     → motif known and balls correct (pure red blink while settling)
-                    boolean phaseRed = (((int) (_runtime.seconds() / 0.25)) % 2 == 0);
-                    boolean motifKnown = MotifKicking.isFieldMotifKnown(_robot);
-                    boolean ballsMatch = MotifKicking.currentBallsMatchFieldMotif(_robot);
-                    Lights.Color nonRedColor;
-                    if (!motifKnown) {
-                        nonRedColor = Lights.Color.YELLOW;
-                    } else if (!ballsMatch) {
-                        nonRedColor = Lights.Color.WHITE;
+                } else if (isSpeedReady && isAngleReady) {
+                    // Aligned and at speed, but robot still sliding — solid ORANGE (movement inhibit)
+                    _robot.lights.setLeft(Lights.Color.ORANGE);
+                    _robot.lights.setMiddle(Lights.Color.ORANGE);
+                    _robot.lights.setRight(Lights.Color.ORANGE);
+                } else if (!isSpeedReady) {
+                    // Still spinning up — fill left→middle→right as speed approaches target
+                    double progress = targetTps > 0 ? Math.min(1.0, shooterSpeed / (targetTps * SHOOTER_READY_RATIO)) : 0.0;
+                    if (progress < 0.34) {
+                        _robot.lights.setLeft(Lights.Color.ORANGE);
+                        _robot.lights.setMiddle(Lights.Color.OFF);
+                        _robot.lights.setRight(Lights.Color.OFF);
+                    } else if (progress < 0.67) {
+                        _robot.lights.setLeft(Lights.Color.ORANGE);
+                        _robot.lights.setMiddle(Lights.Color.ORANGE);
+                        _robot.lights.setRight(Lights.Color.OFF);
                     } else {
+                        _robot.lights.setLeft(Lights.Color.YELLOW);
+                        _robot.lights.setMiddle(Lights.Color.YELLOW);
+                        _robot.lights.setRight(Lights.Color.YELLOW);
+                    }
+                } else {
+                    // Speed OK, waiting for angle to settle — blink RED with status color.
+                    // Status color meaning (1-ball mode only — motif irrelevant in 3-ball mode):
+                    //   yellow → obelisk motif not yet seen (will fire sequential if shot now)
+                    //   white  → motif known but wrong ball arrangement loaded
+                    //   red    → motif known, balls correct (pure red blink: just waiting for angle)
+                    boolean phaseRed = (((int) (_runtime.seconds() / 0.25)) % 2 == 0);
+                    Lights.Color nonRedColor;
+                    if (isThreeBallMode) {
+                        // 3-ball fires all simultaneously — motif status is irrelevant.
                         nonRedColor = Lights.Color.RED;
+                    } else {
+                        boolean motifKnown = MotifKicking.isFieldMotifKnown(_robot);
+                        boolean ballsMatch = MotifKicking.currentBallsMatchFieldMotif(_robot);
+                        if (!motifKnown) {
+                            nonRedColor = Lights.Color.YELLOW;
+                        } else if (!ballsMatch) {
+                            nonRedColor = Lights.Color.WHITE;
+                        } else {
+                            nonRedColor = Lights.Color.RED;
+                        }
                     }
                     Lights.Color blinkColor = phaseRed ? Lights.Color.RED : nonRedColor;
                     _robot.lights.setLeft(blinkColor, Lights.Blink.FAST);
                     _robot.lights.setMiddle(blinkColor, Lights.Blink.FAST);
                     _robot.lights.setRight(blinkColor, Lights.Blink.FAST);
+                }
+            }
+
+            // Post-shot ready-to-intake signal: flash GREEN for POST_SHOT_SIGNAL_DURATION_S after
+            // the kick sequence completes. Suppressed if the driver immediately starts realigning.
+            if (showingPostShotSignal && !_driveUtilsAdvanced.isAligning) {
+                if (postShotTimer.seconds() < POST_SHOT_SIGNAL_DURATION_S) {
+                    _robot.lights.setLeft(Lights.Color.GREEN);
+                    _robot.lights.setMiddle(Lights.Color.GREEN);
+                    _robot.lights.setRight(Lights.Color.GREEN);
+                } else {
+                    showingPostShotSignal = false;
                 }
             }
 
@@ -583,8 +641,9 @@ public class TeleOp_State_Red extends LinearOpMode {
                 telemetry.addData("target speed 3 ball in rpm", shooterSpeedRpm3Ball);
                 telemetry.addData("robot shooting position", robotPosition.toString());
                 telemetry.addData("shooter ticks/sec", shooterSpeed);
-                telemetry.addData("goal tag", _driveUtilsAdvanced.hasGoalTag() ? "locked" : "odometry fallback");
-                telemetry.addData("align error deg", "%.2f", _driveUtilsAdvanced.getLastAlignErrorDeg());
+                telemetry.addData("align source", _driveUtilsAdvanced.getAlignmentTierName());
+                telemetry.addData("align error deg", "%.2f°", _driveUtilsAdvanced.getLastAlignErrorDeg());
+                telemetry.addData("robot speed in/s", "%.1f", _driveUtilsAdvanced.getRobotSpeed());
                 telemetry.addData("align power", "%.3f", _driveUtilsAdvanced.getLastAlignPower());
                 telemetry.addData("align stable loops", _driveUtilsAdvanced.getAlignStableLoops());
                 telemetry.addData("ready to shoot", readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed));

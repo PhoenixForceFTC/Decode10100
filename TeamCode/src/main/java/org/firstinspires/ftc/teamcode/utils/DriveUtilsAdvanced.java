@@ -72,9 +72,12 @@ public class DriveUtilsAdvanced {
     // When aligning and the goal tag is not visible, the camera pans toward the odometry-estimated
     // goal direction to sweep the tag into the FOV. Once the tag is visible the camera returns to
     // center (yaw=0) so the PID uses the raw camera angle without an offset correction.
-    public static boolean CAMERA_YAW_SEARCH_ENABLED = true;
-    public static double CAMERA_YAW_MAX_DEG = 30.0;  // max pan angle in either direction
-    // Sign: -1 = pan right when goal is to the right (calcDif > 0). Flip to +1 if wrong direction.
+    // Disabled: panning the camera horizontally while searching creates a feedback loop —
+    // the pan moves the tag out of the FOV, hasGoalTag() returns false, more panning ensues.
+    // The Limelight's FOV is wide enough to detect the goal tag without horizontal search.
+    // Leave the constant available for experimentation via FTC Dashboard if needed.
+    public static boolean CAMERA_YAW_SEARCH_ENABLED = false;
+    public static double CAMERA_YAW_MAX_DEG = 30.0;
     public static double CAMERA_YAW_SIGN = -1.0;
 
     private boolean _strafeHoldActive = false;
@@ -87,6 +90,10 @@ public class DriveUtilsAdvanced {
     private int _alignStableLoops = 0;
     private boolean _alignFirstLoop = true; // seed prevError on first loop to avoid spike
     private final ElapsedTime _alignDtTimer = new ElapsedTime();
+    // Velocity estimation from pose delta (inches/sec in field frame)
+    private final ElapsedTime _velTimer = new ElapsedTime();
+    private double _lastPoseX = 0, _lastPoseY = 0;
+    private double _lastVelX = 0, _lastVelY = 0;
 
     private List<Action> runningActions = new ArrayList<>();
     // Pre-allocated to avoid creating a new ArrayList every loop iteration.
@@ -216,6 +223,15 @@ public class DriveUtilsAdvanced {
         driveClass.localizer.update();
         // Cache pose once to avoid repeated getPose() calls below.
         com.acmerobotics.roadrunner.Pose2d currentPose = driveClass.localizer.getPose();
+        // Estimate translational velocity in inches/sec from pose delta.
+        double _velDt = _velTimer.seconds();
+        if (_velDt > 0.001) {
+            _lastVelX = (currentPose.position.x - _lastPoseX) / _velDt;
+            _lastVelY = (currentPose.position.y - _lastPoseY) / _velDt;
+            _velTimer.reset();
+        }
+        _lastPoseX = currentPose.position.x;
+        _lastPoseY = currentPose.position.y;
         setVarsAdvanced(
                 currentPose.position.x,
                 currentPose.position.y,
@@ -366,12 +382,36 @@ public class DriveUtilsAdvanced {
                 _lastAlignErrorDeg = 180.0;
                 _alignIntegral = 0;
                 _alignFirstLoop = true;
-                // Tag not visible — rotate toward where odometry estimates the goal to be.
-                // Uses pure-P on calcDif only; thetadt() was removed because it depends on
-                // commanded stick velocity and caused the direction to flip randomly.
-                double fallbackTurn = Math.abs(gamepad.right_stick_x) > ALIGN_MANUAL_YAW_OVERRIDE
-                        ? 0
-                        : clamp(calcDif * 0.4, -0.25, 0.25);
+                // Goal tag not visible. Rotate toward the goal using the best available source:
+                //
+                //  Tier 1 — MegaTag camera position: if the Limelight can see ANY tag (obelisk,
+                //            other field tags), it computes a full field-frame robot pose. Use that
+                //            pose to compute the exact bearing to the goal — far more accurate than
+                //            dead-wheel odometry. Once the bearing is close enough, the goal tag
+                //            will enter the camera FOV and the PID takes over.
+                //
+                //  Tier 2 — Odometry calcDif: if no tags are visible at all, fall back to wheel
+                //            odometry as a last resort.
+                double fallbackTurn;
+                if (Math.abs(gamepad.right_stick_x) > ALIGN_MANUAL_YAW_OVERRIDE) {
+                    fallbackTurn = 0; // driver is manually overriding rotation
+                } else {
+                    Pose2D cameraPos = limelightHardware2Axis.getRobotPos(null);
+                    if (cameraPos != null) {
+                        // Tier 1: compute bearing to goal from MegaTag-estimated field position.
+                        double camX = cameraPos.getX(DistanceUnit.INCH);
+                        double camY = cameraPos.getY(DistanceUnit.INCH);
+                        double camHeading = cameraPos.getHeading(AngleUnit.RADIANS);
+                        double tgtHeading = getTargetHeading(camY - 14.55098425, camX - 11.82122047);
+                        double megaTagCalcDif = camHeading - tgtHeading;
+                        while (megaTagCalcDif >  Math.PI) megaTagCalcDif -= 2 * Math.PI;
+                        while (megaTagCalcDif < -Math.PI) megaTagCalcDif += 2 * Math.PI;
+                        fallbackTurn = clamp(megaTagCalcDif * 0.4, -0.25, 0.25);
+                    } else {
+                        // Tier 2: no tags visible — use odometry bearing estimate.
+                        fallbackTurn = clamp(calcDif * 0.4, -0.25, 0.25);
+                    }
+                }
                 _lastAlignPower = fallbackTurn;
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, fallbackTurn);
             }
@@ -493,6 +533,23 @@ public class DriveUtilsAdvanced {
 
     public int getAlignStableLoops() {
         return _alignStableLoops;
+    }
+
+    /**
+     * Returns a label for the current alignment source tier:
+     *  "GOAL TAG"      — camera sees the goal AprilTag directly (most accurate)
+     *  "MEGATAG"       — goal tag not visible; other field tags give a field-frame pose
+     *  "ODOMETRY ONLY" — no tags visible; using dead-wheel odometry as last resort
+     */
+    public String getAlignmentTierName() {
+        if (hasGoalTag()) return "GOAL TAG";
+        if (limelightHardware2Axis.getRobotPos(null) != null) return "MEGATAG";
+        return "ODOMETRY ONLY";
+    }
+
+    /** Returns the robot's translational speed in inches/sec estimated from odometry pose delta. */
+    public double getRobotSpeed() {
+        return Math.sqrt(_lastVelX * _lastVelX + _lastVelY * _lastVelY);
     }
 
     public void updateCameraPitch(){
