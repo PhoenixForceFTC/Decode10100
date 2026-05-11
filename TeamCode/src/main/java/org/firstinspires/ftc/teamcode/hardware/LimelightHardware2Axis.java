@@ -48,7 +48,7 @@ public class LimelightHardware2Axis
 
     // Obelisk motif detected from tags 21/22/23 — set once, persists across TeleOp
     // Tag 21→GPP, 22→PGP, 23→PPG
-    public static Motif storedGameMotif = null;
+    public Motif storedGameMotif = null;
 
     //endregion
 

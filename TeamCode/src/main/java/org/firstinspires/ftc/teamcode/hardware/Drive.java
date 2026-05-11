@@ -11,18 +11,8 @@ import org.firstinspires.ftc.teamcode.utils.MotorUtils;
 public class Drive
 {
     //region --- Constants ---
-    //--- Constants for Speed Multipliers
     private static final double SPEED_FAST = 1.0;
-    private static final double SPEED_SLOW = 0.5;
     private static final double SPEED_ROTATE_FAST = 0.8;
-    private static final double SPEED_ROTATE_SLOW = 0.4;
-    //endregion
-
-    //region --- Variables ---
-    private boolean _isSpeedFast = true; //--- Default movement speed mode
-    private boolean _isRotateFast = true; //--- Default rotation speed mode
-    private boolean _wasLeftStickButtonPressed = false;
-    private boolean _wasRightStickButtonPressed = false;
     //endregion
 
     //region --- Hardware ---
@@ -52,48 +42,14 @@ public class Drive
     }
     //endregion
 
-    //--- Arcade Drive with Speed Control
+    //--- Arcade Drive
     public void arcadeDriveSpeedControl()
     {
-        if (_gamepad.left_stick_button && !_wasLeftStickButtonPressed)
-        {
-            //_isSpeedFast = !_isSpeedFast; //--- Toggle movement speed
-        }
-        _wasLeftStickButtonPressed = _gamepad.left_stick_button;
-
-        if (_gamepad.right_stick_button && !_wasRightStickButtonPressed)
-        {
-            //_isRotateFast = !_isRotateFast; //--- Toggle rotation speed
-        }
-        _wasRightStickButtonPressed = _gamepad.right_stick_button;
-
-        double speedMultiplier = _isSpeedFast ? SPEED_FAST : SPEED_SLOW;
-        double speedMultiplierRotate = _isRotateFast ? SPEED_ROTATE_FAST : SPEED_ROTATE_SLOW;
-
-        DriveUtils.arcadeDrive(_frontLeft, _frontRight, _rearLeft, _rearRight, _gamepad, _telemetry, _showInfo, speedMultiplier, speedMultiplierRotate);
-
-        if (_showInfo)
-        {
-            _telemetry.addData("Drive -> Speed Mode", _isSpeedFast ? "FAST" : "SLOW");
-            _telemetry.addData("Drive -> Rotate Mode", _isRotateFast ? "FAST" : "SLOW");
-        }
+        DriveUtils.arcadeDrive(_frontLeft, _frontRight, _rearLeft, _rearRight, _gamepad, _telemetry, _showInfo, SPEED_FAST, SPEED_ROTATE_FAST);
     }
-    public void arcadeDriveSpeedControl2(double x,double y,double yaw,double yawImportant)
-    {
-//        if (_gamepad.left_stick_button && !_wasLeftStickButtonPressed)
-//        {
-//            _isSpeedFast = !_isSpeedFast; //--- Toggle movement speed
-//        }
-//        _wasLeftStickButtonPressed = _gamepad.left_stick_button;
-//
-//        if (_gamepad.right_stick_button && !_wasRightStickButtonPressed)
-//        {
-//            _isRotateFast = !_isRotateFast; //--- Toggle rotation speed
-//        }
-        _wasRightStickButtonPressed = _gamepad.right_stick_button;
 
-        double speedMultiplier = _isSpeedFast ? SPEED_FAST : SPEED_SLOW;
-        double speedMultiplierRotate = _isRotateFast ? SPEED_ROTATE_FAST : SPEED_ROTATE_SLOW;
+    public void arcadeDriveSpeedControl2(double x, double y, double yaw, double yawImportant)
+    {
         if(_gamepad.dpad_up){
             y = 0.3;
         }
@@ -112,21 +68,15 @@ public class Drive
         if(_gamepad.b){
             x = 0.3;
         }
-        DriveUtils.arcadeDrive2(_frontLeft, _frontRight, _rearLeft, _rearRight, x , y, yaw, yawImportant, _telemetry, _showInfo, speedMultiplier, speedMultiplierRotate);
+        DriveUtils.arcadeDrive2(_frontLeft, _frontRight, _rearLeft, _rearRight, x, y, yaw, yawImportant, _telemetry, _showInfo, SPEED_FAST, SPEED_ROTATE_FAST);
+    }
 
-        if (_showInfo)
-        {
-            _telemetry.addData("Drive -> Speed Mode", _isSpeedFast ? "FAST" : "SLOW");
-            _telemetry.addData("Drive -> Rotate Mode", _isRotateFast ? "FAST" : "SLOW");
-        }
-    }
     public double getSpeedMultiplier(){
-        double speedMultiplier = _isSpeedFast ? SPEED_FAST : SPEED_SLOW;
-        return speedMultiplier;
+        return SPEED_FAST;
     }
+
     public double getSpeedMultiplierRotate(){
-        double speedMultiplierRotate = _isRotateFast ? SPEED_ROTATE_FAST : SPEED_ROTATE_SLOW;
-        return speedMultiplierRotate;
+        return SPEED_ROTATE_FAST;
     }
 
     //--- Directional Driving with D-Pad

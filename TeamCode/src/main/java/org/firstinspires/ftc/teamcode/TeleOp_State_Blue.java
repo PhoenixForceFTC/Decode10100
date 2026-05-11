@@ -5,6 +5,7 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.hardware.Intake_Incomplete;
@@ -75,10 +76,6 @@ public class TeleOp_State_Blue extends LinearOpMode {
     public static double ODOMETRY_SPEED_BLEND = 0.65;
     public static int ODOMETRY_RPM_MIN = 0;
     public static int ODOMETRY_RPM_MAX = 6000;
-    public static int G2_PRESET_RUMBLE_MS = 120;
-    public static int G2_PRESET_RUMBLE_CLOSE_MS = 80;
-    public static int G2_PRESET_RUMBLE_MEDIUM_MS = 120;
-    public static int G2_PRESET_RUMBLE_FAR_MS = 170;
     //------------------------------------------------------------------------------------------
     // Variables
     //------------------------------------------------------------------------------------------
@@ -190,12 +187,8 @@ public class TeleOp_State_Blue extends LinearOpMode {
         // Rising-edge tracker for 3-ball auto-blip
         boolean wasAll3 = false;
 
-        LimelightHardware2Axis.Motif lastSavedMotif = null;
-
         // Kick-completion detection: restart intake when sequence finishes
         boolean wasKicking = false;
-        // Rising-edge tracker for "ready to shoot" rumble alert
-        boolean wasReadyToShoot = false;
 
         _robot.init(robotVersion);
         telemetry.addData("location string in teleopState", Location.GetPose());
@@ -287,12 +280,9 @@ public class TeleOp_State_Blue extends LinearOpMode {
 
             // Rising/falling-edge: kick sequence start and end
             boolean isKickingNow = _kickMotif.isKicking();
-            if (!wasKicking && isKickingNow) {
-                // Kick just started — single blip on G1 only.
-                gamepad1.rumbleBlips(1);
-            }
             if (wasKicking && !isKickingNow) {
-                // Kick sequence finished — clear ball detection so auto-intake restarts
+                // Kick sequence finished — stop the long rumble and clear ball detection
+                gamepad1.stopRumble();
                 _robot.intake.clearAllSensorValues();
             }
             wasKicking = isKickingNow;
@@ -312,7 +302,6 @@ public class TeleOp_State_Blue extends LinearOpMode {
                     _robot.limelightHardware2Axis.updateStoredGameMotif(!isThreeBallMode);
             if (savedMotif != null) {
                 MotifKicking.updateMotif(savedMotif);
-                lastSavedMotif = savedMotif;
             }
             if ((loop_count % 20) == 0) {
                 _driveUtilsAdvanced.reset(true);
@@ -334,10 +323,9 @@ public class TeleOp_State_Blue extends LinearOpMode {
                     autoFireArmed = true;
                     autoFireBlipped = false;
                     isAutoSpeed = true;
-                    // Warn G1 driver if fewer than 3 balls are loaded when auto-shoot starts.
-                    if (!_robot.intake.isAll3Detected()) {
-                        gamepad1.rumbleBlips(1);
-                    }
+                    // Start a continuous rumble on G1 — held through alignment and kicker firing.
+                    // Stopped by stopRumble() when the kick sequence completes or trigger is released without firing.
+                    gamepad1.rumble(1.0, 1.0, Gamepad.RUMBLE_DURATION_CONTINUOUS);
                 }
                 _driveUtilsAdvanced.autoAlign();
                 // Auto-fire: once aligned within SHOOT_TOLERANCE_DEG and shooter is ready, fire once.
@@ -375,6 +363,8 @@ public class TeleOp_State_Blue extends LinearOpMode {
                         _kickMotif.setKick(isThreeBallMode);
                     }
                 }
+                // Trigger released without a kick firing — stop the continuous rumble
+                gamepad1.stopRumble();
                 _driveUtilsAdvanced.endAutoAlign();
                 autoFireArmed = false;
                 autoFireBlipped = false;
@@ -510,16 +500,6 @@ public class TeleOp_State_Blue extends LinearOpMode {
                 overrideBallDistanceDetection = false;
             }
 
-            // "Ready to shoot" rising-edge rumble: short buzz on G1 so the driver knows to hold still.
-            // Only fires while the trigger is held (alignment active) and won't override an in-progress
-            // shot rumble or blip (guarded by isRumbling()).
-            boolean isReadyNow = _driveUtilsAdvanced.isAligning
-                    && readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed);
-            if (isReadyNow && !wasReadyToShoot) {
-                if (!gamepad1.isRumbling()) gamepad1.rumble(0.5, 0.5, 150);
-            }
-            wasReadyToShoot = isReadyNow;
-
             //------------------------------------------------------------------------------------------
             //--- Alignment Light Override
             //    Runs AFTER intake.run() (which sets ball-color lights) so it takes priority.
@@ -536,19 +516,20 @@ public class TeleOp_State_Blue extends LinearOpMode {
                     _robot.lights.setRight(Lights.Color.RED);
                 } else {
                     // Alternate red blink with a status color:
+                    //   orange → fewer than 3 balls loaded
+                    //   white  → 3 balls loaded but colors don't match the field motif
                     //   yellow → motif unknown (don't know which ball to fire)
                     //   red    → all other cases (aligning — driver is committed to shooting)
                     boolean phaseRed = (((int) (_runtime.seconds() / 0.25)) % 2 == 0);
                     Lights.Color nonRedColor;
-                    if (isThreeBallMode) {
-                        nonRedColor = Lights.Color.RED;
+                    if (!_robot.intake.isAll3Detected()) {
+                        nonRedColor = Lights.Color.ORANGE;
+                    } else if (MotifKicking.isFieldMotifKnown(_robot) && !MotifKicking.currentBallsMatchFieldMotif(_robot)) {
+                        nonRedColor = Lights.Color.WHITE;
+                    } else if (!isThreeBallMode && !MotifKicking.isFieldMotifKnown(_robot)) {
+                        nonRedColor = Lights.Color.YELLOW;
                     } else {
-                        boolean motifKnown = MotifKicking.isFieldMotifKnown(_robot);
-                        if (!motifKnown) {
-                            nonRedColor = Lights.Color.YELLOW;
-                        } else {
-                            nonRedColor = Lights.Color.RED;
-                        }
+                        nonRedColor = Lights.Color.RED;
                     }
                     Lights.Color blinkColor = phaseRed ? Lights.Color.RED : nonRedColor;
                     _robot.lights.setLeft(blinkColor, Lights.Blink.FAST);

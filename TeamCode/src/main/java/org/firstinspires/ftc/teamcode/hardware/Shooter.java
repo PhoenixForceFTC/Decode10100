@@ -16,7 +16,6 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 
-import kotlin.reflect.KDeclarationContainer;
 //endregion
 
 @Config
@@ -56,9 +55,6 @@ public class Shooter
     private double _cachedVelocity = 0;
     private final TelemetryPacket _telemetryPacket = new TelemetryPacket();
     //endregion
-
-    //defualt pidf is p:10 i:3 d:0 f:0
-
 
     //region --- Constructor
     public Shooter(DcMotorEx motorShooterLeft, DcMotorEx motorShooterRight, Gamepad gamepad, Telemetry telemetry, boolean showInfo)

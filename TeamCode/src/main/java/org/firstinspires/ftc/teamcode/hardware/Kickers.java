@@ -66,7 +66,7 @@ public class Kickers
 
     public boolean run(double targetSpeed, double speed, boolean run){
         boolean kicked =false;
-        if(speed/targetSpeed>0.9 && run) {
+        if(targetSpeed > 0 && speed/targetSpeed>0.9 && run) {
             if (_gamepad.dpad_left) {
                 fireKicker(0);
             }
@@ -113,7 +113,7 @@ public class Kickers
     }
     public boolean runFinal(double targetSpeed, double speed, boolean run,double targetSpeed3Ball, int fireKickerNumber, Intake_Incomplete intake){
         boolean kicked =false;
-        if(speed/targetSpeed>0.9 && run) {
+        if(targetSpeed > 0 && speed/targetSpeed>0.9 && run) {
             if (_gamepad.dpad_left|| fireKickerNumber==0) {
                 fireKicker(0);
                 intake.clearLeftSensorValues();
@@ -128,7 +128,7 @@ public class Kickers
             }
 
         }
-        if(speed/targetSpeed3Ball>0.9 && run){
+        if(targetSpeed3Ball > 0 && speed/targetSpeed3Ball>0.9 && run){
             if (_gamepad.dpad_down || fireKickerNumber==3){
                 fireKicker(3);
                 intake.clearLeftSensorValues();
@@ -205,7 +205,7 @@ public class Kickers
     // THis is not used f
     public DataLog.Shooter run2(double targetSpeed, double speed, boolean run){
         DataLog.Shooter shooter = DataLog.Shooter.Unkown;
-        if(speed/targetSpeed>0.9 && run) {
+        if(targetSpeed > 0 && speed/targetSpeed>0.9 && run) {
             if (_gamepad.dpadLeftWasPressed()) {
                 fireKicker(0);
                 shooter = DataLog.Shooter.Left;
@@ -324,12 +324,12 @@ public class Kickers
     public void fireKickerBypass(int kickerPos)
     {
 
-        if (kickerPos == 0) {
+        if (kickerPos == 0 && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
             timerL.reset();
             timerGlobal.reset();
         }
 
-        else if (kickerPos==1) {
+        else if (kickerPos==1 && timerGlobal.seconds() > GLOBAL_ACTION_DELAY) {
             timerM.reset();
             timerGlobal.reset();
         }
