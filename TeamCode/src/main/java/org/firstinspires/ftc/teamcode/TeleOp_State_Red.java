@@ -510,7 +510,7 @@ public class TeleOp_State_Red extends LinearOpMode {
             }
             wasAll3 = all3;
 
-            if (g1RE.RisingEdgeButton(gamepad1, "ps")) {
+            if (g1RE.RisingEdgeButton(gamepad1, "right_bumper")) {
                 _robot.kickers.kickMiddle();
                 overrideBallDistanceDetection = true;
                 overrideTimer.reset();

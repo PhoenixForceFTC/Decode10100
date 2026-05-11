@@ -191,10 +191,10 @@ public class Intake_Incomplete
                        _middleBallColor != BallColor.NONE && _middleBallColor != BallColor.UNKNOWN &&
                        _rightBallColor != BallColor.NONE && _rightBallColor != BallColor.UNKNOWN;
 
-        if (_gamepad.left_stick_button) {
-            forward();       // G1 left stick click: manual outtake override
-        } else if (_gamepad.share) {
-            backward();      // G1 M2: manual intake override
+        if (_gamepad.left_stick_button || _gamepad2.left_trigger > 0.2) {
+            forward();       // G1 left stick click / G2 left trigger: manual outtake override
+        } else if (_gamepad.right_stick_button || _gamepad2.right_trigger > 0.2) {
+            backward();      // G1 right stick click / G2 right trigger: manual intake override
         } else if (_gamepad2.b) {
             stop();
             restoreLights();
