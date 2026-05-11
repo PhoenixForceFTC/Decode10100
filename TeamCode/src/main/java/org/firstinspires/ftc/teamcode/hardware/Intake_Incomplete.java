@@ -185,6 +185,7 @@ public class Intake_Incomplete
     public void run(boolean overrideDistanceCheck){
         // change controls later
         detectBalls(overrideDistanceCheck);
+        updateThreeBallRumble();
 
         boolean all3 = _leftBallColor != BallColor.NONE && _leftBallColor != BallColor.UNKNOWN &&
                        _middleBallColor != BallColor.NONE && _middleBallColor != BallColor.UNKNOWN &&
@@ -484,6 +485,14 @@ public class Intake_Incomplete
                _rightBallColor != BallColor.NONE && _rightBallColor != BallColor.UNKNOWN;
     }
 
+    private void updateThreeBallRumble() {
+        boolean all3Detected = isAll3Detected();
+        if (all3Detected && !_wasAll3Detected) {
+            _gamepad.rumble(1.0, 1.0, THREE_BALL_RUMBLE_MS);
+            _gamepad2.rumble(1.0, 1.0, THREE_BALL_RUMBLE_MS);
+        }
+        _wasAll3Detected = all3Detected;
+    }
 
     //--- Get detected ball colors
 
