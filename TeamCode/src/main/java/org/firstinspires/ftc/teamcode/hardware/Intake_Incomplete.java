@@ -46,7 +46,7 @@ public class Intake_Incomplete
     private static final double PURPLE_BG_THRESHOLD = 0.85; // G/R must exceed this for purple
     private static final double PURPLE_GR_MAX = 1.8; // G/R must be below this for purple
     private static final double BALL_LOSS_THRESHOLD_MULTIPLIER = 1.2;
-    public static double MIN_BALL_BRIGHTNESS = 200.0; // sum of R+G+B; below = ambient, not a ball (tune via Dashboard)
+    public static double MIN_BALL_BRIGHTNESS = 150.0; // sum of R+G+B; below = ambient, not a ball (tune via Dashboard)
     public static double AUTO_REVERSE_DELAY_SEC = 0.75; // seconds to wait after all 3 balls detected before auto-outtake
     private static final int THREE_BALL_RUMBLE_MS = 500;
     private static int loopCount = 0;

@@ -552,21 +552,16 @@ public class TeleOp_State_Red extends LinearOpMode {
                     _robot.lights.setRight(Lights.Color.RED);
                 } else {
                     // Alternate red blink with a status color:
-                    //   yellow  → motif unknown (don't know which ball to fire)
-                    //   white   → motif known but wrong balls loaded
-                    //   red     → motif known and balls correct (pure red blink while settling)
+                    //   yellow → motif unknown (don't know which ball to fire)
+                    //   red    → all other cases (aligning — driver is committed to shooting)
                     boolean phaseRed = (((int) (_runtime.seconds() / 0.25)) % 2 == 0);
                     Lights.Color nonRedColor;
                     if (isThreeBallMode) {
-                        // All 3 balls fire simultaneously — motif check is irrelevant
                         nonRedColor = Lights.Color.RED;
                     } else {
                         boolean motifKnown = MotifKicking.isFieldMotifKnown(_robot);
-                        boolean ballsMatch = MotifKicking.currentBallsMatchFieldMotif(_robot);
                         if (!motifKnown) {
                             nonRedColor = Lights.Color.YELLOW;
-                        } else if (!ballsMatch) {
-                            nonRedColor = Lights.Color.WHITE;
                         } else {
                             nonRedColor = Lights.Color.RED;
                         }

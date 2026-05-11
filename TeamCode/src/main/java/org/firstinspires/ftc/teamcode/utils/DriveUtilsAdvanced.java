@@ -47,7 +47,7 @@ public class DriveUtilsAdvanced {
     public static double ALIGN_PID_KS_END_DEG = 1.0; // no static push inside this range, prevents close wiggle
     public static double ALIGN_PID_MAX_POWER = 0.65;
     public static double ALIGN_PID_MAX_ACCEL = 0.12;         // max turn-power change per loop
-    public static double ALIGN_FALLBACK_MAX_POWER = 0.15;    // speed cap while searching for goal tag; lower = less overshoot on acquisition
+    public static double ALIGN_FALLBACK_MAX_POWER = 0.30;    // speed cap while searching for goal tag; lower = less overshoot on acquisition
     public static double ALIGN_TARGET_DEG = 1.5;
     public static double ALIGN_INTEGRAL_LIMIT = 120.0;
     public static int ALIGN_STABLE_LOOPS = 4;
