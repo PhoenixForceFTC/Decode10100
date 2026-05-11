@@ -195,8 +195,8 @@ public class TeleOp_State_Red extends LinearOpMode {
 
         // Kick-completion detection: restart intake when sequence finishes
         boolean wasKicking = false;
-        // Rising-edge tracker for "ready to shoot" rumble alert
-        boolean wasReadyToShoot = false;
+        // Set true when kick ends; cleared once shooter is back at speed (post-kick ready rumble)
+        boolean postKickWaiting = false;
 
         _robot.init(robotVersion);
         telemetry.addData("location string in teleopState", Location.GetPose());
@@ -207,13 +207,6 @@ public class TeleOp_State_Red extends LinearOpMode {
         RisingEdge g1RE = new RisingEdge();
         RisingEdge g2RE = new RisingEdge();
 
-        // --- Rumble effects (built once; reused every shot) ---
-        // Two sharp bursts separated by a brief gap — clearly distinct from the blip patterns.
-        Gamepad.RumbleEffect shotRumbleEffect = new Gamepad.RumbleEffect.Builder()
-                .addStep(1.0, 1.0, 200)   // full-power burst
-                .addStep(0.0, 0.0,  80)   // brief gap
-                .addStep(1.0, 1.0, 200)   // second burst
-                .build();
 
         //------------------------------------------------------------------------------------------
         //--- Display and wait for the game to start (driver presses START)
@@ -288,6 +281,8 @@ public class TeleOp_State_Red extends LinearOpMode {
                 if (!isThreeBallMode && (!MotifKicking.isFieldMotifKnown(_robot)
                         || !MotifKicking.currentBallsMatchFieldMotif(_robot))) {
                     _kickMotif.setKickLeftToRightSequential();
+                    gamepad1.rumbleBlips(1);
+                    gamepad2.rumbleBlips(1);
                 } else {
                     _kickMotif.setKick(isThreeBallMode);
                 }
@@ -297,15 +292,13 @@ public class TeleOp_State_Red extends LinearOpMode {
             // Rising/falling-edge: kick sequence start and end
             boolean isKickingNow = _kickMotif.isKicking();
             if (!wasKicking && isKickingNow) {
-                // Kick just started — two-burst rumble on both controllers.
-                // runRumbleEffect() replaces any active rumble, so no isRumbling() guard needed here;
-                // the shot confirmation should always win over anything currently playing.
-                gamepad1.runRumbleEffect(shotRumbleEffect);
-                gamepad2.runRumbleEffect(shotRumbleEffect);
+                gamepad1.rumbleBlips(1);
+                gamepad2.rumbleBlips(1);
             }
             if (wasKicking && !isKickingNow) {
                 // Kick sequence finished — clear ball detection so auto-intake restarts
                 _robot.intake.clearAllSensorValues();
+                postKickWaiting = true;
             }
             wasKicking = isKickingNow;
 
@@ -353,9 +346,11 @@ public class TeleOp_State_Red extends LinearOpMode {
                         && readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed)) {
                     if (!isThreeBallMode && (!MotifKicking.isFieldMotifKnown(_robot)
                             || !MotifKicking.currentBallsMatchFieldMotif(_robot))) {
-                        // Motif unknown or wrong balls — fire sequential
+                        // Motif unknown or wrong balls — fire sequential, warn driver
                         _kickMotif.setKickLeftToRightSequential();
                         autoFireArmed = false;
+                        gamepad1.rumbleBlips(1);
+                        gamepad2.rumbleBlips(1);
                     } else if (!isThreeBallMode
                             && MotifKicking.intakeMotifFromRobot(_robot) == MotifKicking.Motif.INVALID
                             && !autoFireBlipped) {
@@ -378,6 +373,8 @@ public class TeleOp_State_Red extends LinearOpMode {
                     if (!isThreeBallMode && (!MotifKicking.isFieldMotifKnown(_robot)
                             || !MotifKicking.currentBallsMatchFieldMotif(_robot))) {
                         _kickMotif.setKickLeftToRightSequential();
+                        gamepad1.rumbleBlips(1);
+                        gamepad2.rumbleBlips(1);
                     } else {
                         // On release, fire whatever arrangement is readable; INVALID falls back to GPP default
                         _kickMotif.setKick(isThreeBallMode);
@@ -494,6 +491,11 @@ public class TeleOp_State_Red extends LinearOpMode {
                     && _robot.intake._middleBallColor != Intake_Incomplete.BallColor.UNKNOWN
                     && _robot.intake._rightBallColor != Intake_Incomplete.BallColor.NONE
                     && _robot.intake._rightBallColor != Intake_Incomplete.BallColor.UNKNOWN;
+            // Rumble both controllers the moment all 3 balls are first detected.
+            if (all3 && !wasAll3) {
+                gamepad1.rumbleBlips(1);
+                gamepad2.rumbleBlips(1);
+            }
             // Guard: !overrideBallDistanceDetection prevents re-triggering after the sensor averages
             // are cleared below — colors go to NONE briefly, wasAll3 resets, and without this guard
             // the blip would fire again as soon as the sensors re-detect all 3 balls.
@@ -504,9 +506,6 @@ public class TeleOp_State_Red extends LinearOpMode {
                 // Reset rolling averages so sensor reads after the blip reflect new ball positions.
                 // Lights will update within a few loops as fresh readings rebuild the averages.
                 _robot.intake.clearAllSensorValues();
-                // Notify both drivers that all 3 balls are loaded
-                if (!gamepad1.isRumbling()) gamepad1.rumbleBlips(1);
-                if (!gamepad2.isRumbling()) gamepad2.rumbleBlips(1);
             }
             wasAll3 = all3;
 
@@ -521,15 +520,12 @@ public class TeleOp_State_Red extends LinearOpMode {
                 overrideBallDistanceDetection = false;
             }
 
-            // "Ready to shoot" rising-edge rumble: short buzz on G1 so the driver knows to hold still.
-            // Only fires while the trigger is held (alignment active) and won't override an in-progress
-            // shot rumble or blip (guarded by isRumbling()).
-            boolean isReadyNow = _driveUtilsAdvanced.isAligning
-                    && readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed);
-            if (isReadyNow && !wasReadyToShoot) {
-                if (!gamepad1.isRumbling()) gamepad1.rumble(0.5, 0.5, 150);
+            // Post-kick ready rumble: once after a kick sequence ends and shooter is back at speed.
+            if (postKickWaiting && readyToShoot(isThreeBallMode, shooterSpeedRpm, shooterSpeedRpm3Ball, shooterSpeed)) {
+                gamepad1.rumbleBlips(1);
+                gamepad2.rumbleBlips(1);
+                postKickWaiting = false;
             }
-            wasReadyToShoot = isReadyNow;
 
             //------------------------------------------------------------------------------------------
             //--- Alignment Light Override
