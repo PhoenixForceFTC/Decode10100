@@ -110,6 +110,7 @@ public class Intake_Incomplete
     private boolean is3Found = false;
     private boolean isNunFound = false;
     private boolean _wasAll3Detected = false;
+    private boolean _threeBallRumbleSuppressed = false; // true after rumble fires; reset when all balls are shot
     private boolean _all3WasActive = false;    // tracks previous all3 state for the reverse delay
     private final ElapsedTime _all3Timer = new ElapsedTime();
 
@@ -487,11 +488,17 @@ public class Intake_Incomplete
 
     private void updateThreeBallRumble() {
         boolean all3Detected = isAll3Detected();
-        if (all3Detected && !_wasAll3Detected) {
+        if (all3Detected && !_wasAll3Detected && !_threeBallRumbleSuppressed) {
             _gamepad.rumble(1.0, 1.0, THREE_BALL_RUMBLE_MS);
             _gamepad2.rumble(1.0, 1.0, THREE_BALL_RUMBLE_MS);
+            _threeBallRumbleSuppressed = true;
         }
         _wasAll3Detected = all3Detected;
+    }
+
+    /** Call after all kickers have fired to allow the 3-ball rumble to fire again on the next load. */
+    public void resetThreeBallRumble() {
+        _threeBallRumbleSuppressed = false;
     }
 
     //--- Get detected ball colors

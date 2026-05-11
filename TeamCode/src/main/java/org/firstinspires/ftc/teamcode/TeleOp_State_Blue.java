@@ -281,9 +281,11 @@ public class TeleOp_State_Blue extends LinearOpMode {
             // Rising/falling-edge: kick sequence start and end
             boolean isKickingNow = _kickMotif.isKicking();
             if (wasKicking && !isKickingNow) {
-                // Kick sequence finished — stop the long rumble and clear ball detection
+                // Kick sequence finished — stop the long rumble, clear ball detection,
+                // and allow the 3-ball loaded rumble to fire again on the next intake.
                 gamepad1.stopRumble();
                 _robot.intake.clearAllSensorValues();
+                _robot.intake.resetThreeBallRumble();
             }
             wasKicking = isKickingNow;
 
