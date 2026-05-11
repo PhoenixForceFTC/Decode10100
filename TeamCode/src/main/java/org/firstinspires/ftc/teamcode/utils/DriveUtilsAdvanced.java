@@ -55,7 +55,7 @@ public class DriveUtilsAdvanced {
     public static double ALIGN_PID_MAX_POWER = 0.65;
     public static double ALIGN_PID_MAX_ACCEL = 0.12;         // max turn-power change per loop
     public static double ALIGN_FALLBACK_MAX_POWER = 0.15;    // speed cap while searching for goal tag; lower = less overshoot on acquisition
-    public static double ALIGN_TARGET_DEG = 1.0;
+    public static double ALIGN_TARGET_DEG = 1.5;
     public static double ALIGN_INTEGRAL_LIMIT = 120.0;
     public static int ALIGN_STABLE_LOOPS = 4;
     public static double ALIGN_MANUAL_YAW_OVERRIDE = 0.08;
@@ -124,9 +124,9 @@ public class DriveUtilsAdvanced {
 
     double adjustmentDegrees(){//higher value will turn it more clockwise
         if(isBlue){
-            return 2; // 2° clockwise offset for blue alliance goal tag
+            return -2; // 2° counter-clockwise offset for blue alliance goal tag
         }else{
-            return -2; // 2° counter-clockwise offset for red alliance goal tag
+            return 0; // no offset for red alliance
         }
      };
     public DriveUtilsAdvanced(HardwareMap hardwareMap, Pose2d pose, Drive drive,LimelightHardware2Axis limelightHardware2Axis,
@@ -367,31 +367,38 @@ public class DriveUtilsAdvanced {
                 _alignFirstLoop = true;
                 // Goal tag not visible. Rotate toward goal using the best available source:
                 //
-                //  Tier 1 — MegaTag field position: if the Limelight sees ANY other field tag
-                //            (obelisk 21/22/23, etc.) it produces a full field-frame robot pose.
-                //            We compute the exact bearing from that pose to the goal — far more
-                //            accurate than dead-wheel odometry, which drifts over time. Once the
-                //            robot is facing the goal, the goal tag enters the FOV and the PID
-                //            takes over immediately with direct camera tx data.
+                //  Tier 1 — MegaTag position + Pinpoint heading:
+                //            Any visible field tag (obelisk 21/22/23, etc.) gives a full
+                //            field-frame robot position via MegaTag. We compute the exact bearing
+                //            from that position to the goal (no drift — absolute field coords),
+                //            then compare against the Pinpoint IMU heading (more stable than the
+                //            MegaTag visual heading estimate). Best of both sensors.
                 //
-                //  Tier 2 — Odometry calcDif: no tags at all visible — dead-wheel fallback only.
+                //  Tier 2 — Pinpoint heading + dead-wheel position (calcDif):
+                //            No tags visible at all. Uses Pinpoint IMU heading (no drift) and
+                //            dead-wheel field position (slight drift over match). Already
+                //            incorporated via calcDif = heading - getTargetHeading(x4, y4).
                 double fallbackTarget;
                 if (Math.abs(gamepad.right_stick_x) > ALIGN_MANUAL_YAW_OVERRIDE) {
                     fallbackTarget = 0; // driver manually overriding rotation — don't fight them
                 } else {
                     Pose2D cameraPos = limelightHardware2Axis.getRobotPos(null);
                     if (cameraPos != null) {
-                        // Tier 1: MegaTag — compute exact bearing to goal from field-frame pose.
+                        // Tier 1: MegaTag position + Pinpoint heading.
+                        // getRobotPos() returns FTC field coordinates. Convert to the x4/y4 system
+                        // (the same offset+flip that setVars applies to the Road Runner pose) so the
+                        // goal constants (11.82, 14.55) are in the same coordinate space.
                         double camX = cameraPos.getX(DistanceUnit.INCH);
                         double camY = cameraPos.getY(DistanceUnit.INCH);
-                        double camHeading = cameraPos.getHeading(AngleUnit.RADIANS);
-                        double tgtHeading = getTargetHeading(camY - 14.55098425, camX - 11.82122047);
-                        double megaTagErr = camHeading - tgtHeading;
+                        double camX4 = 72.0 + camX;
+                        double camY4 = isBlue ? 72.0 + camY : 72.0 - camY;
+                        double tgtHeading = getTargetHeading(camY4 - 14.55098425, camX4 - 11.82122047);
+                        double megaTagErr = heading - tgtHeading; // heading = Pinpoint IMU heading
                         while (megaTagErr >  Math.PI) megaTagErr -= 2 * Math.PI;
                         while (megaTagErr < -Math.PI) megaTagErr += 2 * Math.PI;
                         fallbackTarget = clamp(megaTagErr * 0.4, -ALIGN_FALLBACK_MAX_POWER, ALIGN_FALLBACK_MAX_POWER);
                     } else {
-                        // Tier 2: no tags visible at all — dead-wheel odometry estimate.
+                        // Tier 2: no tags visible — Pinpoint heading + dead-wheel position estimate.
                         fallbackTarget = clamp(calcDif * 0.4, -ALIGN_FALLBACK_MAX_POWER, ALIGN_FALLBACK_MAX_POWER);
                     }
                 }

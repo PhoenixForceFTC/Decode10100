@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.utils.RollingAverage;
@@ -45,7 +46,8 @@ public class Intake_Incomplete
     private static final double PURPLE_BG_THRESHOLD = 0.85; // G/R must exceed this for purple
     private static final double PURPLE_GR_MAX = 1.8; // G/R must be below this for purple
     private static final double BALL_LOSS_THRESHOLD_MULTIPLIER = 1.2;
-    public static double MIN_BALL_BRIGHTNESS = 150.0; // sum of R+G+B; below = ambient, not a ball
+    public static double MIN_BALL_BRIGHTNESS = 300.0; // sum of R+G+B; below = ambient, not a ball (tune via Dashboard)
+    public static double AUTO_REVERSE_DELAY_SEC = 0.75; // seconds to wait after all 3 balls detected before auto-outtake
     private static final int THREE_BALL_RUMBLE_MS = 500;
     private static int loopCount = 0;
 
@@ -108,6 +110,8 @@ public class Intake_Incomplete
     private boolean is3Found = false;
     private boolean isNunFound = false;
     private boolean _wasAll3Detected = false;
+    private boolean _all3WasActive = false;    // tracks previous all3 state for the reverse delay
+    private final ElapsedTime _all3Timer = new ElapsedTime();
 
     //endregion
 
@@ -187,18 +191,32 @@ public class Intake_Incomplete
                        _middleBallColor != BallColor.NONE && _middleBallColor != BallColor.UNKNOWN &&
                        _rightBallColor != BallColor.NONE && _rightBallColor != BallColor.UNKNOWN;
 
-        if (_gamepad2.left_trigger > 0.2) {
-            forward();       // manual outtake override
+        if (_gamepad.left_stick_button) {
+            forward();       // G1 left stick click: manual outtake override
+        } else if (_gamepad.right_stick_button) {
+            backward();      // G1 right stick click: manual intake override
+        } else if (_gamepad2.left_trigger > 0.2) {
+            forward();       // G2 left trigger: manual outtake override
         } else if (_gamepad2.right_trigger > 0.2) {
-            backward();      // manual intake override
+            backward();      // G2 right trigger: manual intake override
         } else if (_gamepad2.b) {
             stop();
             restoreLights();
         } else if (all3) {
-            forward();       // auto: all 3 loaded → outtake to shooter position
+            // Auto-reverse: wait AUTO_REVERSE_DELAY_SEC after all 3 are first detected,
+            // then outtake. Stops intake during the delay so the robot holds the loaded balls.
+            if (!_all3WasActive) {
+                _all3Timer.reset();
+            }
+            if (_all3Timer.seconds() >= AUTO_REVERSE_DELAY_SEC) {
+                forward();   // auto: delay elapsed → outtake to shooter position
+            } else {
+                stop();      // auto: holding balls during delay
+            }
         } else {
             backward();      // auto: fewer than 3 → keep intaking
         }
+        _all3WasActive = all3;
 //        if (_gamepad2.y && _gamepad2.left_stick_y > 0.5){
 //            intakePower = Math.min(1, intakePower + 0.005);
 //        } else if (_gamepad2.y && _gamepad2.left_stick_y < -0.5){

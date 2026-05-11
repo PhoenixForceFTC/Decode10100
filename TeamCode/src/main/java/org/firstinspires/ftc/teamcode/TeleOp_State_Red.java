@@ -72,7 +72,7 @@ public class TeleOp_State_Red extends LinearOpMode {
     public static double SHOOTER_READY_RATIO = 0.98;
     // Angle tolerance for auto-fire: shoot if within this many degrees when trigger is released
     // (or while trigger is held once aligned). Wider than ALIGN_TARGET_DEG on purpose.
-    public static double SHOOT_TOLERANCE_DEG = 1.0;
+    public static double SHOOT_TOLERANCE_DEG = 1.5;
     public static double ODOMETRY_SPEED_BLEND = 0.65;
     public static int ODOMETRY_RPM_MIN = 0;
     public static int ODOMETRY_RPM_MAX = 6000;
