@@ -32,10 +32,20 @@ public class RisingEdge
             case "left_bumper":  return g.left_bumper;
             case "right_bumper": return g.right_bumper;
 
+            case "left_trigger":  return g.left_trigger  > 0.2f;
+            case "right_trigger": return g.right_trigger > 0.2f;
+
             case "dpad_up":    return g.dpad_up;
             case "dpad_down":  return g.dpad_down;
             case "dpad_left":  return g.dpad_left;
             case "dpad_right": return g.dpad_right;
+
+            case "left_stick_button":  return g.left_stick_button;
+            case "right_stick_button": return g.right_stick_button;
+
+            case "ps":      return g.ps;
+            case "share":   return g.share;
+            case "options": return g.options;
 
             default: return false;
         }

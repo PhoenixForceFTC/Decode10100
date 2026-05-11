@@ -56,11 +56,11 @@ public class Kickstand
     public boolean run()
     {
         // when button pressed
-        if(_gamepad.dpad_down && !button_was_pressed){
+        if(_gamepad.right_stick_button && !button_was_pressed){
             to_kick = !to_kick; // toggle deployed state
             button_was_pressed = true;
             _kickstand.setTargetPosition(to_kick ? KICKED : UNKICKED);
-        } else if (!_gamepad.dpad_down && button_was_pressed) {
+        } else if (!_gamepad.right_stick_button && button_was_pressed) {
             button_was_pressed = false;
         }
 

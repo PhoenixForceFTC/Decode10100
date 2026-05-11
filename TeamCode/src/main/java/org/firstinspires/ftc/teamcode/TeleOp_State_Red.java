@@ -341,7 +341,7 @@ public class TeleOp_State_Red extends LinearOpMode {
             if (alignTriggered) {
                 if (!wasAlignTriggered) {
                     // First loop of trigger press only: arm auto-fire and enable auto-speed.
-                    // Doing this once prevents the trigger from overriding G1 X (auto-speed toggle)
+                    // Doing this once prevents the trigger from overriding G2 X (auto-speed toggle)
                     // every loop while held.
                     autoFireArmed = true;
                     autoFireBlipped = false;
@@ -394,17 +394,18 @@ public class TeleOp_State_Red extends LinearOpMode {
                 _driveUtilsAdvanced.endAutoAlign();
             }
 
-            // G1 right bumper: cancel alignment at any time
-            if (g1RE.RisingEdgeButton(gamepad1, "right_bumper")) {
-                _driveUtilsAdvanced.endAutoAlign();
-            }
 
-            // G1 B: toggle auto-align assist on/off (does NOT block trigger auto-shoot)
-            if (g1RE.RisingEdgeButton(gamepad1, "b")) {
+            // G2 left stick click: toggle auto-align assist on/off (does NOT block trigger auto-shoot)
+            if (g2RE.RisingEdgeButton(gamepad2, "left_stick_button")) {
                 autoAlignEnabled = !autoAlignEnabled;
                 if (!autoAlignEnabled) {
                     _driveUtilsAdvanced.endAutoAlign();
                 }
+            }
+
+            // G2 right stick click: toggle auto-speed on/off
+            if (g2RE.RisingEdgeButton(gamepad2, "right_stick_button")) {
+                isAutoSpeed = !isAutoSpeed;
             }
 
             _driveUtilsAdvanced.driveMecanum(gamepad1, _robot.kickers);
@@ -446,9 +447,6 @@ public class TeleOp_State_Red extends LinearOpMode {
                 shooterSpeedRpm3Ball = blendPresetWithOdometry(presetThreeBallRpm, odometryThreeBallRpm(dist));
             }
 
-            if (g1RE.RisingEdgeButton(gamepad1, "x")) {
-                isAutoSpeed = !isAutoSpeed;
-            }
             if (g2RE.RisingEdgeButton(gamepad2, "y")) {
                 robotPosition = position.Close;
                 presetThreeBallRpm = SPEED_3BALL_CLOSE;
@@ -472,9 +470,6 @@ public class TeleOp_State_Red extends LinearOpMode {
                 shooterSpeedRpm3Ball = presetThreeBallRpm;
                 shooterSpeedRpm = presetOneBallRpm;
                 if (!gamepad2.isRumbling()) gamepad2.rumbleBlips(3); // 3 blips = Far
-            }
-            if (gamepad2.b) {
-                _robot.intake.stop();
             }
             if (g1RE.RisingEdgeButton(gamepad1, "y")) {
                 isThreeBallMode = !isThreeBallMode;
@@ -515,7 +510,7 @@ public class TeleOp_State_Red extends LinearOpMode {
             }
             wasAll3 = all3;
 
-            if (g1RE.RisingEdgeButton(gamepad1, "dpad_up")) {
+            if (g1RE.RisingEdgeButton(gamepad1, "ps")) {
                 _robot.kickers.kickMiddle();
                 overrideBallDistanceDetection = true;
                 overrideTimer.reset();

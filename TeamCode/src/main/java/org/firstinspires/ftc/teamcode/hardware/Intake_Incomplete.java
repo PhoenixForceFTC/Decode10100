@@ -193,12 +193,8 @@ public class Intake_Incomplete
 
         if (_gamepad.left_stick_button) {
             forward();       // G1 left stick click: manual outtake override
-        } else if (_gamepad.right_stick_button) {
-            backward();      // G1 right stick click: manual intake override
-        } else if (_gamepad2.left_trigger > 0.2) {
-            forward();       // G2 left trigger: manual outtake override
-        } else if (_gamepad2.right_trigger > 0.2) {
-            backward();      // G2 right trigger: manual intake override
+        } else if (_gamepad.share) {
+            backward();      // G1 M2: manual intake override
         } else if (_gamepad2.b) {
             stop();
             restoreLights();
