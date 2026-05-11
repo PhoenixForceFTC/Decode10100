@@ -5,7 +5,6 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.hardware.Intake_Incomplete;
@@ -207,14 +206,6 @@ public class TeleOp_State_Blue extends LinearOpMode {
         RisingEdge g1RE = new RisingEdge();
         RisingEdge g2RE = new RisingEdge();
 
-        // --- Rumble effects (built once; reused every shot) ---
-        // Two sharp bursts separated by a brief gap — clearly distinct from the blip patterns.
-        Gamepad.RumbleEffect shotRumbleEffect = new Gamepad.RumbleEffect.Builder()
-                .addStep(1.0, 1.0, 200)   // full-power burst
-                .addStep(0.0, 0.0,  80)   // brief gap
-                .addStep(1.0, 1.0, 200)   // second burst
-                .build();
-
         //------------------------------------------------------------------------------------------
         //--- Display and wait for the game to start (driver presses START)
         //------------------------------------------------------------------------------------------
@@ -297,11 +288,8 @@ public class TeleOp_State_Blue extends LinearOpMode {
             // Rising/falling-edge: kick sequence start and end
             boolean isKickingNow = _kickMotif.isKicking();
             if (!wasKicking && isKickingNow) {
-                // Kick just started — two-burst rumble on both controllers.
-                // runRumbleEffect() replaces any active rumble, so no isRumbling() guard needed here;
-                // the shot confirmation should always win over anything currently playing.
-                gamepad1.runRumbleEffect(shotRumbleEffect);
-                gamepad2.runRumbleEffect(shotRumbleEffect);
+                // Kick just started — single blip on G1 only.
+                gamepad1.rumbleBlips(1);
             }
             if (wasKicking && !isKickingNow) {
                 // Kick sequence finished — clear ball detection so auto-intake restarts
@@ -346,6 +334,10 @@ public class TeleOp_State_Blue extends LinearOpMode {
                     autoFireArmed = true;
                     autoFireBlipped = false;
                     isAutoSpeed = true;
+                    // Warn G1 driver if fewer than 3 balls are loaded when auto-shoot starts.
+                    if (!_robot.intake.isAll3Detected()) {
+                        gamepad1.rumbleBlips(1);
+                    }
                 }
                 _driveUtilsAdvanced.autoAlign();
                 // Auto-fire: once aligned within SHOOT_TOLERANCE_DEG and shooter is ready, fire once.
@@ -504,9 +496,6 @@ public class TeleOp_State_Blue extends LinearOpMode {
                 // Reset rolling averages so sensor reads after the blip reflect new ball positions.
                 // Lights will update within a few loops as fresh readings rebuild the averages.
                 _robot.intake.clearAllSensorValues();
-                // Notify both drivers that all 3 balls are loaded
-                if (!gamepad1.isRumbling()) gamepad1.rumbleBlips(1);
-                if (!gamepad2.isRumbling()) gamepad2.rumbleBlips(1);
             }
             wasAll3 = all3;
 
