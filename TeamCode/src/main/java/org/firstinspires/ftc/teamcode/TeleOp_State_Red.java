@@ -318,7 +318,7 @@ public class TeleOp_State_Red extends LinearOpMode {
             //--- Camera & Localizer
             //------------------------------------------------------------------------------------------
             _driveUtilsAdvanced.updateCameraPitch();
-            _robot.limelightHardware2Axis.loop();
+            _robot.limelightHardware2Axis.loop(_driveUtilsAdvanced.getHeadingDegrees());
             _robot.limelightHardware2Axis.servos();
             LimelightHardware2Axis.Motif savedMotif =
                     _robot.limelightHardware2Axis.updateStoredGameMotif(!isThreeBallMode);

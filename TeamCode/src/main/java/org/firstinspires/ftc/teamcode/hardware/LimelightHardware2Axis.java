@@ -228,8 +228,8 @@ public class LimelightHardware2Axis
 
         Pose2D botPose = new Pose2D(
                 DistanceUnit.INCH,
-                pivotPose.getX(DistanceUnit.INCH)-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS)*cameraLeftRight),
-                pivotPose.getY(DistanceUnit.INCH)-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack+Math.cos(pivotPose.getHeading(AngleUnit.RADIANS)*cameraLeftRight),
+                pivotPose.getX(DistanceUnit.INCH)-Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraLeftRight,
+                pivotPose.getY(DistanceUnit.INCH)-Math.sin(pivotPose.getHeading(AngleUnit.RADIANS))*cameraFrontBack+Math.cos(pivotPose.getHeading(AngleUnit.RADIANS))*cameraLeftRight,
                 AngleUnit.RADIANS,
                 cameraPose.getOrientation().getYaw(AngleUnit.RADIANS)-Math.toRadians(mechanismYaw)// this is yaw
         );
@@ -386,10 +386,9 @@ public class LimelightHardware2Axis
 //    }
 
 
-    public void loop(){
-        YawPitchRollAngles orientation = _IMU.getRobotYawPitchRollAngles();
-        //TODO: what does this do
-        _limelight.updateRobotOrientation(orientation.getYaw());
+    /** Preferred overload: pass Pinpoint IMU heading (degrees) for drift-free MegaTag orientation. */
+    public void loop(double pinpointHeadingDegrees){
+        _limelight.updateRobotOrientation(pinpointHeadingDegrees);
 
         //LLResult templlResult= _limelight.getLatestResult();
         _latestLLResult = _limelight.getLatestResult();
@@ -444,7 +443,14 @@ public class LimelightHardware2Axis
         }
 
     }
-    
+
+    /** Fallback overload for callers (autos, test TeleOps) that don't have Pinpoint access.
+     *  Uses the REV hub IMU — acceptable for non-alignment contexts. */
+    public void loop(){
+        YawPitchRollAngles orientation = _IMU.getRobotYawPitchRollAngles();
+        loop(orientation.getYaw());
+    }
+
     // gets robot position based on last stored off LLResult
     public Pose2D getRobotPos(Canvas canvas){
         return getRobotPos(_latestLLResult,canvas);

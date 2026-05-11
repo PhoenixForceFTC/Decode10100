@@ -39,13 +39,6 @@ import java.util.List;
 //turn faster
 @Config
 public class DriveUtilsAdvanced {
-    // --- Alignment tuning (edit here OR live-tune via FTC Dashboard) ---
-    public static double ALIGN_KP = 0.7;         // proportional gain: deg → turn power
-    public static double ALIGN_KD = 0.003;       // derivative gain: damps oscillations
-    public static double ALIGN_MIN_POWER = 0.07; // minimum power to overcome static friction
-    public static double ALIGN_FINE_DEG = 8;   // within this angle → stop turning (done)
-    // -------------------------------------------------------------------
-
     // PD state — reset each time alignment starts/ends
     public static double ALIGN_PID_KP = 0.035;       // degrees -> turn power
     public static double ALIGN_PID_KI = 0.0;         // keep 0 unless the robot consistently stops off-center
@@ -91,6 +84,10 @@ public class DriveUtilsAdvanced {
     FtcDashboard dashboard = FtcDashboard.getInstance();
     private boolean isBlue = false;
     public boolean isAligning = false;
+    // Last known MegaTag robot position (FTC field coords). Updated whenever getRobotPos() returns
+    // non-null during fallback. Used as a position cache so we don't fall all the way back to pure
+    // odometry just because the obelisk tags left FOV as the robot rotates toward the goal.
+    private Pose2D _lastMegaTagPos = null;
     // Throttle counter — dashboard/telemetry spam is sent every N loops only.
     private int _telemetryThrottle = 0;
     private static final int TELEMETRY_EVERY_N_LOOPS = 5;
@@ -314,9 +311,6 @@ public class DriveUtilsAdvanced {
                 // the camera can clearly see the goal tag — which would otherwise block alignment
                 // and leave the robot stationary.
                 returnn = autoAlignViaLLandPower(gamepad, calcDif);
-            } else if (calcDif > Math.PI / 2 || calcDif < -Math.PI / 2) {
-                // Robot is facing away from goal (odometry) and not aligning — pass driver input through.
-                drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, yawImportant);
             } else {
                 drive.arcadeDriveSpeedControl2(gamepad.left_stick_x, -gamepad.left_stick_y, gamepad.right_stick_x, yawImportant);
             }
@@ -340,7 +334,11 @@ public class DriveUtilsAdvanced {
             //distBreakdown = null; // temp todo: can we just use
             double angleToTurnFromCamera = limelightHardware2Axis.getTxDegreesForId(this.targetTagId);
             calcDif += Math.toRadians(adjustmentDegrees());
-            angleToTurnFromCamera += adjustmentDegrees();
+            // Add alliance aim offset AND camera yaw servo angle so the error is always expressed
+            // in the robot's forward frame, not the camera's frame. When yaw servo = 0 (always
+            // during alignment) getCameraYawAngle() = 0 and this has no effect. If the servo is
+            // ever used while aligning, the tx angle is still correctly robot-referenced.
+            angleToTurnFromCamera += adjustmentDegrees() + limelightHardware2Axis.getCameraYawAngle();
             // Store AFTER applying the adjustment so readyToShoot() compares against the same
             // reference frame the alignment logic uses. Storing pre-adjustment caused readyToShoot()
             // to see e.g. 2.5° while the alignment logic saw 0.5° (adjusted), blocking auto-fire
@@ -357,7 +355,7 @@ public class DriveUtilsAdvanced {
                     return false;
                 }
             }
-            if(angleToTurnFromCamera > (double)120.0){
+            if(Math.abs(angleToTurnFromCamera) > 120.0){
                 _alignStableLoops = 0;
                 // Note: _lastAlignPower is intentionally NOT reset here — preserving it lets
                 // the accel ramp carry over both from PID→fallback and within the fallback,
@@ -384,21 +382,27 @@ public class DriveUtilsAdvanced {
                 } else {
                     Pose2D cameraPos = limelightHardware2Axis.getRobotPos(null);
                     if (cameraPos != null) {
-                        // Tier 1: MegaTag position + Pinpoint heading.
+                        // Fresh MegaTag fix — update the cache.
+                        _lastMegaTagPos = cameraPos;
+                    }
+                    if (_lastMegaTagPos != null) {
+                        // Tier 1 (fresh) / Tier 1.5 (cached): MegaTag position + Pinpoint heading.
                         // getRobotPos() returns FTC field coordinates. Convert to the x4/y4 system
                         // (the same offset+flip that setVars applies to the Road Runner pose) so the
                         // goal constants (11.82, 14.55) are in the same coordinate space.
-                        double camX = cameraPos.getX(DistanceUnit.INCH);
-                        double camY = cameraPos.getY(DistanceUnit.INCH);
+                        // adjustmentDegrees() corrects for the camera mounting offset so this tier
+                        // converges to the same heading the goal-tag PID considers "aligned".
+                        double camX = _lastMegaTagPos.getX(DistanceUnit.INCH);
+                        double camY = _lastMegaTagPos.getY(DistanceUnit.INCH);
                         double camX4 = 72.0 + camX;
                         double camY4 = isBlue ? 72.0 + camY : 72.0 - camY;
                         double tgtHeading = getTargetHeading(camY4 - 14.55098425, camX4 - 11.82122047);
-                        double megaTagErr = heading - tgtHeading; // heading = Pinpoint IMU heading
+                        double megaTagErr = heading - tgtHeading + Math.toRadians(adjustmentDegrees());
                         while (megaTagErr >  Math.PI) megaTagErr -= 2 * Math.PI;
                         while (megaTagErr < -Math.PI) megaTagErr += 2 * Math.PI;
                         fallbackTarget = clamp(megaTagErr * 0.4, -ALIGN_FALLBACK_MAX_POWER, ALIGN_FALLBACK_MAX_POWER);
                     } else {
-                        // Tier 2: no tags visible — Pinpoint heading + dead-wheel position estimate.
+                        // Tier 2: no tags visible and no cached position — Pinpoint heading + dead-wheel position estimate.
                         fallbackTarget = clamp(calcDif * 0.4, -ALIGN_FALLBACK_MAX_POWER, ALIGN_FALLBACK_MAX_POWER);
                     }
                 }
@@ -503,6 +507,7 @@ public class DriveUtilsAdvanced {
         _alignStableLoops = 0;
         _lastAlignErrorDeg = 180.0; // reset so stale error can't trigger premature auto-fire next press
         _alignDtTimer.reset();
+        _lastMegaTagPos = null; // clear cached position so next align starts fresh
     }
 
     /** Returns the camera Tx angle (degrees) to the goal tag. 0 = perfectly centered. */
@@ -511,12 +516,21 @@ public class DriveUtilsAdvanced {
     }
 
     public boolean isAlignedToGoal() {
-        double angle = getAlignmentAngle();
+        // Apply the same corrections used inside autoAlignViaLLandPower: alliance aim offset
+        // plus camera yaw servo angle so this reports true under identical conditions.
+        double angle = getAlignmentAngle() + adjustmentDegrees() + limelightHardware2Axis.getCameraYawAngle();
         return Math.abs(angle) <= ALIGN_TARGET_DEG && _alignStableLoops >= ALIGN_STABLE_LOOPS;
     }
 
     public boolean hasGoalTag() {
-        return Math.abs(getAlignmentAngle()) < 120.0;
+        // Use the same robot-frame angle as alignment logic.
+        double angle = getAlignmentAngle() + limelightHardware2Axis.getCameraYawAngle();
+        return Math.abs(angle) < 120.0;
+    }
+
+    /** Returns the Pinpoint IMU heading in degrees, for feeding to Limelight updateRobotOrientation(). */
+    public double getHeadingDegrees() {
+        return Math.toDegrees(heading);
     }
 
     public double getLastAlignErrorDeg() {
