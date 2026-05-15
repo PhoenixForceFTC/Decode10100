@@ -49,6 +49,8 @@ import org.firstinspires.ftc.teamcode.utils.RisingEdge;
 //  - Right Bumper      - Shooter RPM +10
 //  - Left Bumper       - Shooter RPM -10
 //
+//  - Right Stick X     - Camera yaw (left/right pan); center = camera straight ahead
+//
 //  - B (○)             - Stop intake
 //  - Y (▲)             - Speed preset: Close  (2090 / 2280 RPM)
 //  - X (■)             - Speed preset: Medium (2430 / 2650 RPM)
@@ -298,6 +300,11 @@ public class TeleOp_State_Red extends LinearOpMode {
             //--- Camera & Localizer
             //------------------------------------------------------------------------------------------
             _driveUtilsAdvanced.updateCameraPitch();
+            if (_driveUtilsAdvanced.isAligning) {
+                _robot.limelightHardware2Axis.centerYaw();
+            } else {
+                _robot.limelightHardware2Axis.updateYawFromJoystick();
+            }
             _robot.limelightHardware2Axis.loop(_driveUtilsAdvanced.getHeadingDegrees());
             _robot.limelightHardware2Axis.servos();
             LimelightHardware2Axis.Motif savedMotif =

@@ -35,9 +35,10 @@ public class Intake_Incomplete
 
     //--- Ball Detection Settings (per-sensor distance thresholds)
     //--- Each sensor may have different mounting distances
-    private static final double LEFT_DISTANCE_THRESHOLD_MM = 85.0;    // Left sensor: ball if < 80mm
-    private static final double MIDDLE_DISTANCE_THRESHOLD_MM = 45.0;  // middle sensor: ball if < 80mm
-    private static final double RIGHT_DISTANCE_THRESHOLD_MM = 85.0;   // Right sensor: ball if < 80mm
+    //--- These are public static so they appear in FTC Dashboard for runtime tuning
+    public static double LEFT_DISTANCE_THRESHOLD_MM = 85.0;
+    public static double MIDDLE_DISTANCE_THRESHOLD_MM = 45.0;
+    public static double RIGHT_DISTANCE_THRESHOLD_MM = 85.0;
 
     //--- Averaging settings
     //private static final int AVERAGING_SAMPLES = 5; //Number of samples to average

@@ -52,6 +52,9 @@ public class DriveUtilsAdvanced {
     public static double ALIGN_INTEGRAL_LIMIT = 120.0;
     public static int ALIGN_STABLE_LOOPS = 4;
     public static double ALIGN_MANUAL_YAW_OVERRIDE = 0.08;
+    // Minimum camera yaw (degrees) before Tier 0 kick-in: below this the camera is close enough
+    // to center that MegaTag/Pinpoint fallback is more reliable than the yaw hint.
+    public static double YAW_ALIGN_DEADBAND_DEG = 5.0;
     public static boolean SHOW_DASHBOARD_DEBUG = false;
 
     // --- TeleOp strafe heading-hold assist (does NOT run during auto-align) ---
@@ -88,6 +91,9 @@ public class DriveUtilsAdvanced {
     // non-null during fallback. Used as a position cache so we don't fall all the way back to pure
     // odometry just because the obelisk tags left FOV as the robot rotates toward the goal.
     private Pose2D _lastMegaTagPos = null;
+    // Camera yaw (degrees) at the moment auto-align was first triggered. Snapshotted once so Tier 0
+    // can rotate the robot by this offset even after the camera has been re-centered to yaw = 0.
+    private double _initialAlignYaw = 0.0;
     // Throttle counter — dashboard/telemetry spam is sent every N loops only.
     private int _telemetryThrottle = 0;
     private static final int TELEMETRY_EVERY_N_LOOPS = 5;
@@ -380,6 +386,15 @@ public class DriveUtilsAdvanced {
                 if (Math.abs(gamepad.right_stick_x) > ALIGN_MANUAL_YAW_OVERRIDE) {
                     fallbackTarget = 0; // driver manually overriding rotation — don't fight them
                 } else {
+                    if (Math.abs(_initialAlignYaw) > YAW_ALIGN_DEADBAND_DEG) {
+                        // Tier 0: operator panned the camera toward the goal tag before triggering
+                        // auto-shoot. _initialAlignYaw was snapshotted when alignment started (before
+                        // the camera re-centered). Rotate the robot by that offset so the now-centered
+                        // camera ends up pointing at where the operator was aiming. Once the goal tag
+                        // enters the camera FOV, the PID takes over.
+                        fallbackTarget = clamp(Math.toRadians(_initialAlignYaw) * 0.4,
+                                -ALIGN_FALLBACK_MAX_POWER, ALIGN_FALLBACK_MAX_POWER);
+                    } else {
                     Pose2D cameraPos = limelightHardware2Axis.getRobotPos(null);
                     if (cameraPos != null) {
                         // Fresh MegaTag fix — update the cache.
@@ -405,6 +420,7 @@ public class DriveUtilsAdvanced {
                         // Tier 2: no tags visible and no cached position — Pinpoint heading + dead-wheel position estimate.
                         fallbackTarget = clamp(calcDif * 0.4, -ALIGN_FALLBACK_MAX_POWER, ALIGN_FALLBACK_MAX_POWER);
                     }
+                    } // end Tier 0 else (Tier 1 / Tier 2)
                 }
                 // Apply the same accel ramp used by the PID so the robot ramps up gradually
                 // and — critically — so _lastAlignPower reflects a ramped value when the goal tag
@@ -482,6 +498,10 @@ public class DriveUtilsAdvanced {
             _lastAlignPower = 0;
             _alignStableLoops = 0;
             _alignDtTimer.reset();
+            // Snapshot the camera yaw at the moment alignment starts. The camera will be
+            // re-centered to 0 from the next loop, so this value is read here while it
+            // still reflects the operator's manual pan position.
+            _initialAlignYaw = limelightHardware2Axis.getCameraYawAngle();
         }
         isAligning=true;
     }
@@ -508,6 +528,7 @@ public class DriveUtilsAdvanced {
         _lastAlignErrorDeg = 180.0; // reset so stale error can't trigger premature auto-fire next press
         _alignDtTimer.reset();
         _lastMegaTagPos = null; // clear cached position so next align starts fresh
+        _initialAlignYaw = 0.0;
     }
 
     /** Returns the camera Tx angle (degrees) to the goal tag. 0 = perfectly centered. */
@@ -546,13 +567,12 @@ public class DriveUtilsAdvanced {
     }
 
     public void updateCameraPitch(){
-        // Pitch only — yaw is fixed at 0.
-        // Horizontal panning was removed: it caused a feedback loop where panning moved the goal
-        // tag out of FOV, hasGoalTag() returned false, and the servo panned further in a cycle.
-        // The robot body now rotates toward the goal (MegaTag fallback) instead of the camera.
+        // Pitch only — yaw is controlled separately by G2 right stick via updateYawFromJoystick().
+        // Auto-alignment uses automatic camera-yaw panning (it was removed because it caused a
+        // feedback loop), so alignment keeps yaw at whatever the operator last set.
         double dist = Math.sqrt(x3*x3 + y3*y3);
         double pitchAngle = Math.toDegrees(Math.atan(18.0 / dist));
-        limelightHardware2Axis.setServoAngles(0.0, pitchAngle);
+        limelightHardware2Axis.setPitchAngle(pitchAngle);
 
         if (SHOW_DASHBOARD_DEBUG) {
             telemetry.addData("camera pitch deg", String.format("%.1f", pitchAngle));
