@@ -45,8 +45,6 @@ public class LimelightHardware2Axis
     private double _pitchPosition = _PitchPositionStart;
     private LLResult _latestLLResult = null; // Stores the latest result from the loop
     public static boolean SHOW_LIMELIGHT_DEBUG = false;
-    public static double YAW_MAX_RIGHT_DEG = 40.0;  // max pan right (degrees)
-    public static double YAW_MAX_LEFT_DEG  = 90.0;  // max pan left  (degrees)
 
     // Obelisk motif detected from tags 21/22/23 — set once, persists across TeleOp
     // Tag 21→GPP, 22→PGP, 23→PPG
@@ -353,31 +351,6 @@ public class LimelightHardware2Axis
 
         double rawPitch = pitchAngle / 300.0 + 0.5;
         _pitchPosition = Math.max(0.0, Math.min(1.0, rawPitch));
-    }
-
-    /** Updates only pitch, leaving yaw unchanged. */
-    public void setPitchAngle(double pitchAngle) {
-        double rawPitch = pitchAngle / 300.0 + 0.5;
-        _pitchPosition = Math.max(0.0, Math.min(1.0, rawPitch));
-    }
-
-    /**
-     * Maps G2 right stick X to camera yaw with asymmetric limits.
-     * Stick right (positive) → up to YAW_MAX_RIGHT_DEG; stick left (negative) → up to YAW_MAX_LEFT_DEG.
-     * Stick center = camera straight ahead.
-     */
-    public void updateYawFromJoystick() {
-        double stickX = _gamepad.right_stick_x;
-        double yawDeg = stickX > 0
-                ? stickX * YAW_MAX_RIGHT_DEG
-                : stickX * YAW_MAX_LEFT_DEG;
-        double raw = 0.5 + yawDeg / 300.0;
-        _yawPosition = Math.max(0.0, Math.min(1.0, raw));
-    }
-
-    /** Instantly centers the camera yaw (servo to 0.5). Call each loop while auto-aligning. */
-    public void centerYaw() {
-        _yawPosition = 0.5;
     }
 
     public double getCameraYawAngle() {
